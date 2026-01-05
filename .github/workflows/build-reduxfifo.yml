@@ -4,6 +4,7 @@ on:
   workflow_dispatch:
   push:
     paths:
+      - '.github/**'
       - 'reduxfifo/**'
       - 'ReduxLib/**'
       - 'crates/**'
@@ -52,6 +53,7 @@ jobs:
       - uses: actions-rust-lang/setup-rust-toolchain@v1.13
         with:
           rustflags: "" # just put the artifacts in the bag
+          cache-workspaces: "crates -> crates/target\nreduxfifo -> reduxfifo/target"
       - name: Build maven artifact
         run: echo "$PATH" && cd reduxfifo && cargo xtask --all ${{ matrix.build-options }} -- --no-default-features --features ${{ matrix.reduxfifo-features }}
       - name: Build with Gradle
@@ -102,6 +104,7 @@ jobs:
       - uses: actions-rust-lang/setup-rust-toolchain@v1.13
         with:
           rustflags: ""
+          cache-workspaces: "crates -> crates/target\nreduxfifo -> reduxfifo/target"
       - uses: actions/setup-java@v4
         with:
           distribution: 'temurin'
