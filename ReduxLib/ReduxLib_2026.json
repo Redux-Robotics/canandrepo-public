@@ -2,7 +2,7 @@
   "fileName": "ReduxLib-2026.0.0-beta1.json",
   "name": "ReduxLib",
   "version": "2026.0.0-beta1",
-  "frcYear": "2026",
+  "frcYear": "2026beta",
   "uuid": "151ecca8-670b-4026-8160-cdd2679ef2bd",
   "mavenUrls": [
     "https://maven.reduxrobotics.com/"
