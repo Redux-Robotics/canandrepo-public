@@ -40,6 +40,8 @@ jobs:
     runs-on: ubuntu-22.04
     container: ${{ matrix.container }}
     steps:
+      - name: Install build dependencies
+        run: apt-get update && apt-get install -y build-essential libclang-dev
       - uses: actions/checkout@v4
         with:
           submodules: true
