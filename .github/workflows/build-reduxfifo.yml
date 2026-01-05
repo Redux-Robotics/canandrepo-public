@@ -37,7 +37,8 @@ jobs:
             reduxlib-options: "-Pskiplinuxathena"
 
     name: "Build Vendordep - ${{ matrix.artifact-name }}"
-    runs-on: ${{ matrix.container }}
+    runs-on: ubuntu-22.04
+    container: ${{ matrix.container }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -49,7 +50,6 @@ jobs:
       - uses: actions-rust-lang/setup-rust-toolchain@v1.13
         with:
           rustflags: "" # just put the artifacts in the bag
-          cache: false
       - name: Build maven artifact
         run: echo "$PATH" && cd reduxfifo && cargo xtask --all ${{ matrix.build-options }} -- --no-default-features --features ${{ matrix.reduxfifo-features }}
       - name: Build with Gradle
@@ -100,7 +100,6 @@ jobs:
       - uses: actions-rust-lang/setup-rust-toolchain@v1.13
         with:
           rustflags: ""
-          cache: false
       - uses: actions/setup-java@v4
         with:
           distribution: 'temurin'
