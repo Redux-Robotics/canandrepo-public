@@ -1,0 +1,15 @@
+[package]
+name = "rdxusb-protocol"
+version = "0.2.0"
+description = "Definitions for the Redux CANLink websocket protocol"
+authors.workspace = true
+edition.workspace = true
+documentation.workspace = true
+homepage.workspace = true
+repository.workspace = true
+license.workspace = true
+publish.workspace = true
+
+
+[dependencies]
+bytemuck = { version = "1.24.0", features = ["derive", "latest_stable_rust"] }

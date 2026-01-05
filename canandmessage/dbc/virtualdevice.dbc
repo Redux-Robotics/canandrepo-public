@@ -1,0 +1,192 @@
+VERSION ""
+
+
+NS_ :
+	NS_DESC_
+	CM_
+	BA_DEF_
+	BA_
+	VAL_
+	CAT_DEF_
+	CAT_
+	FILTER
+	BA_DEF_DEF_
+	EV_DATA_
+	ENVVAR_DATA_
+	SGTYPE_
+	SGTYPE_VAL_
+	BA_DEF_SGTYPE_
+	BA_SGTYPE_
+	SIG_TYPE_REF_
+	VAL_TABLE_
+	SIG_GROUP_
+	SIG_VALTYPE_
+	SIGTYPE_VALTYPE_
+	BO_TX_BU_
+	BA_DEF_REL_
+	BA_REL_
+	BA_DEF_DEF_REL_
+	BU_SG_REL_
+	BU_EV_REL_
+	BU_BO_REL_
+	SG_MUL_VAL_
+
+BS_: 
+BU_: virtualdevice
+
+BO_ 2165180352 digital_value: 2 Vector__XXX
+ SG_ dig0 : 0|1@1+ (1,0) [0|1] "" virtualdevice
+ SG_ dig1 : 1|1@1+ (1,0) [0|1] "" virtualdevice
+ SG_ dig2 : 2|1@1+ (1,0) [0|1] "" virtualdevice
+ SG_ dig3 : 3|1@1+ (1,0) [0|1] "" virtualdevice
+ SG_ dig4 : 4|1@1+ (1,0) [0|1] "" virtualdevice
+ SG_ dig5 : 5|1@1+ (1,0) [0|1] "" virtualdevice
+ SG_ dig6 : 6|1@1+ (1,0) [0|1] "" virtualdevice
+ SG_ dig7 : 7|1@1+ (1,0) [0|1] "" virtualdevice
+ SG_ dig8 : 8|1@1+ (1,0) [0|1] "" virtualdevice
+ SG_ dig9 : 9|1@1+ (1,0) [0|1] "" virtualdevice
+ SG_ dig10 : 10|1@1+ (1,0) [0|1] "" virtualdevice
+ SG_ dig11 : 11|1@1+ (1,0) [0|1] "" virtualdevice
+ SG_ dig12 : 12|1@1+ (1,0) [0|1] "" virtualdevice
+ SG_ dig13 : 13|1@1+ (1,0) [0|1] "" virtualdevice
+ SG_ dig14 : 14|1@1+ (1,0) [0|1] "" virtualdevice
+ SG_ dig15 : 15|1@1+ (1,0) [0|1] "" virtualdevice
+
+BO_ 2165180288 gyro_value: 8 Vector__XXX
+ SG_ position : 0|32@1+ (1,0) [0|0] "" virtualdevice
+ SG_ velocity : 32|32@1+ (1,0) [0|0] "" virtualdevice
+
+BO_ 2165179200 atomic_bond_specification: 8 virtualdevice
+ SG_ device_serial : 0|48@1+ (1,0) [0|281474976710655] "" Vector__XXX
+ SG_ max_supported_rate : 48|8@1+ (1,0) [0|255] "" Vector__XXX
+ SG_ current_rate : 56|8@1+ (1,0) [0|255] "" Vector__XXX
+
+BO_ 2165179136 atomic_bond_announcement: 8 Vector__XXX
+ SG_ gateway_serial : 0|48@1+ (1,0) [0|281474976710655] "" virtualdevice
+ SG_ flags_negotiation : 48|1@1+ (1,0) [0|1] "" virtualdevice
+ SG_ flags_init : 49|1@1+ (1,0) [0|1] "" virtualdevice
+ SG_ flags_confirm : 50|1@1+ (1,0) [0|1] "" virtualdevice
+ SG_ flags_begin_tx : 51|1@1+ (1,0) [0|1] "" virtualdevice
+ SG_ flags_bus_interrupt : 52|1@1+ (1,0) [0|1] "" virtualdevice
+ SG_ flags_reserved_bits : 53|3@1+ (1,0) [0|7] "" virtualdevice
+ SG_ rate : 56|8@1+ (1,0) [0|255] "" virtualdevice
+
+BO_ 2165179072 enumerate: 8 virtualdevice
+ SG_ serial : 0|48@1+ (1,0) [0|281474976710655] "" Vector__XXX
+ SG_ is_bootloader : 48|1@1+ (1,0) [0|1] "" Vector__XXX
+ SG_ reserved : 49|15@1+ (1,0) [0|32767] "" Vector__XXX
+
+BO_ 2165179008 ota_to_device: 8 Vector__XXX
+ SG_ to_device_data : 0|64@1+ (1,0) [0|18446744073709551615] "" virtualdevice
+
+BO_ 2165178944 ota_to_host: 8 virtualdevice
+ SG_ to_host_data : 0|64@1+ (1,0) [0|18446744073709551615] "" Vector__XXX
+
+BO_ 2165178880 ota_data: 8 Vector__XXX
+ SG_ data : 0|64@1+ (1,0) [0|18446744073709551615] "" virtualdevice
+
+BO_ 2165178816 party_mode: 8 Vector__XXX
+ SG_ party_level : 0|8@1+ (1,0) [0|255] "" virtualdevice
+
+BO_ 2165178752 status: 8 virtualdevice
+ SG_ dev_specific : 0|64@1+ (1,0) [0|18446744073709551615] "" Vector__XXX
+
+BO_ 2165178688 clear_sticky_faults: 8 Vector__XXX
+
+BO_ 2165178624 report_setting: 8 virtualdevice
+ SG_ address : 0|8@1+ (1,0) [0|255] "" Vector__XXX
+ SG_ value : 8|48@1+ (1,0) [0|281474976710655] "" Vector__XXX
+ SG_ flags_set_success : 56|1@1+ (1,0) [0|1] "" Vector__XXX
+ SG_ flags_commit_success : 57|1@1+ (1,0) [0|1] "" Vector__XXX
+ SG_ flags_reserved_bits : 58|6@1+ (1,0) [0|63] "" Vector__XXX
+
+BO_ 2165178560 set_setting: 8 Vector__XXX
+ SG_ address : 0|8@1+ (1,0) [0|255] "" virtualdevice
+ SG_ value : 8|48@1+ (1,0) [0|281474976710655] "" virtualdevice
+ SG_ setting_flags_ephemeral : 56|1@1+ (1,0) [0|1] "" virtualdevice
+ SG_ setting_flags_synch_hold : 57|1@1+ (1,0) [0|1] "" virtualdevice
+ SG_ setting_flags_reserved_0 : 58|2@1+ (1,0) [0|3] "" virtualdevice
+ SG_ setting_flags_synch_msg_count : 60|4@1+ (1,0) [0|15] "" virtualdevice
+
+BO_ 2165178496 setting_command: 8 Vector__XXX
+ SG_ control_flag : 0|8@1+ (1,0) [0|255] "" virtualdevice
+ SG_ setting_index : 8|8@1+ (1,0) [0|255] "" virtualdevice
+
+BO_ 2165178432 can_id_error: 8 virtualdevice
+ SG_ addr_value : 0|64@1+ (1,0) [0|18446744073709551615] "" Vector__XXX
+
+BO_ 2165178368 can_id_arbitrate: 8 Vector__XXX
+ SG_ addr_value : 0|64@1+ (1,0) [0|18446744073709551615] "" virtualdevice
+
+SIG_VALTYPE_ 2165180288 position : 1;
+SIG_VALTYPE_ 2165180288 velocity : 1;
+
+
+CM_ BO_ 2165180352 digital_value "Digital value";
+CM_ SG_ 2165180352 dig0 "Digital value 0";
+CM_ SG_ 2165180352 dig1 "Digital value 1";
+CM_ SG_ 2165180352 dig2 "Digital value 2";
+CM_ SG_ 2165180352 dig3 "Digital value 3";
+CM_ SG_ 2165180352 dig4 "Digital value 4";
+CM_ SG_ 2165180352 dig5 "Digital value 5";
+CM_ SG_ 2165180352 dig6 "Digital value 6";
+CM_ SG_ 2165180352 dig7 "Digital value 7";
+CM_ SG_ 2165180352 dig8 "Digital value 0";
+CM_ SG_ 2165180352 dig9 "Digital value 10";
+CM_ SG_ 2165180352 dig10 "Digital value 11";
+CM_ SG_ 2165180352 dig11 "Digital value 12";
+CM_ SG_ 2165180352 dig12 "Digital value 13";
+CM_ SG_ 2165180352 dig13 "Digital value 14";
+CM_ SG_ 2165180352 dig14 "Digital value 15";
+CM_ SG_ 2165180352 dig15 "Digital value 16";
+CM_ BO_ 2165180288 gyro_value "Gyroscope rotational data";
+CM_ SG_ 2165180288 position "Position (rotations)";
+CM_ SG_ 2165180288 velocity "Velocity (rotations per second)";
+CM_ BO_ 2165179200 atomic_bond_specification "Atomic bond specification. Sent by devices to announce capabilities.";
+CM_ SG_ 2165179200 device_serial "Device's unique serial number";
+CM_ SG_ 2165179200 max_supported_rate "Supported bus rates";
+CM_ SG_ 2165179200 current_rate "Current bus rate, if confirming";
+CM_ BO_ 2165179136 atomic_bond_announcement "Atomic bond announcement. Sent by gateway to control bus state, and by devices during negotiation.";
+CM_ SG_ 2165179136 gateway_serial "Gateway's unique serial number";
+CM_ SG_ 2165179136 flags_negotiation "Device should enter negotiation phase";
+CM_ SG_ 2165179136 flags_init "Device should initialize bus with new rate";
+CM_ SG_ 2165179136 flags_confirm "Device should confirm new bus rate";
+CM_ SG_ 2165179136 flags_begin_tx "Device should begin transmission";
+CM_ SG_ 2165179136 flags_bus_interrupt "Device should cease all transmission";
+CM_ SG_ 2165179136 flags_reserved_bits "Announcement Flags";
+CM_ SG_ 2165179136 rate "New bus rate for initialization";
+CM_ BO_ 2165179072 enumerate "Device enumerate response";
+CM_ SG_ 2165179072 serial "Device-unique serial number";
+CM_ SG_ 2165179072 is_bootloader "Device is in bootloader.";
+CM_ SG_ 2165179072 reserved "Reserved";
+CM_ BO_ 2165179008 ota_to_device "Firmware update command.";
+CM_ SG_ 2165179008 to_device_data "OTA to device data (dlc may vary)";
+CM_ BO_ 2165178944 ota_to_host "Firmware update response.";
+CM_ SG_ 2165178944 to_host_data "OTA to host data (dlc may vary)";
+CM_ BO_ 2165178880 ota_data "Firmware update payload";
+CM_ SG_ 2165178880 data "OTA data";
+CM_ BO_ 2165178816 party_mode "Party mode";
+CM_ SG_ 2165178816 party_level "Party level. 0 disables the strobe, whereas 1 enables it.";
+CM_ BO_ 2165178752 status "Status frame";
+CM_ SG_ 2165178752 dev_specific "Device-specific status data. See device pages for more information.";
+CM_ BO_ 2165178688 clear_sticky_faults "Clear device sticky faults";
+CM_ BO_ 2165178624 report_setting "setting value report from device";
+CM_ SG_ 2165178624 address "Setting index to write to";
+CM_ SG_ 2165178624 value "6-byte setting value";
+CM_ SG_ 2165178624 flags_set_success "Whether the setting set/fetch was successful";
+CM_ SG_ 2165178624 flags_commit_success "Whether the setting synch commit was successful";
+CM_ SG_ 2165178624 flags_reserved_bits "Setting receive status";
+CM_ BO_ 2165178560 set_setting "update setting on device";
+CM_ SG_ 2165178560 address "Setting index to write to";
+CM_ SG_ 2165178560 value "6-byte setting value";
+CM_ SG_ 2165178560 setting_flags_ephemeral "Whether the setting should be set ephemeral";
+CM_ SG_ 2165178560 setting_flags_synch_hold "Whether the setting should be held until the next synch barrier";
+CM_ SG_ 2165178560 setting_flags_reserved_0 "Reserved";
+CM_ SG_ 2165178560 setting_flags_synch_msg_count "Synch message count";
+CM_ BO_ 2165178496 setting_command "setting control command";
+CM_ SG_ 2165178496 control_flag "Setting command index";
+CM_ SG_ 2165178496 setting_index "setting index to fetch";
+CM_ BO_ 2165178432 can_id_error "can id conflict tx packet";
+CM_ SG_ 2165178432 addr_value "Device-unique value that can be used during arbitration";
+CM_ BO_ 2165178368 can_id_arbitrate "select conflicting device to use";
+CM_ SG_ 2165178368 addr_value "Value corresponding to what was broadcasted in the CAN_ID_ERROR packet";

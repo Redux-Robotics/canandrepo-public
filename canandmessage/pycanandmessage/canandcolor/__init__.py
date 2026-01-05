@@ -1,0 +1,35 @@
+
+from pycanandmessage import BaseDevice, MessageWrapper
+from . import types, message as msg, setting as stg
+
+class Canandcolor(BaseDevice):
+    device_type = 6
+    msg = msg
+    stg = stg
+    types = types
+
+    name = 'Canandcolor'
+    messages = {
+        0: msg.CanIdArbitrate,
+        1: msg.CanIdError,
+        2: msg.SettingCommand,
+        3: msg.SetSetting,
+        4: msg.ReportSetting,
+        5: msg.ClearStickyFaults,
+        6: msg.Status,
+        7: msg.PartyMode,
+        8: msg.OtaData,
+        9: msg.OtaToHost,
+        10: msg.OtaToDevice,
+        11: msg.Enumerate,
+        12: msg.AtomicBondAnnouncement,
+        13: msg.AtomicBondSpecification,
+        31: msg.DistanceOutput,
+        30: msg.ColorOutput,
+        29: msg.DigitalOutput,
+        28: msg.ClearStickyDigout,
+    }
+
+    @classmethod
+    def decode_msg(cls, msg: MessageWrapper) -> msg.MessageType | None:
+        return cls.decode_msg_generic(msg)

@@ -1,0 +1,68 @@
+[package]
+name = "fifocore"
+description = "ReduxFIFO core crate"
+version.workspace = true
+authors.workspace = true
+edition.workspace = true
+documentation.workspace = true
+homepage.workspace = true
+repository.workspace = true
+publish.workspace = true
+
+[features]
+default = []
+#default = ["athena"]
+wpihal-rio = ["dep:wpihal-rio"]
+wpihal-mrc = ["dep:wpihal-mrc"]
+
+# prebaked feature sets for target platforms
+athena = ["wpihal-rio"]
+systemcore = ["wpihal-mrc", "wpihal-mrc/robot-controller"]
+systemcore-sim = ["wpihal-mrc"]
+canandmessage = ["dep:canandmessage"]
+
+[dependencies]
+
+cstr-literal = "0.1.0"
+const-str = "0.7.0"
+const_format = "0.2.34"
+futures = "0.3.31"
+bytemuck = { version = "1.23.1", features = ["bytemuck_derive", "derive"] }
+
+libc = "0.2.173"
+num_enum = "0.7.3"
+nusb = { version = "0.2.0", features = ["tokio"] } 
+serde = { version = "1.0.219", features = ["derive"] }
+tokio = { version = "1.45.1", features = ["full"] }
+
+tokio-tungstenite = { version = "0.27", default-features = false, features = ["rustls", "stream", "connect"] }
+url = "2.5"
+
+
+canandmessage = { path = "../../canandmessage", default-features = false, optional = true}
+rdxota-protocol = { path = "../../crates/rdxota-protocol" }
+rdxota-client = { path = "../../crates/rdxota-client" }
+rdxusb-protocol = { path = "../../crates/rdxusb-protocol"}
+rdxcanlink-protocol = { path = "../../crates/rdxcanlink-protocol" }
+frc-can-id = { path = "../../crates/frc-can-id" }
+
+wpihal-rio = { package = "wpihal", version = "0.2026.1-beta-1", git = "https://github.com/guineawheek/wpihal-rs", branch = "2026", optional = true}
+wpihal-mrc = { package = "wpihal", version = "0.2027.0-0-alpha-1", git = "https://github.com/guineawheek/wpihal-rs", branch = "2027", optional = true}
+
+log = "0.4.27"
+parking_lot = { version = "0.12.4", features = [] }
+
+embedded-can = "0.4.1"
+env_logger = "0.11.8"
+rustc-hash = "2.1.1"
+ringbuffer = "0.16.0"
+tokio-serial = "5.4.5"
+bytes = "1.10.1"
+anyhow = "1.0.100"
+chrono = "0.4.42"
+
+
+
+[target.'cfg(target_os = "linux")'.dependencies]
+# All Linucies wil attempt to build socketcan
+socketcan = { path = "../../crates/socketcan", features = ["tokio"] }

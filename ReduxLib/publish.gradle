@@ -1,0 +1,278 @@
+import org.gradle.internal.os.OperatingSystem;
+apply plugin: 'maven-publish'
+
+ext.licenseVdep = files("$rootDir/LICENSE.txt")
+ext.licenseDriver = files("$rootDir/LICENSE-driver.txt")
+
+def pubVersion = project.file("version.txt").text.trim()
+if (project.hasProperty("pubVersion")) {
+    pubVersion = project.pubVersion
+}
+
+def outputsFolder = file("$buildDir/outputs")
+
+def versionFile = file("$outputsFolder/version.txt")
+
+task outputVersions() {
+    description = 'Prints the versions of wpilib to a file for use by the downstream packaging project'
+    group = 'Build'
+    outputs.files(versionFile)
+
+    doFirst {
+        buildDir.mkdir()
+        outputsFolder.mkdir()
+    }
+
+    doLast {
+        versionFile.write pubVersion
+    }
+}
+
+task libraryBuild() {}
+
+build.dependsOn outputVersions
+
+task copyAllOutputs(type: Copy) {
+    destinationDir = file("$buildDir/allOutputs")
+    from versionFile
+    dependsOn outputVersions
+}
+
+build.dependsOn copyAllOutputs
+copyAllOutputs.dependsOn outputVersions
+
+ext.addTaskToCopyAllOutputs = { task ->
+    copyAllOutputs.dependsOn task
+    copyAllOutputs.inputs.file task.archiveFile
+    copyAllOutputs.from task.archiveFile
+}
+
+def artifactGroupId = 'com.reduxrobotics.frc'
+def baseArtifactId = 'ReduxLib'
+def driverZipBaseName = "_GROUP_com_reduxrobotics_frc_ID_${baseArtifactId}-driver_CLS"
+def zipBaseName = "_GROUP_com_reduxrobotics_frc_ID_${baseArtifactId}-cpp_CLS"
+def javaBaseName = "_GROUP_com_reduxrobotics_frc_ID_${baseArtifactId}-java_CLS"
+
+// doxygen config
+
+doxygen {
+    exclude 'frc/*'
+    exclude 'photonlib/*'
+
+    extension_mapping 'inc=C++'
+    generate_html true
+    generate_latex false
+    generate_treeview true
+    html_extra_stylesheet 'docs/doxygen-awesome.css'
+    html_timestamp true
+    quiet true
+    project_name 'ReduxLib C++'
+    project_number "${pubVersion}"
+
+    use_mathjax true
+    strip_code_comments false
+    warnings false
+    warn_as_error 'FAIL_ON_WARNINGS'
+    warn_if_incomplete_doc true
+    warn_if_undocumented true
+    warn_no_paramdoc true
+
+    source 'src/main/native/include'
+    outputDir = "$buildDir/doxygen/"
+}
+
+// javadoc config
+// this is a javascript file whose entire job is to locate the root javadoc directory and then load highlight.js
+// it _would_ be more performant to scan over every html in doLast and inject the scripts that way but like...ugh.
+// the reason why we don't load hljs from a CDN is because these javadocs are expected to also function offline.
+
+javadoc {
+    def hljsBootstrapFile = file("docs/hljs_bootstrap.js")
+    inputs.file(hljsBootstrapFile)
+
+    def hljsStylesheet = file("docs/hljs.gh.css")
+    inputs.file(hljsStylesheet)
+
+    // Anything in this dir will get plopped into the output root
+    def resources = fileTree("docs/javadoc-resources")
+    inputs.files(resources)
+
+    options {
+        // Enable preview features
+        options.addBooleanOption("-enable-preview", true)
+        options.addStringOption("-release", '17')
+        // Enable UTF-8 support
+        options.addStringOption("charset", "utf-8")
+        options.addStringOption("docencoding", "utf-8")
+        options.addStringOption("encoding", "utf-8")
+        // Syntax highlighting
+        addStringOption("-add-stylesheet", hljsStylesheet.toString())
+        addBooleanOption("-allow-script-in-comments", true)
+        links "https://github.wpilib.org/allwpilib/docs/release/java/"
+    }
+
+    doFirst {
+        // Configure this during task execution since it relies on an input file
+        options {
+            // Windows does not like newlines in the javadoc command
+            def strippedBootstrap = hljsBootstrapFile.text.replaceAll("\n", "").replaceAll("\r", "")
+            if (!OperatingSystem.current().isWindows()) {
+                // Windows command line parsing in general could be broken; just don't do syntax highlighted javadocs
+                // In practice, web-hosted javadocs should be made on Linux anyway
+                addStringOption("header", "<script type=\"text/javascript\">${strippedBootstrap}</script>")
+            }
+        }
+    }
+    doLast {
+        copy {
+            from resources
+            into destinationDir
+        }
+    }
+}
+
+task cppHeadersZip(type: Zip) {
+    destinationDirectory = outputsFolder
+    archiveBaseName = zipBaseName
+    archiveClassifier = "headers"
+
+    from(licenseVdep) {
+        into '/'
+    }
+
+    from('src/main/native/include') {
+        into '/'
+    }
+}
+
+task cppSourceZip(type: Zip) {
+    destinationDirectory = outputsFolder
+    archiveBaseName = zipBaseName
+    archiveClassifier = "sources"
+
+    from(licenseVdep) {
+        into '/'
+    }
+
+    from('src/main/native/cpp') {
+        into '/'
+    }
+}
+
+task cppDriverHeadersZip(type: Zip) {
+    destinationDirectory = outputsFolder
+    archiveBaseName = driverZipBaseName
+    archiveClassifier = "headers"
+
+    from(licenseDriver) {
+        into '/'
+    }
+
+    from('src/main/driver/include/ReduxCore.h') {
+        into '/'
+    }
+}
+
+build.dependsOn cppHeadersZip
+addTaskToCopyAllOutputs(cppHeadersZip)
+build.dependsOn cppSourceZip
+addTaskToCopyAllOutputs(cppSourceZip)
+
+//build.dependsOn doxygen
+
+task sourcesJar(type: Jar, dependsOn: classes) {
+    archiveClassifier = 'sources'
+    from sourceSets.main.allSource
+}
+
+task javadocJar(type: Jar, dependsOn: javadoc) {
+    archiveClassifier = 'javadoc'
+    from javadoc.destinationDir
+}
+
+task outputJar(type: Jar, dependsOn: classes) {
+    archiveBaseName = javaBaseName
+    destinationDirectory = outputsFolder
+    from sourceSets.main.output
+}
+
+task outputSourcesJar(type: Jar, dependsOn: classes) {
+    archiveBaseName = javaBaseName
+    destinationDirectory = outputsFolder
+    archiveClassifier = 'sources'
+    from sourceSets.main.allSource
+}
+
+task outputJavadocJar(type: Jar, dependsOn: javadoc) {
+    archiveBaseName = javaBaseName
+    destinationDirectory = outputsFolder
+    archiveClassifier = 'javadoc'
+    from javadoc.destinationDir
+}
+
+artifacts {
+    archives sourcesJar
+    archives javadocJar
+    archives outputJar
+    archives outputSourcesJar
+    archives outputJavadocJar
+}
+
+addTaskToCopyAllOutputs(outputSourcesJar)
+addTaskToCopyAllOutputs(outputJavadocJar)
+addTaskToCopyAllOutputs(outputJar)
+
+build.dependsOn outputSourcesJar
+build.dependsOn outputJavadocJar
+build.dependsOn outputJar
+
+libraryBuild.dependsOn build
+
+def releasesRepoUrl = "$buildDir/repos/releases"
+
+publishing {
+    repositories {
+        maven {
+
+            url = releasesRepoUrl
+        }
+    }
+}
+
+task cleanReleaseRepo(type: Delete) {
+    delete releasesRepoUrl
+}
+
+tasks.matching {it != cleanReleaseRepo}.all {it.dependsOn cleanReleaseRepo}
+
+model {
+    publishing {
+        def taskList = createComponentZipTasks($.components, ['ReduxLib'], zipBaseName, Zip, project, includeStandardZipFormat)
+
+        def driverTaskList = createComponentZipTasks($.components, ['ReduxCore'], driverZipBaseName, Zip, project, includeStandardZipFormat)
+
+        publications {
+            cpp(MavenPublication) {
+                taskList.each {
+                    artifact it
+                }
+                artifact cppHeadersZip
+                artifact cppSourceZip
+
+                artifactId = "${baseArtifactId}-cpp"
+                groupId = artifactGroupId
+                version = pubVersion
+            }
+
+            java(MavenPublication) {
+                artifact jar
+                artifact sourcesJar
+                artifact javadocJar
+
+                artifactId = "${baseArtifactId}-java"
+                groupId = artifactGroupId
+                version = pubVersion
+            }
+        }
+    }
+}

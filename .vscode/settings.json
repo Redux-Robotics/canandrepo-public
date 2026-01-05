@@ -1,0 +1,13 @@
+{
+    "cmake.ignoreCMakeListsMissing": true,
+    //"rust-analyzer.check.allTargets": tru,
+    "evenBetterToml.schema.enabled": false,
+    "rust-analyzer.linkedProjects": [
+        "canandmessage/Cargo.toml",
+        "reduxfifo/Cargo.toml",
+        "crates/Cargo.toml",
+    ],
+    "C_Cpp.errorSquiggles": "disabled",
+    "java.configuration.updateBuildConfiguration": "disabled",
+    "python.analysis.typeCheckingMode": "standard",
+}

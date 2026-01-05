@@ -1,0 +1,278 @@
+VERSION ""
+
+
+NS_ :
+	NS_DESC_
+	CM_
+	BA_DEF_
+	BA_
+	VAL_
+	CAT_DEF_
+	CAT_
+	FILTER
+	BA_DEF_DEF_
+	EV_DATA_
+	ENVVAR_DATA_
+	SGTYPE_
+	SGTYPE_VAL_
+	BA_DEF_SGTYPE_
+	BA_SGTYPE_
+	SIG_TYPE_REF_
+	VAL_TABLE_
+	SIG_GROUP_
+	SIG_VALTYPE_
+	SIGTYPE_VALTYPE_
+	BO_TX_BU_
+	BA_DEF_REL_
+	BA_REL_
+	BA_DEF_DEF_REL_
+	BU_SG_REL_
+	BU_EV_REL_
+	BU_BO_REL_
+	SG_MUL_VAL_
+
+BS_: 
+BU_: canandcolor
+
+BO_ 2249066432 distance_output: 2 canandcolor
+ SG_ distance : 0|16@1+ (1,0) [0|65535] "" Vector__XXX
+
+BO_ 2249066368 color_output: 8 canandcolor
+ SG_ red : 0|20@1+ (1,0) [0|1048575] "" Vector__XXX
+ SG_ green : 20|20@1+ (1,0) [0|1048575] "" Vector__XXX
+ SG_ blue : 40|20@1+ (1,0) [0|1048575] "" Vector__XXX
+ SG_ period : 60|4@1+ (1,0) [0|15] "" Vector__XXX
+
+BO_ 2249066304 digital_output: 5 canandcolor
+ SG_ digout1_state : 0|1@1+ (1,0) [0|1] "" Vector__XXX
+ SG_ digout2_state : 1|1@1+ (1,0) [0|1] "" Vector__XXX
+ SG_ digout1_sticky : 2|1@1+ (1,0) [0|1] "" Vector__XXX
+ SG_ digout2_sticky : 3|1@1+ (1,0) [0|1] "" Vector__XXX
+ SG_ reserved : 4|4@1+ (1,0) [0|15] "" Vector__XXX
+ SG_ digout1_cond_slot0 : 8|1@1+ (1,0) [0|1] "" Vector__XXX
+ SG_ digout1_cond_slot1 : 9|1@1+ (1,0) [0|1] "" Vector__XXX
+ SG_ digout1_cond_slot2 : 10|1@1+ (1,0) [0|1] "" Vector__XXX
+ SG_ digout1_cond_slot3 : 11|1@1+ (1,0) [0|1] "" Vector__XXX
+ SG_ digout1_cond_slot4 : 12|1@1+ (1,0) [0|1] "" Vector__XXX
+ SG_ digout1_cond_slot5 : 13|1@1+ (1,0) [0|1] "" Vector__XXX
+ SG_ digout1_cond_slot6 : 14|1@1+ (1,0) [0|1] "" Vector__XXX
+ SG_ digout1_cond_slot7 : 15|1@1+ (1,0) [0|1] "" Vector__XXX
+ SG_ digout1_cond_slot8 : 16|1@1+ (1,0) [0|1] "" Vector__XXX
+ SG_ digout1_cond_slot9 : 17|1@1+ (1,0) [0|1] "" Vector__XXX
+ SG_ digout1_cond_slot10 : 18|1@1+ (1,0) [0|1] "" Vector__XXX
+ SG_ digout1_cond_slot11 : 19|1@1+ (1,0) [0|1] "" Vector__XXX
+ SG_ digout1_cond_slot12 : 20|1@1+ (1,0) [0|1] "" Vector__XXX
+ SG_ digout1_cond_slot13 : 21|1@1+ (1,0) [0|1] "" Vector__XXX
+ SG_ digout1_cond_slot14 : 22|1@1+ (1,0) [0|1] "" Vector__XXX
+ SG_ digout1_cond_slot15 : 23|1@1+ (1,0) [0|1] "" Vector__XXX
+ SG_ digout2_cond_slot0 : 24|1@1+ (1,0) [0|1] "" Vector__XXX
+ SG_ digout2_cond_slot1 : 25|1@1+ (1,0) [0|1] "" Vector__XXX
+ SG_ digout2_cond_slot2 : 26|1@1+ (1,0) [0|1] "" Vector__XXX
+ SG_ digout2_cond_slot3 : 27|1@1+ (1,0) [0|1] "" Vector__XXX
+ SG_ digout2_cond_slot4 : 28|1@1+ (1,0) [0|1] "" Vector__XXX
+ SG_ digout2_cond_slot5 : 29|1@1+ (1,0) [0|1] "" Vector__XXX
+ SG_ digout2_cond_slot6 : 30|1@1+ (1,0) [0|1] "" Vector__XXX
+ SG_ digout2_cond_slot7 : 31|1@1+ (1,0) [0|1] "" Vector__XXX
+ SG_ digout2_cond_slot8 : 32|1@1+ (1,0) [0|1] "" Vector__XXX
+ SG_ digout2_cond_slot9 : 33|1@1+ (1,0) [0|1] "" Vector__XXX
+ SG_ digout2_cond_slot10 : 34|1@1+ (1,0) [0|1] "" Vector__XXX
+ SG_ digout2_cond_slot11 : 35|1@1+ (1,0) [0|1] "" Vector__XXX
+ SG_ digout2_cond_slot12 : 36|1@1+ (1,0) [0|1] "" Vector__XXX
+ SG_ digout2_cond_slot13 : 37|1@1+ (1,0) [0|1] "" Vector__XXX
+ SG_ digout2_cond_slot14 : 38|1@1+ (1,0) [0|1] "" Vector__XXX
+ SG_ digout2_cond_slot15 : 39|1@1+ (1,0) [0|1] "" Vector__XXX
+
+BO_ 2249066240 clear_sticky_digout: 0 Vector__XXX
+
+BO_ 2249065280 atomic_bond_specification: 8 canandcolor
+ SG_ device_serial : 0|48@1+ (1,0) [0|281474976710655] "" Vector__XXX
+ SG_ max_supported_rate : 48|8@1+ (1,0) [0|255] "" Vector__XXX
+ SG_ current_rate : 56|8@1+ (1,0) [0|255] "" Vector__XXX
+
+BO_ 2249065216 atomic_bond_announcement: 8 Vector__XXX
+ SG_ gateway_serial : 0|48@1+ (1,0) [0|281474976710655] "" canandcolor
+ SG_ flags_negotiation : 48|1@1+ (1,0) [0|1] "" canandcolor
+ SG_ flags_init : 49|1@1+ (1,0) [0|1] "" canandcolor
+ SG_ flags_confirm : 50|1@1+ (1,0) [0|1] "" canandcolor
+ SG_ flags_begin_tx : 51|1@1+ (1,0) [0|1] "" canandcolor
+ SG_ flags_bus_interrupt : 52|1@1+ (1,0) [0|1] "" canandcolor
+ SG_ flags_reserved_bits : 53|3@1+ (1,0) [0|7] "" canandcolor
+ SG_ rate : 56|8@1+ (1,0) [0|255] "" canandcolor
+
+BO_ 2249065152 enumerate: 8 canandcolor
+ SG_ serial : 0|48@1+ (1,0) [0|281474976710655] "" Vector__XXX
+ SG_ is_bootloader : 48|1@1+ (1,0) [0|1] "" Vector__XXX
+ SG_ reserved : 49|15@1+ (1,0) [0|32767] "" Vector__XXX
+
+BO_ 2249065088 ota_to_device: 8 Vector__XXX
+ SG_ to_device_data : 0|64@1+ (1,0) [0|18446744073709551615] "" canandcolor
+
+BO_ 2249065024 ota_to_host: 8 canandcolor
+ SG_ to_host_data : 0|64@1+ (1,0) [0|18446744073709551615] "" Vector__XXX
+
+BO_ 2249064960 ota_data: 8 Vector__XXX
+ SG_ data : 0|64@1+ (1,0) [0|18446744073709551615] "" canandcolor
+
+BO_ 2249064896 party_mode: 8 Vector__XXX
+ SG_ party_level : 0|8@1+ (1,0) [0|255] "" canandcolor
+
+BO_ 2249064832 status: 8 canandcolor
+ SG_ faults_power_cycle : 0|1@1+ (1,0) [0|1] "" Vector__XXX
+ SG_ faults_can_id_conflict : 1|1@1+ (1,0) [0|1] "" Vector__XXX
+ SG_ faults_can_general_error : 2|1@1+ (1,0) [0|1] "" Vector__XXX
+ SG_ faults_out_of_temperature_range : 3|1@1+ (1,0) [0|1] "" Vector__XXX
+ SG_ faults_hardware_fault_distance : 4|1@1+ (1,0) [0|1] "" Vector__XXX
+ SG_ faults_hardware_fault_color : 5|1@1+ (1,0) [0|1] "" Vector__XXX
+ SG_ faults_i2c_bus_recovery : 6|1@1+ (1,0) [0|1] "" Vector__XXX
+ SG_ faults_reserved_bits : 7|1@1+ (1,0) [0|1] "" Vector__XXX
+ SG_ sticky_faults_power_cycle : 8|1@1+ (1,0) [0|1] "" Vector__XXX
+ SG_ sticky_faults_can_id_conflict : 9|1@1+ (1,0) [0|1] "" Vector__XXX
+ SG_ sticky_faults_can_general_error : 10|1@1+ (1,0) [0|1] "" Vector__XXX
+ SG_ sticky_faults_out_of_temperature_range : 11|1@1+ (1,0) [0|1] "" Vector__XXX
+ SG_ sticky_faults_hardware_fault_distance : 12|1@1+ (1,0) [0|1] "" Vector__XXX
+ SG_ sticky_faults_hardware_fault_color : 13|1@1+ (1,0) [0|1] "" Vector__XXX
+ SG_ sticky_faults_i2c_bus_recovery : 14|1@1+ (1,0) [0|1] "" Vector__XXX
+ SG_ sticky_faults_reserved_bits : 15|1@1+ (1,0) [0|1] "" Vector__XXX
+ SG_ temperature : 16|16@1- (0.00390625,0) [-32768|32767] "" Vector__XXX
+ SG_ reserved : 32|32@1+ (1,0) [0|4294967295] "" Vector__XXX
+
+BO_ 2249064768 clear_sticky_faults: 8 Vector__XXX
+
+BO_ 2249064704 report_setting: 8 canandcolor
+ SG_ address : 0|8@1+ (1,0) [0|255] "" Vector__XXX
+ SG_ value : 8|48@1+ (1,0) [0|281474976710655] "" Vector__XXX
+ SG_ flags_set_success : 56|1@1+ (1,0) [0|1] "" Vector__XXX
+ SG_ flags_commit_success : 57|1@1+ (1,0) [0|1] "" Vector__XXX
+ SG_ flags_reserved_bits : 58|6@1+ (1,0) [0|63] "" Vector__XXX
+
+BO_ 2249064640 set_setting: 8 Vector__XXX
+ SG_ address : 0|8@1+ (1,0) [0|255] "" canandcolor
+ SG_ value : 8|48@1+ (1,0) [0|281474976710655] "" canandcolor
+ SG_ setting_flags_ephemeral : 56|1@1+ (1,0) [0|1] "" canandcolor
+ SG_ setting_flags_synch_hold : 57|1@1+ (1,0) [0|1] "" canandcolor
+ SG_ setting_flags_reserved_0 : 58|2@1+ (1,0) [0|3] "" canandcolor
+ SG_ setting_flags_synch_msg_count : 60|4@1+ (1,0) [0|15] "" canandcolor
+
+BO_ 2249064576 setting_command: 8 Vector__XXX
+ SG_ control_flag : 0|8@1+ (1,0) [0|255] "" canandcolor
+ SG_ setting_index : 8|8@1+ (1,0) [0|255] "" canandcolor
+
+BO_ 2249064512 can_id_error: 8 canandcolor
+ SG_ addr_value : 0|64@1+ (1,0) [0|18446744073709551615] "" Vector__XXX
+
+BO_ 2249064448 can_id_arbitrate: 8 Vector__XXX
+ SG_ addr_value : 0|64@1+ (1,0) [0|18446744073709551615] "" canandcolor
+
+
+
+CM_ BO_ 2249066432 distance_output "Distance frame";
+CM_ SG_ 2249066432 distance "16-bit distance value. Actual correspondance to real-world units is config and surface-dependent.";
+CM_ BO_ 2249066368 color_output "Color frame";
+CM_ SG_ 2249066368 red "Red reading magnitude";
+CM_ SG_ 2249066368 green "Green reading magnitude";
+CM_ SG_ 2249066368 blue "Blue reading magnitude";
+CM_ SG_ 2249066368 period "Color integration period";
+CM_ BO_ 2249066304 digital_output "Digital output frame";
+CM_ SG_ 2249066304 digout1_state "Digital output state for DIGOUT1";
+CM_ SG_ 2249066304 digout2_state "Digital output state for DIGOUT2";
+CM_ SG_ 2249066304 digout1_sticky "Sticky digital output state for DIGOUT1";
+CM_ SG_ 2249066304 digout2_sticky "Sticky digital output state for DIGOUT1";
+CM_ SG_ 2249066304 reserved "Reserved";
+CM_ SG_ 2249066304 digout1_cond_slot0 "Slot 0";
+CM_ SG_ 2249066304 digout1_cond_slot1 "Slot 1";
+CM_ SG_ 2249066304 digout1_cond_slot2 "Slot 2";
+CM_ SG_ 2249066304 digout1_cond_slot3 "Slot 3";
+CM_ SG_ 2249066304 digout1_cond_slot4 "Slot 4";
+CM_ SG_ 2249066304 digout1_cond_slot5 "Slot 5";
+CM_ SG_ 2249066304 digout1_cond_slot6 "Slot 6";
+CM_ SG_ 2249066304 digout1_cond_slot7 "Slot 7";
+CM_ SG_ 2249066304 digout1_cond_slot8 "Slot 8";
+CM_ SG_ 2249066304 digout1_cond_slot9 "Slot 9";
+CM_ SG_ 2249066304 digout1_cond_slot10 "Slot 10";
+CM_ SG_ 2249066304 digout1_cond_slot11 "Slot 11";
+CM_ SG_ 2249066304 digout1_cond_slot12 "Slot 12";
+CM_ SG_ 2249066304 digout1_cond_slot13 "Slot 13";
+CM_ SG_ 2249066304 digout1_cond_slot14 "Slot 14";
+CM_ SG_ 2249066304 digout1_cond_slot15 "Slot 15";
+CM_ SG_ 2249066304 digout2_cond_slot0 "Slot 0";
+CM_ SG_ 2249066304 digout2_cond_slot1 "Slot 1";
+CM_ SG_ 2249066304 digout2_cond_slot2 "Slot 2";
+CM_ SG_ 2249066304 digout2_cond_slot3 "Slot 3";
+CM_ SG_ 2249066304 digout2_cond_slot4 "Slot 4";
+CM_ SG_ 2249066304 digout2_cond_slot5 "Slot 5";
+CM_ SG_ 2249066304 digout2_cond_slot6 "Slot 6";
+CM_ SG_ 2249066304 digout2_cond_slot7 "Slot 7";
+CM_ SG_ 2249066304 digout2_cond_slot8 "Slot 8";
+CM_ SG_ 2249066304 digout2_cond_slot9 "Slot 9";
+CM_ SG_ 2249066304 digout2_cond_slot10 "Slot 10";
+CM_ SG_ 2249066304 digout2_cond_slot11 "Slot 11";
+CM_ SG_ 2249066304 digout2_cond_slot12 "Slot 12";
+CM_ SG_ 2249066304 digout2_cond_slot13 "Slot 13";
+CM_ SG_ 2249066304 digout2_cond_slot14 "Slot 14";
+CM_ SG_ 2249066304 digout2_cond_slot15 "Slot 15";
+CM_ BO_ 2249066240 clear_sticky_digout "Clear sticky digout state which is broadcast over CAN";
+CM_ BO_ 2249065280 atomic_bond_specification "Atomic bond specification. Sent by devices to announce capabilities.";
+CM_ SG_ 2249065280 device_serial "Device's unique serial number";
+CM_ SG_ 2249065280 max_supported_rate "Supported bus rates";
+CM_ SG_ 2249065280 current_rate "Current bus rate, if confirming";
+CM_ BO_ 2249065216 atomic_bond_announcement "Atomic bond announcement. Sent by gateway to control bus state, and by devices during negotiation.";
+CM_ SG_ 2249065216 gateway_serial "Gateway's unique serial number";
+CM_ SG_ 2249065216 flags_negotiation "Device should enter negotiation phase";
+CM_ SG_ 2249065216 flags_init "Device should initialize bus with new rate";
+CM_ SG_ 2249065216 flags_confirm "Device should confirm new bus rate";
+CM_ SG_ 2249065216 flags_begin_tx "Device should begin transmission";
+CM_ SG_ 2249065216 flags_bus_interrupt "Device should cease all transmission";
+CM_ SG_ 2249065216 flags_reserved_bits "Announcement Flags";
+CM_ SG_ 2249065216 rate "New bus rate for initialization";
+CM_ BO_ 2249065152 enumerate "Device enumerate response";
+CM_ SG_ 2249065152 serial "Device-unique serial number";
+CM_ SG_ 2249065152 is_bootloader "Device is in bootloader.";
+CM_ SG_ 2249065152 reserved "Reserved";
+CM_ BO_ 2249065088 ota_to_device "Firmware update command.";
+CM_ SG_ 2249065088 to_device_data "OTA to device data (dlc may vary)";
+CM_ BO_ 2249065024 ota_to_host "Firmware update response.";
+CM_ SG_ 2249065024 to_host_data "OTA to host data (dlc may vary)";
+CM_ BO_ 2249064960 ota_data "Firmware update payload";
+CM_ SG_ 2249064960 data "OTA data";
+CM_ BO_ 2249064896 party_mode "Party mode";
+CM_ SG_ 2249064896 party_level "Party level. 0 disables the strobe, whereas 1 enables it.";
+CM_ BO_ 2249064832 status "Status frame";
+CM_ SG_ 2249064832 faults_power_cycle "The power cycle fault flag, which is set to true when the device first boots. Clearing sticky faults and then checking this flag can be used to determine if the device rebooted. ";
+CM_ SG_ 2249064832 faults_can_id_conflict "The CAN ID conflict flag, which is set to true if there is a CAN id conflict. In practice, you should physically inspect the device to ensure it's not flashing blue. ";
+CM_ SG_ 2249064832 faults_can_general_error "The CAN general error flag, which will raise if the device encounters a CAN fault during operation. If communication with the device still functions, this will not register as an active fault for long if at all. This may raise due to wiring issues, such as an intermittently shorted CAN bus. ";
+CM_ SG_ 2249064832 faults_out_of_temperature_range "The temperature range flag, which will raise if the device is not between 0-70 degrees Celsius. This may be of concern if the device is near very active motors. ";
+CM_ SG_ 2249064832 faults_hardware_fault_distance "The hardware fault flag corresponding to the distance sensor IC, which will raise if a hardware issue is detected. Generally will raise if the device's controller cannot read the physical sensor itself. ";
+CM_ SG_ 2249064832 faults_hardware_fault_color "The hardware fault flag corresponding to the color sensor IC, which will raise if a hardware issue is detected. Generally will raise if the device's controller cannot read the physical sensor itself. ";
+CM_ SG_ 2249064832 faults_i2c_bus_recovery "The I2C bus recovery flag, which will raise when the device needs to completely restart the I2C bus. This fault flag should not be active for very long; if it is stuck as an active fault, that may indicate a hardware issue. ";
+CM_ SG_ 2249064832 faults_reserved_bits "8-bit active faults bitfield";
+CM_ SG_ 2249064832 sticky_faults_power_cycle "The power cycle fault flag, which is set to true when the device first boots. Clearing sticky faults and then checking this flag can be used to determine if the device rebooted. ";
+CM_ SG_ 2249064832 sticky_faults_can_id_conflict "The CAN ID conflict flag, which is set to true if there is a CAN id conflict. In practice, you should physically inspect the device to ensure it's not flashing blue. ";
+CM_ SG_ 2249064832 sticky_faults_can_general_error "The CAN general error flag, which will raise if the device encounters a CAN fault during operation. If communication with the device still functions, this will not register as an active fault for long if at all. This may raise due to wiring issues, such as an intermittently shorted CAN bus. ";
+CM_ SG_ 2249064832 sticky_faults_out_of_temperature_range "The temperature range flag, which will raise if the device is not between 0-70 degrees Celsius. This may be of concern if the device is near very active motors. ";
+CM_ SG_ 2249064832 sticky_faults_hardware_fault_distance "The hardware fault flag corresponding to the distance sensor IC, which will raise if a hardware issue is detected. Generally will raise if the device's controller cannot read the physical sensor itself. ";
+CM_ SG_ 2249064832 sticky_faults_hardware_fault_color "The hardware fault flag corresponding to the color sensor IC, which will raise if a hardware issue is detected. Generally will raise if the device's controller cannot read the physical sensor itself. ";
+CM_ SG_ 2249064832 sticky_faults_i2c_bus_recovery "The I2C bus recovery flag, which will raise when the device needs to completely restart the I2C bus. This fault flag should not be active for very long; if it is stuck as an active fault, that may indicate a hardware issue. ";
+CM_ SG_ 2249064832 sticky_faults_reserved_bits "8-bit sticky faults bitfield";
+CM_ SG_ 2249064832 temperature "16-bit signed temperature byte in 1/256ths of a Celsius";
+CM_ SG_ 2249064832 reserved "Reserved bits";
+CM_ BO_ 2249064768 clear_sticky_faults "Clear device sticky faults";
+CM_ BO_ 2249064704 report_setting "setting value report from device";
+CM_ SG_ 2249064704 address "Setting index to write to";
+CM_ SG_ 2249064704 value "6-byte setting value";
+CM_ SG_ 2249064704 flags_set_success "Whether the setting set/fetch was successful";
+CM_ SG_ 2249064704 flags_commit_success "Whether the setting synch commit was successful";
+CM_ SG_ 2249064704 flags_reserved_bits "Setting receive status";
+CM_ BO_ 2249064640 set_setting "update setting on device";
+CM_ SG_ 2249064640 address "Setting index to write to";
+CM_ SG_ 2249064640 value "6-byte setting value";
+CM_ SG_ 2249064640 setting_flags_ephemeral "Whether the setting should be set ephemeral";
+CM_ SG_ 2249064640 setting_flags_synch_hold "Whether the setting should be held until the next synch barrier";
+CM_ SG_ 2249064640 setting_flags_reserved_0 "Reserved";
+CM_ SG_ 2249064640 setting_flags_synch_msg_count "Synch message count";
+CM_ BO_ 2249064576 setting_command "setting control command";
+CM_ SG_ 2249064576 control_flag "Setting command index";
+CM_ SG_ 2249064576 setting_index "setting index to fetch";
+CM_ BO_ 2249064512 can_id_error "can id conflict tx packet";
+CM_ SG_ 2249064512 addr_value "Device-unique value that can be used during arbitration";
+CM_ BO_ 2249064448 can_id_arbitrate "select conflicting device to use";
+CM_ SG_ 2249064448 addr_value "Value corresponding to what was broadcasted in the CAN_ID_ERROR packet";

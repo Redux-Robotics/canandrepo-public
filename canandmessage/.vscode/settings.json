@@ -1,0 +1,6 @@
+{
+    "python.REPL.enableREPLSmartSend": false,
+    "rust-analyzer.cargo.features": ["all-devices", "rdxusb"],
+    "rust-analyzer.cargo.noDefaultFeatures": true,
+    "rust-analyzer.cargo.cfgs": []
+}

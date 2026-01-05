@@ -1,0 +1,274 @@
+
+name = "Canandgyro"
+base = ["CanandDevice"]
+arch = "gd32c103"
+
+dev_type = 4
+dev_class = 0
+
+[vendordep]
+java_package = "com.reduxrobotics.sensors.canandgyro"
+cpp_namespace = "redux::sensors::canandgyro"
+
+[msg]
+[msg.YAW_OUTPUT]
+id = 31
+length = 6
+source = "device"
+comment = "Yaw angle frame"
+frame_period_setting = "YAW_FRAME_PERIOD"
+signals = [
+    { name = "yaw", dtype = "yaw", comment = "Yaw value" }
+]
+
+[msg.ANGULAR_POSITION_OUTPUT]
+id = 30
+length = 8
+source = "device"
+comment = "Angular position quaternion frame"
+frame_period_setting = "ANGULAR_POSITION_FRAME_PERIOD"
+signals = [
+    { name = "w", dtype="quat16", comment = "Quaternion w term" },
+    { name = "x", dtype="quat16", comment = "Quaternion x term" },
+    { name = "y", dtype="quat16", comment = "Quaternion y term" },
+    { name = "z", dtype="quat16", comment = "Quaternion z term" },
+]
+
+[msg.ANGULAR_VELOCITY_OUTPUT]
+id = 29
+length = 6
+source = "device"
+comment = "Angular velocity frame"
+frame_period_setting = "ANGULAR_VELOCITY_FRAME_PERIOD"
+signals = [
+    { name = "yaw",   dtype = "angular_velocity", comment = "Yaw velocity" },
+    { name = "pitch", dtype = "angular_velocity", comment = "Pitch velocity" },
+    { name = "roll",  dtype = "angular_velocity", comment = "Roll velocity" },
+]
+
+[msg.ACCELERATION_OUTPUT]
+id = 28
+length = 6
+source = "device"
+comment = "Acceleration frame"
+frame_period_setting = "ACCELERATION_FRAME_PERIOD"
+signals = [
+    { name = "z", dtype = "acceleration", comment = "Z-axis acceleration" },
+    { name = "y", dtype = "acceleration", comment = "Y-axis acceleration" },
+    { name = "x", dtype = "acceleration", comment = "X-axis acceleration" },
+]
+
+[msg.CALIBRATE]
+id = 27
+length = 8
+source = "host"
+comment = "Trigger Calibration"
+signals = [
+    { name = "calibration_type", dtype = "enum:CALIBRATION_TYPE", comment = "Calibration type"},
+    { name = "reserved", dtype = "pad:56", comment = "Reserved"}
+]
+
+[msg.CALIBRATION_STATUS]
+id = 26
+length = 8
+source = "device"
+comment = "Calibration Status"
+signals = [
+    { name = "reserved", dtype="pad:64", comment = "Reserved" },
+]
+
+
+[msg.STATUS]
+id = 6
+length = 8
+source = "device"
+comment = "Status frame"
+frame_period_setting = "STATUS_FRAME_PERIOD"
+signals = [
+    { name = "faults",        dtype = "faults",      comment = "8-bit active faults bitfield"},
+    { name = "sticky_faults", dtype = "faults",      comment = "8-bit sticky faults bitfield"},
+    { name = "temperature",   dtype = "temperature", comment = "16-bit signed temperature byte in 1/256ths of a Celsius"},
+    { name = "reserved",      dtype = "pad:32",      comment = "Reserved bits"}
+]
+
+[settings]
+YAW_FRAME_PERIOD                  = { id = 255, dtype = "frame_period", default_value = 10, comment = "Yaw angle frame period (ms)" }
+ANGULAR_POSITION_FRAME_PERIOD     = { id = 254, dtype = "frame_period", default_value = 20, comment = "Angular position frame period (ms)" }
+ANGULAR_VELOCITY_FRAME_PERIOD     = { id = 253, dtype = "frame_period", default_value = 100, comment = "Angular velocity frame period (ms)" }
+ACCELERATION_FRAME_PERIOD         = { id = 252, dtype = "frame_period", default_value = 100, comment = "Acceleration frame period (ms)" }
+SET_YAW                           = { id = 251, dtype = "yaw",          readable = false, vdep_setting = false, comment = "Set yaw" }
+SET_POSE_POSITIVE_W               = { id = 250, dtype = "quat_xyz",     readable = false, vdep_setting = false, comment = "Set (normed) quaternion assuming positive W" }
+SET_POSE_NEGATIVE_W               = { id = 249, dtype = "quat_xyz",     readable = false, vdep_setting = false, comment = "Set (normed) quaternion assuming negative W" }
+
+# it says writable = false, but this is because sensitivity is factory-programmed
+GYRO_X_SENSITIVITY                = { id = 248, dtype = "prfloat32",    writable = false, default_value = 1.0, vendordep = false, reset_on_default = false, comment = "Gyro X axis sensitivity"}
+GYRO_Y_SENSITIVITY                = { id = 247, dtype = "prfloat32",    writable = false, default_value = 1.0, vendordep = false, reset_on_default = false, comment = "Gyro Y axis sensitivity"}
+GYRO_Z_SENSITIVITY                = { id = 246, dtype = "prfloat32",    writable = false, default_value = 1.0, vendordep = false, reset_on_default = false, comment = "Gyro Z axis sensitivity"}
+
+# gyro offset
+GYRO_X_ZRO_OFFSET                 = { id = 245, dtype = "rfloat32", default_value = 0, vendordep = false, reset_on_default = false, comment = "Gyro X-axis calibrated ZRO offset" }
+GYRO_Y_ZRO_OFFSET                 = { id = 244, dtype = "rfloat32", default_value = 0, vendordep = false, reset_on_default = false, comment = "Gyro Y-axis calibrated ZRO offset" }
+GYRO_Z_ZRO_OFFSET                 = { id = 243, dtype = "rfloat32", default_value = 0, vendordep = false, reset_on_default = false, comment = "Gyro Z-axis calibrated ZRO offset" }
+GYRO_ZRO_OFFSET_TEMPERATURE       = { id = 242, dtype = "rfloat32", default_value = 25, vendordep = false, reset_on_default = false, comment = "Temperature at ZRO offset (celsius)"}
+
+# temp cal slot 0
+TEMPERATURE_CALIBRATION_X_0       = { id = 231, dtype = "rfloat32", default_value = 0, vendordep = false, reset_on_default = false, comment = "Temp cal X-axis point 0" }
+TEMPERATURE_CALIBRATION_Y_0       = { id = 230, dtype = "rfloat32", default_value = 0, vendordep = false, reset_on_default = false, comment = "Temp cal Y-axis point 0" }
+TEMPERATURE_CALIBRATION_Z_0       = { id = 229, dtype = "rfloat32", default_value = 0, vendordep = false, reset_on_default = false, comment = "Temp cal Z-axis point 0" }
+TEMPERATURE_CALIBRATION_T_0       = { id = 228, dtype = "rfloat32", default_value = 0, vendordep = false, reset_on_default = false, comment = "Temp cal temperature point 0 (celsius)" }
+
+# temp cal slot 1
+TEMPERATURE_CALIBRATION_X_1       = { id = 227, dtype = "rfloat32", default_value = 0, vendordep = false, reset_on_default = false, comment = "Temp cal X-axis point 1" }
+TEMPERATURE_CALIBRATION_Y_1       = { id = 226, dtype = "rfloat32", default_value = 0, vendordep = false, reset_on_default = false, comment = "Temp cal Y-axis point 1" }
+TEMPERATURE_CALIBRATION_Z_1       = { id = 225, dtype = "rfloat32", default_value = 0, vendordep = false, reset_on_default = false, comment = "Temp cal Z-axis point 1" }
+TEMPERATURE_CALIBRATION_T_1       = { id = 224, dtype = "rfloat32", default_value = 0, vendordep = false, reset_on_default = false, comment = "Temp cal temperature point 1 (celsius)" }
+
+NAME_0                       = { id = 1, dtype = "buf:48", default_value = 0x646e616e6143, vendordep = false, comment = "device_name[0:5]" } # Canand
+NAME_1                       = { id = 2, dtype = "buf:48", default_value = 0x00006f727967, vendordep = false, comment = "device_name[6:11]" } # gyro\0\0
+NAME_2                       = { id = 3, dtype = "buf:48", default_value = 0, vendordep = false, comment = "device_name[12:17]" } # 0
+
+[enums]
+[enums.CALIBRATION_TYPE]
+comment = """Type of calibration to be run, as specified by the calibration packet.
+
+Normal calibration updates the zero-movement offset without saving it to flash to seed the next on-boot calibration.
+Save-zro calibration will save it to flash.
+
+Temp calibration variants will report the current temperature and offset values on calibration completion for a client 
+to consider if those values should be written back via the settings interface.
+"""
+
+default_value = "NORMAL"
+bits = 8
+[enums.CALIBRATION_TYPE.values]
+NORMAL                  = { id = 0, comment = "Normal calibration routine" }
+SAVE_ZRO                = { id = 1, comment = "Save ZRO at calibration complete" }
+TEMP_CAL_0              = { id = 2, comment = "Temperature calibrate slot 0" }
+TEMP_CAL_1              = { id = 3, comment = "Temperature calibrate slot 1" }
+
+[types]
+
+[types.temperature]
+comment = """Temperature as reported to/from the device. 
+1 LSB = 1/256th of a degree Celsius."""
+unit = "deg C"
+btype = "sint"
+utype = "float"
+bits = 16
+factor = [1, 256]
+min = -32768
+max = 32767
+
+[types.temp_cal_point]
+comment = """Temperature calibration point.
+
+This is used to represent zero-offset values for each angular XYZ axis at different temperatures. 
+Onboard temperature compensation will then use these values to account for the effect on temperature on the gyro IC.
+"""
+btype = "struct"
+bits = 48
+signals = [
+    { name = "temperature_point", dtype = "temperature", default_value = 0, comment = "Temperature point" },
+    { name = "offset", dtype = "rfloat32", default_value = 0, comment = "Offset at the temperature" },
+]
+
+[types.quat16]
+comment = """A component of a normalized quaternion as a 16-bit signed fixed-point integer.
+-1.0 corresponds to -32767 while +1.0 corresponds to +32767.
+"""
+btype = "sint"
+utype = "float"
+bits = 16
+factor = [1, 32767]
+min = -32767
+max = 32767
+
+[types.quat_xyz]
+comment = """A compacted representation of a normalized quaternion with just three axes, used to fit in less bytes.
+Combined with external information about the sign of the W component, the original quaternion is recovered by considering 
+that :math:`|w| = \\sqrt{1.0 - (x^2 + y^2 + z^2)}`
+"""
+
+btype = "struct"
+bits = 48
+signals = [
+    { name = "x", dtype = "quat16", default_value = 0, comment = "Quaternion x term" },
+    { name = "y", dtype = "quat16", default_value = 0, comment = "Quaternion y term" },
+    { name = "z", dtype = "quat16", default_value = 0, comment = "Quaternion z term" },
+]
+
+[types.yaw]
+comment = """Yaw frame data. The absolute (single-turn) yaw is broadcast in radians between -pi inclusive and pi exclusive.
+Counterclockwise is positive and clockwise is negative.
+
+The wraparound component counts the number of rotations past the wraparound point at ±pi. A full multiturn yaw can be computed
+by taking :math:`\\text{yaw} + \\text{wraparound} * 2\\pi`
+"""
+btype = "struct"
+bits = 48
+signals = [
+    { name = "yaw", dtype="float:32", comment = "Yaw angle (f32 between [-pi..pi) radians)" },
+    { name = "wraparound", dtype = "sint:16", comment = "Wraparound counter" }
+]
+
+[types.angular_velocity]
+comment = """Angular velocity value."""
+unit = "deg/s"
+btype = "sint"
+utype = "float"
+bits = 16
+factor = [2000, 32767]
+
+[types.acceleration]
+comment = """Acceleration value."""
+unit = "gravities"
+btype = "sint"
+utype = "float"
+bits = 16
+factor = [1, 2048]
+
+[types.faults]
+comment = """Fault flags as used in active faults and sticky faults.
+
+Active faults will keep each flag set only as long as they are currently an active condition,
+while sticky faults will latch them to true once set until cleared via the :ref:`clear sticky faults<canandgyro_msg_clear_sticky_faults>` message.
+"""
+btype = "bitset"
+bits = 8
+bit_flags = [
+    { name = "power_cycle", comment = """
+The power cycle fault flag, which is set to true when the device first boots.
+Clearing sticky faults and then checking this flag can be used to determine if the device rebooted.
+""" },
+    { name = "can_id_conflict", comment = """
+The CAN ID conflict flag, which is set to true if there is a CAN id conflict.
+In practice, you should physically inspect the device to ensure it's not flashing blue.
+""" },
+
+    { name = "can_general_error", comment = """
+The CAN general error flag, which will raise if the device encounters a CAN fault during operation.
+If communication with the device still functions, this will not register as an active fault for long if at all.
+This may raise due to wiring issues, such as an intermittently shorted CAN bus.
+""" },
+
+    { name = "out_of_temperature_range", comment = """
+The temperature range flag, which will raise if the device is not between 0-70 degrees Celsius.
+This may be of concern if the device is near very active motors.
+""" },
+
+    { name = "hardware_fault", comment = """
+The hardware fault flag, which will raise if a hardware issue is detected.
+Generally will raise if the device's controller cannot read the physical sensor itself.
+""" },
+
+    { name = "calibrating", comment = """
+The calibration status flag, which will raise if the device is currently calibrating.
+""" },
+
+    { name = "angular_velocity_saturation", comment = """
+The angular velocity saturation flag, which triggers on saturation of angular velocity.
+""" },
+    { name = "acceleration_saturation", comment = """
+The acceleration saturation flag, which triggers on saturation of acceleration.
+""" },
+]

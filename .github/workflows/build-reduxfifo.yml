@@ -1,0 +1,159 @@
+name: Build ReduxFIFO
+
+on: 
+  workflow_dispatch:
+  push:
+    paths:
+      - 'reduxfifo/**'
+      - 'ReduxLib/**'
+      - 'crates/**'
+      - 'canandmessage/**'
+
+jobs:
+  build-vendordep-linux:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          #- artifact-name: Systemcore
+          #  build-options: "headers linuxsystemcore"
+          #  reduxfifo-features: "systemcore"
+          #  reduxlib-options: "-Ponlylinuxsystemcore"
+          #  toolchain: "/opt/systemcore/bin"
+          - artifact-name: Linux
+            build-options: "headers linuxathena linuxarm64 linuxx86-64"
+            reduxfifo-features: "athena"
+            reduxlib-options: ""
+            toolchain0: "/opt/roborio/bin"
+            toolchain1: "/opt/bookworm/bin"
+
+    name: "Build Vendordep - ${{ matrix.artifact-name }}"
+    runs-on: [self-hosted, Linux, enabled]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: true
+          fetch-depth: 0
+      - name: Fetch all history and metadata
+        run: |
+          git config --global --add safe.directory /__w/${{ github.event.repository.name }}/${{ github.event.repository.name }}
+      - uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: 17
+          architecture: x64
+      - uses: actions-rust-lang/setup-rust-toolchain@v1.13
+        with:
+          rustflags: "" # just put the artifacts in the bag
+          cache: false
+      - run: echo "${{ matrix.toolchain0 }}" >> "${GITHUB_PATH}"
+        if: matrix.toolchain0 != ''
+      - run: echo "${{ matrix.toolchain1 }}" >> "${GITHUB_PATH}"
+        if: matrix.toolchain1 != ''
+      - name: Build maven artifact
+        run: echo "$PATH" && cd reduxfifo && cargo xtask --all ${{ matrix.build-options }} -- --no-default-features --features ${{ matrix.reduxfifo-features }}
+      - name: Build with Gradle
+        run: ./gradlew publish -PreleaseMode -Pskiplinuxarm32 ${{ matrix.reduxlib-options }}
+        working-directory: ReduxLib
+      - name: Upload ReduxLib artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: ReduxLib-${{ matrix.artifact-name }}
+          path: ReduxLib/build/repos/releases
+      - name: Upload ReduxFIFO artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: ReduxFIFO-${{ matrix.artifact-name }}
+          path: reduxfifo/target/maven
+
+  build-vendordep-host:
+    env: 
+      MACOSX_DEPLOYMENT_TARGET: 13.3
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: Windows
+            artifact-name: Windows
+            architecture: x64
+            build-options: "windowsx86-64"
+          - os: "macOS"
+            artifact-name: macOS
+            architecture: aarch64
+            build-options: "osxuniversal"
+    name: "Build Vendordep - ${{ matrix.artifact-name }}"
+    runs-on: [self-hosted, "${{ matrix.os }}", enabled]
+    steps:
+      - if: runner.os == 'Windows'
+        name: Workaround Windows being a bad operating system
+        run: git config --system core.longpaths true
+      - uses: actions/checkout@v4
+        with:
+          submodules: true
+          fetch-depth: 0
+      - if: runner.os == 'macOS'
+        uses: Homebrew/actions/setup-homebrew@main
+      - if: runner.os == 'Windows'
+        run: echo "C:\Program Files\Git\bin" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
+      - uses: actions-rust-lang/setup-rust-toolchain@v1.13
+        with:
+          rustflags: ""
+          cache: false
+      - uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: 17
+          architecture: ${{ matrix.architecture }}
+      - name: Build ReduxFIFO
+        run: cargo xtask --all headers ${{ matrix.build-options }} -- --no-default-features --features athena
+        working-directory: reduxfifo
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ReduxFIFO-${{ matrix.artifact-name }}
+          path: reduxfifo/target/maven
+      - name: Build ReduxLib with Gradle
+        run: ./gradlew publish -PreleaseMode -Pskiplinuxathena
+        working-directory: ReduxLib
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ReduxLib-${{matrix.artifact-name}}
+          path: ReduxLib/build/repos/releases
+
+  combine:
+    name: Combine
+    needs: [build-vendordep-linux, build-vendordep-host]
+    runs-on: blacksmith-4vcpu-ubuntu-2404
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: true
+          fetch-depth: 0
+      - run: echo "REDUXLIB_VERSION=$(cat ReduxLib/version.txt)" >> "${GITHUB_OUTPUT}"
+        id: reduxlib-version
+      - uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+      - name: Flatten Artifacts
+        run: mkdir -p maven final/vendordeps ReduxLib/build/allOutputs && rsync -av --delete artifacts/*/* maven/ && mv maven final
+      - name: Generate vdep json
+        run: (python3 mkvdepjson.py || true) && cp build/allOutputs/* ../final/vendordeps
+        working-directory: ReduxLib
+      # - name: Combine (Release)
+      #   if: |
+      #     github.repository_owner == 'wpilibsuite' &&
+      #     startsWith(github.ref, 'refs/tags/v')
+      #   run: |
+      #     ./gradlew publish -Pthirdparty
+      #   working-directory: combiner
+      #   env:
+      #     RUN_AZURE_ARTIFACTORY_RELEASE: 'TRUE'
+      #     ARTIFACTORY_PUBLISH_USERNAME: ${{ secrets.ARTIFACTORY_USERNAME }}
+      #     ARTIFACTORY_PUBLISH_PASSWORD: ${{ secrets.ARTIFACTORY_PASSWORD }}
+      #- uses: actions/upload-artifact@v4
+      #  with:
+      #    name: Maven
+      #    path: ~/releases
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ReduxLib-offline-v${{ steps.reduxlib-version.outputs.REDUXLIB_VERSION }}-${{github.sha}}
+          path: final

@@ -1,0 +1,62 @@
+[workspace]
+members = ["canandmiddleware", "fifocore", "reduxfifo-standalone", "reduxfifo-util", "xtask"]
+
+[workspace.package]
+version = "2026.0.0-beta1"
+license = "LGPL-3.0-only"
+authors = ["Bagholders of Redux Robotics"]
+edition = "2024"
+documentation = "https://github.com/Redux-Robotics/canandrepo-public"
+homepage = "https://github.com/Redux-Robotics/canandrepo-public"
+repository = "https://github.com/Redux-Robotics/canandrepo-public"
+publish = false
+
+[package]
+name = "reduxfifo"
+version.workspace = true
+license.workspace = true
+authors.workspace = true
+edition.workspace = true
+documentation.workspace = true
+homepage.workspace = true
+repository.workspace = true
+publish.workspace = true
+
+[lib]
+name = "reduxfifo"
+crate-type = ["lib", "cdylib", "staticlib"]
+
+[features]
+default = ["athena"]
+wpihal-rio = ["fifocore/wpihal-rio"]
+wpihal-mrc = ["fifocore/wpihal-mrc"]
+
+singleton = []
+jni = ["dep:jni"]
+ffi = ["singleton"]
+legacy-driver = ["dep:jni", "singleton", "ffi"]
+tokio-console = ["dep:console-subscriber"]
+
+# prebaked feature sets for target platforms
+athena = ["legacy-driver", "fifocore/athena"]
+systemcore = ["legacy-driver", "fifocore/systemcore"]
+systemcore-sim = ["legacy-driver", "fifocore/systemcore-sim"]
+
+[dependencies]
+fifocore = { path = "fifocore" }
+canandmiddleware = { path = "canandmiddleware" }
+
+futures = "0.3.31"
+jni = { version = "0.21.1", optional = true }
+libc = "0.2.173"
+serde = { version = "1.0.219", features = ["derive"] }
+tokio = { version = "1.45.1", features = ["full"] }
+frc-can-id = { path = "../crates/frc-can-id" }
+log = "0.4.27"
+parking_lot = { version = "0.12.4", features = [] }
+env_logger = "0.11.8"
+console-subscriber = { version = "0.4.1", features = ["parking_lot"], optional = true }
+
+[build-dependencies]
+cbindgen = "0.29.0"
+build-data = "0.3.3"

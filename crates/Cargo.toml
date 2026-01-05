@@ -1,0 +1,15 @@
+cargo-features = ["per-package-target"]
+
+[workspace]
+resolver = "2"
+members = ["./*"]
+exclude = ["target", "socketcan"]
+
+[workspace.package]
+authors = ["Bagholders of Redux Robotics"]
+edition = "2024"
+documentation = "https://github.com/Redux-Robotics/canandrepo-public"
+homepage = "https://github.com/Redux-Robotics/canandrepo-public"
+repository = "https://github.com/Redux-Robotics/canandrepo-public"
+license = "MIT OR Apache-2.0"
+publish = false

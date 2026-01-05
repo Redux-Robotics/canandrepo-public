@@ -1,0 +1,870 @@
+<!DOCTYPE html>
+<!--
+Copyright 2025+ Bagholders of Redux Robotics 
+
+This program is free software: you can redistribute it and/or modify it under
+the terms of the GNU Lesser General Public License as published by the Free
+Software Foundation, version 3 of the License.
+
+This program is distributed in the hope that it will be useful, but WITHOUT
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+FOR A PARTICULAR PURPOSE. See the GNU General Lesser Public License for more
+details.
+
+You should have received a copy of the GNU Lesser General Public License
+along with this program. If not, see <http://www.gnu.org/licenses/>. 
+-->
+<html>
+    <head>
+        <title>ReduxLib CAN ID Configurator</title>
+        <style>
+            .disconnected-banner {
+                top:0px;
+                left:0px;
+                height:15%;
+                width:100%;
+                border: 5px;
+                background-color: darkred;
+                color: white;
+                display: none;
+            }
+            table,th,td {
+                border: 1px solid black;
+            }
+            .fieldset-box {
+                display: flex;
+            }
+            .device-list-label {
+                display: block;
+            }
+            .device-list {
+                padding-top: 1em;
+            }
+            .device-list-device-selector-col {
+                min-width: 3em;
+            }
+            .device-list-device-id-col {
+                min-width: 3em;
+            }
+            .device-list-device-class-col {
+                min-width: 10em;
+            }
+            .device-list-device-name-col {
+                min-width: 30em;
+            }
+            .bus-pane {
+                padding: 10px;
+            }
+            .device-view {
+                border-top: 2px dotted grey;
+                padding: 10px;
+            }
+
+            .error-text {
+                background-color: darkred;
+                color: white;
+            }
+
+            fieldset {
+                width: fit-content;
+            }
+
+
+        </style>
+        <script>
+            var POLLER = null; // Option<SetIntervalHandle>
+            var ROWS = {}; // Map[String : Element<tr>]
+            var DEVICES = null;
+            var SELECTED_DEVICE = null;
+
+            function toBcx(a) { // u8 -> String
+                if (a < 10) {
+                    return String.fromCharCode(a + 0x30);
+                } else {
+                    return String.fromCharCode(a + 0x37);
+                }
+            }
+
+            function prettifySerialNumer(serial /*[u8; 6]*/) { // -> String
+                const productId = serial[5];
+                const batchId = ((serial[2] & 0xf) << 12) | ((serial[3]) << 4) | (serial[4] >> 4);
+                const deviceId = ((serial[1]) << 4) | (serial[2] >> 4);
+
+                return (
+                    toBcx(productId >> 4) +
+                    toBcx(productId & 0xf) +
+                    "-" +
+                    toBcx(serial[4] & 0xf) +
+                    "-" +
+                    toBcx((batchId >> 12) & 0xf) +
+                    toBcx((batchId >> 8) & 0xf) +
+                    toBcx((batchId >> 4) & 0xf) +
+                    toBcx(batchId & 0xf) +
+                    "-" +
+                    toBcx((deviceId >> 8) & 0xf) +
+                    toBcx((deviceId >> 4) & 0xf) +
+                    toBcx((deviceId) & 0xf) +
+                    "-" +
+                    toBcx(serial[0] & 0xf) +
+                    "-" +
+                    toBcx(serial[0] >> 4)
+                );
+            }
+
+            function parseDeviceData(
+                deviceKey /*String*/,
+                deviceVariant /*String*/,
+                deviceValue /*String*/
+            ) { // -> Device
+                const deviceKeySplit = deviceKey.split(":");
+                const deviceClass = deviceKeySplit[0];
+                var device = {
+                    variant: deviceVariant, // String
+                    deviceKey: deviceKey,
+                    deviceClass: deviceKeySplit[0],
+                    deviceId: parseInt(deviceKeySplit[1], 10), // String
+                    deviceClassId: null,
+                    name: "Unknown", // String
+                    fd: false, // bool
+                    bootloader: false, // bool
+                    authorized_serial: null, // Option<String>
+                    in_conflict_serials: [], // List<String>
+                };
+
+                switch (deviceVariant) {
+                    case "Canandmag":
+                    case "Canandcolor":
+                    case "Canandgyro":
+                    case "Nitrate":
+                        device.fd = deviceValue === "Fd";
+                        if (deviceValue === "Fd" && deviceVariant != "Nitrate") {
+                            device.name = deviceVariant + "-FD";
+                        } else if (deviceValue === "Bootloader") {
+                            device.name = deviceVariant + " Bootloader";
+                            device.bootloader = true;
+                        } else {
+                            device.name = deviceVariant;
+                        }
+                        break;
+                    case "InConflict":
+                        const numDevicesDetected = deviceValue["devices_detected"].length;
+                        if (deviceValue["authorized"] != null) {
+                            device.authorized_serial = prettifySerialNumer(deviceValue["authorized"]);
+                            device.name = "Arbitrated " + deviceClass + " device " + device.authorized_serial + " + " + (numDevicesDetected-1) + " others";
+                        } else {
+                            device.name = numDevicesDetected + " " + deviceClass + " devices in ID conflict";
+                        }
+                        device.in_conflict_serials = Array.from(deviceValue["devices_detected"], prettifySerialNumer);
+                        break;
+                    case "Unknown":
+                        device.name = "Unknown " + deviceClass + " device " + prettifySerialNumer(deviceValue);
+                        break;
+                    case "NotSure":
+                    default:
+                        device.name = "Unknown " + deviceClass + " device " + deviceVariant + ":" + deviceValue;
+                        break;
+                }
+
+                switch (device.deviceClass) {
+                    case "Encoder":
+                        device.deviceClassId = 0x7;
+                        break;
+                    case "Gyroscope":
+                        device.deviceClassId = 0x4;
+                        break;
+                    case "DistanceSensor":
+                        device.deviceClassId = 0x6;
+                        break;
+                    case "MotorController":
+                        device.deviceClassId = 0x2;
+                        break;
+                    default:
+                        if (device.deviceClass.startsWith("Other(")) {
+                            device.deviceClassId = parseInt(
+                                device.deviceClassId.replace("Other(", "").replace(")", ""),
+                                10
+                            );
+                        }
+                        break;
+                }
+
+                return device;
+            }
+
+            async function renumerate() {
+                const busSelect = document.querySelector("#bus-select");
+                if (busSelect.value === "") {
+                    return;
+                }
+                await fetch("/sessions/" + busSelect.value + "/devices/clear");
+                await activateBus();
+            }
+
+            function wrapElement(e/*String*/, c/*Element*/) {
+                var elem = document.createElement(e);
+                elem.appendChild(c);
+                return elem;
+            }
+
+            async function poll() {
+                const busSelect = document.querySelector("#bus-select");
+                if (busSelect.value === "") {
+                    return;
+                }
+
+                var devices = null;
+                const disconnectedBanner = document.getElementById("disconnected-banner");
+                try {
+                    const req = await fetch("/sessions/" + busSelect.value + "/devices/list");
+                    if (req.ok) {
+                        disconnectedBanner.style.display = "none";
+                    } else {
+                        disconnectedBanner.style.display = "block";
+                    }
+                    devices = await req.json();
+
+                } catch (error) {
+                    disconnectedBanner.style.display = "block";
+                    return;
+                }
+
+                if (devices === null) {
+                    disconnectedBanner.style.display = "block";
+                    return;
+                }
+
+                const deviceListTable = document.querySelector("#device-list-table-body");
+                DEVICES = {};
+
+                for (const [deviceKey, device] of Object.entries(devices)) {
+                    const deviceVariant = Object.keys(device)[0];
+                    const deviceValue = device[deviceVariant];
+                    const deviceKeySplit = deviceKey.split(":");
+
+                    const deviceData = parseDeviceData(deviceKey, deviceVariant, deviceValue);
+                    DEVICES[deviceKey] = deviceData;
+                    const resolvedDeviceName = deviceData.name;
+
+                    if (ROWS.hasOwnProperty(deviceKey)) {
+                        // update existing
+                        const deviceRow = ROWS[deviceKey];
+                        const deviceName = deviceRow.querySelector(".device-name");
+                        if (deviceName.innerText !== resolvedDeviceName) {
+                            deviceName.innerText = resolvedDeviceName;
+                        }
+
+                        if (SELECTED_DEVICE !== null && SELECTED_DEVICE.deviceKey === deviceKey) {
+                            if (SELECTED_DEVICE.variant !== deviceVariant || 
+                                SELECTED_DEVICE.authorized_serial !== deviceData.authorized_serial ||
+                                SELECTED_DEVICE.bootloader != deviceData.bootloader
+                            ) {
+                                // update SELECTED_DEVICE with fresh data
+                                SELECTED_DEVICE = DEVICES[SELECTED_DEVICE.deviceKey];
+                                // also reload the selection pane
+                                await loadSelection(deviceKey);
+                            }
+                        }
+                        updateIdConflictSerials();
+                    } else {
+
+                        // create the row, id, class split
+                        const keyId = "device-key-select-" + deviceKey.replace(":", "-");
+                        const deviceRow = document.createElement("tr");
+                        const deviceRowSelector = document.createElement("input");
+                        const onActivate = async () => {
+                            if (deviceRowSelector.checked) {
+                                await loadSelection(deviceKey);
+                            }
+                        };
+                        deviceRowSelector.type = "radio";
+                        deviceRowSelector.value = deviceKey;
+                        deviceRowSelector.name = "device-key-select";
+                        deviceRowSelector.id = keyId;
+                        deviceRowSelector.onchange = onActivate;
+
+                        // this lets you click the space to the right of the radio button and have it still work
+                        const deviceRowSelectorLabel = document.createElement("label");
+                        deviceRowSelectorLabel.htmlFor = keyId;
+                        deviceRowSelectorLabel.className = "device-list-label";
+
+                        deviceRowSelectorLabel.appendChild(deviceRowSelector);
+                        deviceRow.appendChild(wrapElement("td", deviceRowSelectorLabel));
+
+                        const deviceId = document.createElement("label");
+                        deviceId.htmlFor = keyId;
+                        deviceId.textContent = deviceKeySplit[1];
+                        deviceId.className = "device-list-label";
+                        deviceRow.appendChild(wrapElement("td", deviceId));
+
+                        const deviceClass = document.createElement("label");
+                        deviceClass.htmlFor = keyId;
+                        deviceClass.className = "device-list-label device-class";
+                        deviceClass.textContent = deviceKeySplit[0];
+                        deviceRow.appendChild(wrapElement("td", deviceClass));
+
+                        const deviceName = document.createElement("label");
+                        deviceName.htmlFor = keyId;
+                        deviceName.className = "device-list-label device-name";
+                        deviceName.innerText = resolvedDeviceName;
+                        deviceRow.appendChild(wrapElement("td", deviceName));
+
+                        deviceListTable.appendChild(deviceRow);
+                        ROWS[deviceKey] = deviceRow;
+                    }
+                }
+
+                for (const deviceKey of Object.keys(ROWS)) {
+                    // delete rows from devices that are no longer detected
+                    if (!devices.hasOwnProperty(deviceKey)) {
+                        if (SELECTED_DEVICE !== null && SELECTED_DEVICE.deviceKey === deviceKey) {
+                            // if the currently selected device dropped off of bus, clear it out too
+                            await loadSelection(null);
+                        }
+                        ROWS[deviceKey].remove();
+                        delete ROWS[deviceKey];
+                    }
+                }
+            }
+
+            async function activateBus() {
+                const busSelect = document.querySelector("#bus-select");
+                await loadSelection(null);
+                for (const row of Object.values(ROWS)) {
+                    // delete rows from devices that are no longer detected
+                    row.remove();
+                }
+                ROWS = {};
+                DEVICES = null;
+                SELECTED_DEVICE = null;
+
+                if (busSelect.value === "") {
+                    // no bus selected, clear poller
+                    clearInterval(POLLER);
+                    POLLER = null;
+                    document.querySelector("#renumerate-button").disabled = true;
+                    return;
+                }
+                await fetch("/sessions/open/" + busSelect.value);
+                await fetch("/sessions/" + busSelect.value + "/enumerate");
+                document.querySelector("#renumerate-button").disabled = false;
+                POLLER ??= setInterval(poll, 250);
+            }
+
+            // run at page load to populate the bus list.
+            async function populateBuses() {
+                await loadSelection(null);
+                const busSelect = document.querySelector("#bus-select");
+                const disconnectedBanner = document.querySelector("#disconnected-banner");
+                var buses = null;
+                try {
+                    buses = await (await fetch("/buses")).json();
+                    const version = await (await fetch("/version")).text();
+                    disconnectedBanner.style.display = "none";
+
+                    document.querySelector("#version").innerText = "v" + version;
+
+                } catch (error) {
+                    disconnectedBanner.style.display = "block";
+                }
+
+                busSelect.innerHTML = "";
+
+                const noOption = document.createElement("option");
+                noOption.value = "";
+                noOption.text = "--No bus selected--";
+                noOption.class = "bus-select-option";
+                busSelect.appendChild(noOption);
+
+
+                for (const bus of buses["buses"]) {
+                    const busOption = document.createElement("option");
+                    busOption.value = bus["id"].toString();
+                    busOption.text = bus["id"].toString() + ": " + bus["params"].toString();
+                    busOption.class = "bus-select-option";
+                    busSelect.appendChild(busOption);
+                }
+            }
+
+            window.addEventListener("load", () => populateBuses(), false);
+
+            // this updates the device config part of the pages
+            async function loadSelection(deviceKey /*Option<String>*/) {
+                if (deviceKey === null || DEVICES === null || !DEVICES.hasOwnProperty(deviceKey)) {
+                    SELECTED_DEVICE = null;
+                    reloadSettingsPane({});
+                    document.querySelector("#device-title").innerText = "No device selected";
+                    document.querySelector("#can-id-fieldset").disabled = true;
+                    document.querySelector("#device-blink-fieldset").disabled = true;
+                    document.querySelector("#firmware-update-fieldset").disabled = true;
+                    document.querySelector("#device-info-fieldset").disabled = true;
+                    document.querySelector("#can-id-would-conflict").style.display = "none";
+                    document.querySelector("#id-conflict-fieldset").style.display = "none";
+                    const devSelect = document.querySelector("input[name='device-key-select']:checked");
+                    if (devSelect !== null) {
+                        devSelect.checked = false;
+                    }
+                    updateIdConflictSerials();
+                    await pollOta();
+                    return;
+                }
+
+                const device = DEVICES[deviceKey];
+
+                document.querySelector("#device-title").innerText = device.name + " ID " + device.deviceId.toString();
+                const canIDInput = document.querySelector("#can-id-input");
+                // we want to not clobber the value that people put in, but still change the value on switch.
+
+                if (SELECTED_DEVICE !== null && SELECTED_DEVICE.deviceClassId !== device.deviceClassId) {
+                    document.querySelector("#ota-upload").value = null;
+                }
+
+                if (SELECTED_DEVICE === null || (
+                    SELECTED_DEVICE.deviceId != device.deviceId ||
+                    SELECTED_DEVICE.variant != device.variant
+                )) {
+
+                    canIDInput.value = device.deviceId;
+                    document.querySelector("#can-id-would-conflict").style.display = "none";
+                    // also clear out the settings pane
+                    if (device.variant === "InConflict") {
+                        reloadSettingsPane({});
+                    } else {
+                        SELECTED_DEVICE = device;
+                        await refreshSettings(null);
+                    }
+                }
+
+                // only allow setting can ids if not in conflict or it's authorized
+                const deviceInactive = device.variant === "InConflict" && device.authorized_serial === null;
+                document.querySelector("#can-id-fieldset").disabled = deviceInactive;
+                document.querySelector("#device-blink-fieldset").disabled = deviceInactive;
+                // lock out firmware update/device info polling while in conflict unconditionally
+                document.querySelector("#firmware-update-fieldset").disabled = device.variant === "InConflict";
+                document.querySelector("#device-info-fieldset").disabled = device.variant === "InConflict";
+
+                // Bootloaders can't set settings persisetently
+                document.querySelector("#set-name-setting").disabled = device.bootloader;
+
+                SELECTED_DEVICE = device;
+                if (device.variant === "InConflict") {
+                    document.querySelector("#id-conflict-fieldset").style.display = "block";
+                    updateIdConflictSerials();
+
+                } else {
+                    document.querySelector("#id-conflict-fieldset").style.display = "none";
+                }
+                await pollOta();
+            }
+
+            var ARB_ID_ROWS = {};
+            function updateIdConflictSerials() {
+                if (SELECTED_DEVICE === null || SELECTED_DEVICE.variant !== "InConflict") {
+                    document.querySelector("#arb-id-deconflict").checked = true;
+                    return;
+                }
+                var inConflictSerialSet = {};
+                for (const serial of SELECTED_DEVICE.in_conflict_serials) {
+                    inConflictSerialSet[serial] = true;
+                    if (ARB_ID_ROWS.hasOwnProperty(serial)) {
+                        continue;
+                    }
+
+                    const outerDiv = document.createElement("div");
+                    outerDiv.className = "arb-id-select";
+                    const selector = document.createElement("input");
+                    selector.type = "radio";
+                    selector.id = "arb-id-" + serial;
+                    selector.name = "arb-id-select";
+                    selector.value = serial;
+
+                    const label = document.createElement("label");
+                    label.htmlFor = selector.id;
+                    label.innerText = "Serial " + serial;
+                    outerDiv.appendChild(selector);
+                    outerDiv.append(label);
+                    ARB_ID_ROWS[serial] = outerDiv;
+                    document.querySelector("#arb-id-select-list").appendChild(outerDiv);
+                }
+                for (const serial of Object.keys(ARB_ID_ROWS)) {
+                    if (!inConflictSerialSet.hasOwnProperty(serial)) {
+                        const radio = document.querySelector("#arb-id-" + serial);
+                        if (radio.checked) {
+                            radio.checked = false;
+                            document.querySelector("#arb-id-deconflict").checked = true;
+                        }
+                        ARB_ID_ROWS[serial].remove();
+                        delete ARB_ID_ROWS[serial];
+                    }
+                }
+            }
+
+            function device_fullid(device) {
+                return Number((device.deviceClassId << 24) | 0x0e0000 | device.deviceId).toString(16);
+            }
+
+            async function setDeviceId() {
+                if (SELECTED_DEVICE === null) {
+                    return;
+                }
+                const fullID = device_fullid(SELECTED_DEVICE);
+                const busSelect = document.querySelector("#bus-select");
+                const canIDToSet = parseInt(document.querySelector("#can-id-input").value, 10);
+
+                for (const device of Object.values(DEVICES)) {
+                    if (device.deviceId === canIDToSet && device.deviceClass === SELECTED_DEVICE.deviceClass) {
+                        document.querySelector("#can-id-would-conflict").style.display = "block";
+                        return;
+                    }
+                }
+                document.querySelector("#can-id-would-conflict").style.display = "none";
+
+                await fetch("/sessions/" + busSelect.value + "/devices/" + fullID + "/set_id?" + new URLSearchParams({
+                    id: canIDToSet
+                }).toString());
+
+                await loadSelection(null);
+            }
+
+            async function setBlink(on /*bool*/) {
+                if (SELECTED_DEVICE === null) {
+                    return;
+                }
+                const fullID = device_fullid(SELECTED_DEVICE);
+                const busSelect = document.querySelector("#bus-select");
+
+                await fetch("/sessions/" + busSelect.value + "/devices/" + fullID + "/blink?" + new URLSearchParams({
+                    r: Number(!!on).toString()
+                }).toString());
+                document.querySelector("#device-blink-status").innerText = "Success";
+                queueReHide("#device-blink-status", 1000);
+            }
+
+            const NAME_0 = 1;
+            const NAME_1 = 2;
+            const NAME_2 = 3;
+            const SERIAL_NUMER = 5;
+            const FIRMWARE_VERSION = 6;
+
+            async function refreshSettings(interactive/*Option<String>*/) {
+                if (SELECTED_DEVICE === null) {
+                    return;
+                }
+
+                const fullID = device_fullid(SELECTED_DEVICE);
+                const busSelect = document.querySelector("#bus-select");
+                const settings = {};
+
+                for (const index of [NAME_0, NAME_1, NAME_2, SERIAL_NUMER, FIRMWARE_VERSION]) {
+                    for (var i = 0; i < 5; i++) {
+                        const fetchResponse = await fetch(
+                            "/sessions/" + busSelect.value + "/devices/" + fullID + "/fetch_setting?"
+                            + new URLSearchParams({
+                                index: index,
+                                wait: 20,
+                            }
+                        ));
+                        const fetchValue = await fetchResponse.json();
+                        if (fetchValue !== null) {
+                            settings[index] = fetchValue["data"];
+                            break;
+                        } else {
+                            settings[index] = null;
+                        }
+                    }
+                }
+                reloadSettingsPane(settings);
+                if (interactive !== null) {
+                    document.querySelector("#device-info-status").innerText = interactive;
+                    queueReHide("#device-info-status", 1000);
+                }
+            }
+            
+            function reloadSettingsPane(settings) {
+                if (Array.isArray(settings[FIRMWARE_VERSION])) {
+                    const firmwareVersion = settings[FIRMWARE_VERSION];
+                    document.querySelector("#firmware-version-display").innerText = (
+                        "Firmware version: " +
+                        (firmwareVersion[2] | (firmwareVersion[3] << 8)).toString() + "." +
+                        firmwareVersion[1].toString() + "." +
+                        firmwareVersion[0].toString()
+                    );
+                } else {
+                    document.querySelector("#firmware-version-display").innerText = "Firmware version: unknown";
+                }
+
+                if (Array.isArray(settings[SERIAL_NUMER])) {
+                    document.querySelector("#serial-numer-display").innerText = (
+                        "Serial number: " + prettifySerialNumer(settings[SERIAL_NUMER])
+                    );
+                } else {
+                    document.querySelector("#serial-numer-display").innerText = "Serial number: unknown";
+                }
+
+                if (Array.isArray(settings[NAME_0]) && Array.isArray(settings[NAME_1]) && Array.isArray(settings[NAME_2])) {
+                    const nameData = settings[NAME_0].concat(settings[NAME_1], settings[NAME_2]);
+                    var nameString = "";
+                    for (const ordinal of nameData) {
+                        if (ordinal === 0) {
+                            break;
+                        }
+                        nameString += String.fromCharCode(ordinal);
+                    }
+                    document.querySelector("#device-name-setting").value = nameString;
+                } else {
+                    document.querySelector("#device-name-setting").value = "";
+                }
+            }
+
+            async function arbitrateSerial() {
+                if (SELECTED_DEVICE === null) {
+                    return;
+                }
+
+                const fullID = device_fullid(SELECTED_DEVICE);
+                const busSelect = document.querySelector("#bus-select");
+                const selected = document.querySelector("input[name='arb-id-select']:checked");
+                if (selected === null) {
+                    return;
+                }
+                await fetch("/sessions/" + busSelect.value + "/devices/" + fullID + "/arbitrate?" + new URLSearchParams({
+                    serial: selected.value,
+                }).toString());
+            }
+
+            async function setName() {
+                if (SELECTED_DEVICE === null) {
+                    return;
+                }
+
+                const fullID = device_fullid(SELECTED_DEVICE);
+                const busSelect = document.querySelector("#bus-select");
+                const deviceName = document.querySelector("#device-name-setting").value;
+
+                await fetch("/sessions/" + busSelect.value + "/devices/" + fullID + "/set_name?" + new URLSearchParams({
+                    name: deviceName,
+                    wait: 50,
+                }).toString());
+
+                await refreshSettings("Set name successfully");
+            }
+
+            function queueReHide(query /*String*/, delayMs /*int*/) {
+                document.querySelector(query).style.display = "block";
+                setTimeout(() => {
+                    document.querySelector(query).style.display = "none";
+                }, delayMs);
+            }
+
+            async function rebootFirmware() {
+                if (SELECTED_DEVICE === null) {
+                    return;
+                }
+                const fullID = device_fullid(SELECTED_DEVICE);
+                const busSelect = document.querySelector("#bus-select");
+                await fetch("/sessions/" + busSelect.value + "/devices/" + fullID + "/reboot");
+                await loadSelection(null);
+            }
+
+            async function abortOta() {
+                if (SELECTED_DEVICE === null) {
+                    return;
+                }
+                const fullID = device_fullid(SELECTED_DEVICE);
+                const busSelect = document.querySelector("#bus-select");
+                await fetch("/ota/" + busSelect.value + "/" + fullID + "/abort");
+                document.querySelector("#ota-status").innerText = "Abort sent";
+                await pollOta();
+            }
+
+            async function startOta() {
+                if (SELECTED_DEVICE === null) {
+                    return;
+                }
+                const otaUpload = document.querySelector("#ota-upload");
+
+                if (otaUpload.files.length < 1) {
+                    document.querySelector("#ota-status").innerText = "No update file selected!";
+                    return;
+                }
+
+                const fullID = device_fullid(SELECTED_DEVICE);
+                const busSelect = document.querySelector("#bus-select");
+                await fetch("/ota/" + busSelect.value + "/" + fullID + "/start", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/octet-stream",
+                    },
+                    body: otaUpload.files[0],
+                });
+                document.querySelector("#ota-status").innerText = "Starting firmware update";
+                await pollOta();
+            }
+
+            async function pollOta() {
+
+                const NOT_STARTED = "Firmware update not started.";
+
+                const busSelect = document.querySelector("#bus-select");
+                const otaProgress = document.querySelector("#ota-progress");
+                const otaStatus = document.querySelector("#ota-status");
+                if (SELECTED_DEVICE === null) {
+                    otaProgress.value = "0";
+                    otaProgress.innerText = "0%";
+                    otaStatus.innerText = NOT_STARTED;
+                    return;
+                }
+                const fullID = device_fullid(SELECTED_DEVICE);
+
+                // "{{\"state\": {}, \"written\": {}, \"pctProgress\": {}, \"speed\": {}}}",
+                const status = await (await fetch("/ota/" + busSelect.value + "/" + fullID + "/status")).json();
+
+                const pctProgress = parseFloat(status["pct_progress"]).toFixed(2);
+                const speed = parseFloat(status["speed"] / 1024.0).toFixed(3);
+
+                otaProgress.value = pctProgress;
+                otaProgress.innerText = pctProgress + "%";
+
+                switch (status["state"]) {
+                    case "None":
+                        otaStatus.innerText = NOT_STARTED;
+                        break;
+                    case "Running":
+                        otaStatus.innerText = pctProgress + "% uploaded" + " (" + speed + " KiB/s)";
+                        setTimeout(pollOta, 100);
+                        break;
+                    case "Fail":
+                        if (status["error_text"] !== null) {
+                            otaStatus.innerText = "Upload failed: " + status["error_text"].toString();
+                        } else {
+                            otaStatus.innerText = "Upload failed: Unknown, check robot logs";
+                        }
+                        break;
+                    case "Abort":
+                        otaStatus.innerText = "Upload aborted!";
+                        break;
+                    case "Finished": 
+                        otaStatus.innerText = "Firmware upload finished!";
+                        setTimeout(refreshSettings, 100, null);
+                        break;
+                    default:
+                        console.warn("Invalid OTA status found: ", status);
+                        break;
+                }
+            }
+
+        </script>
+    </head>
+    <body>
+        <div id="disconnected-banner" class="disconnected-banner" style="display:hidden">
+            <h1 class="disconnected"> Disconnected from the robot!!! </h1>
+            <h3>If you have issues on reconnect, try refreshing the page.</h3>
+        </div>
+        <h1 class="title-header">ReduxLib CAN ID Configurator</h1>
+        <h4 id="version">Version unknown</h4>
+        <p>
+            Select a bus to manage:
+            <select name="bus" id="bus-select" class="bus-select" onchange="activateBus()">
+                <option value="" class="bus-select-option">--No bus selected--</option>
+            </select>
+        </p>
+        <div id="active-bus" class="active-bus">
+            <div class="bus-pane">
+                <h2>Devices detected on this bus:</h2>
+                <button id="renumerate-button" onclick="renumerate()" disabled>Force re-enumerate</button>
+                <div id="device-list" class="device-list">
+                    <table id="device-list-table" class="device-list-table">
+                        <thead>
+                            <tr>
+                                <th class="device-list-device-selector-col"></th>
+                                <th class="device-list-device-id-col">Device ID</th>
+                                <th class="device-list-device-class-col">Device Class</th>
+                                <th class="device-list-device-name-col">Device </th>
+                            </tr>
+                        </thead>
+                        <tbody id="device-list-table-body">
+
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div id="device-view" class="device-view">
+                <h2 id="device-title">No device selected</h2>
+                <div class="fieldset-box">
+                    <div>
+                        <fieldset id="can-id-fieldset">
+                            <legend><h4>CAN device ID</h4></legend>
+                            <label for="can-id-input">Set device id: </label>
+                            <input type="number" name="can-id-input" id="can-id-input" min="0" max="63"/>
+                            <p>
+                                <button id="can-id-submit" onclick="setDeviceId()">Change ID</button>
+                                <p id="can-id-would-conflict" class="error-text">
+                                    Error: There is already a device with this ID + device class combo.
+                                </p>
+                            </p>
+                        </fieldset>
+                    </div>
+                    <div>
+                        <fieldset id="device-blink-fieldset">
+                            <legend><h4>Device LED blink</h4></legend>
+                            <button id="blink-start" onclick="setBlink(true)">Start blinking LED</button>
+                            <button id="blink-stop" onclick="setBlink(false)">Stop blinking LED</button>
+                            <p id="device-blink-status" style="display:none"></p>
+                        </fieldset>
+                    </div>
+                </div>
+                <div class="fieldset-box">
+                    <div>
+                        <fieldset id="device-info-fieldset">
+                            <legend><h4>Device info</h4></legend>
+                            <p>
+                                <label for="device-name-setting">User-set name:</label>
+                                <input type="text" id="device-name-setting" value="" maxlength="18" size="20">
+                            </p>
+                            <p id="firmware-version-display">Firmware version: Unknown</p>
+                            <p id="serial-numer-display">Serial number: Unknown</p>
+                            <p style="padding-top:1em">
+                                <button id="refresh-settings" onclick="refreshSettings('Refreshed settings')">Refresh settings</button>
+                                <button id="set-name-setting" onclick="setName()">Set device name</button>
+                            </p>
+                            <p id="device-info-status" style="display:none"></p>
+                        </fieldset>
+                    </div>
+                    <div>
+                        <fieldset id="firmware-update-fieldset">
+                            <legend><h4>Firmware update</h4></legend>
+                            <p>
+                                <label for="ota-upload">Select firmware update file:</label>
+                                <input type="file" name="ota-upload" id="ota-upload" accept=".rdxota,.rdxfw" onload="loadOtaImage(this)">
+                            </p>
+                            <p>
+                                <progress id="ota-progress" max="100" value="0">0%</progress>
+                                <label for="ota-progress" id="ota-status">Firmware update not started.</label>
+                            </p>
+                            <p style="padding-top:1em">
+                                <button id="start-ota" onclick="startOta()">Start update</button>
+                                <button id="stop-ota" onclick="abortOta()">Abort update</button>
+                            </p>
+                            <p style="padding-top:1em">
+                                <button id="reboot-firmware" onclick="rebootFirmware()" title="If the device is stuck in bootloader, this can attempt to start its main firmware without a power cycle.">Reboot device</button>
+                            </p>
+                        </fieldset>
+                    </div>
+                </div>
+
+                <fieldset id="id-conflict-fieldset">
+                    <legend><h4>Devices in ID conflict</h4></legend>
+                    <p>
+                        Select a device to arbitrate to be currently active for this ID:
+                    </p>
+                    <div class="arb-id-select">
+                        <input type="radio" id="arb-id-deconflict" name="arb-id-select" value="00-0-0000-000-0-0" checked/><label for="arb-id-deconflict">Attempt to activate all devices</label>
+                    </div>
+                    <div id="arb-id-select-list"></div>
+                    <div style="padding-top: 2em">
+                        <button id="arb-id-submit" onclick="arbitrateSerial()">Activate selection</button>
+                    </div>
+                </fieldset>
+            </div>
+        </div>
+    </body>
+</html>

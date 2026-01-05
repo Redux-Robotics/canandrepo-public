@@ -1,0 +1,46 @@
+
+name = "VirtualDevice"
+base = ["CanandDevice"] #, "OTAv0"]
+arch = "esp32c3"
+
+dev_type = 1
+dev_class = 0
+
+[vendordep]
+java_package = "com.reduxrobotics.misc.virtualdev"
+cpp_namespace = "redux::misc::virtualdev"
+
+[msg]
+[msg.DIGITAL_VALUE]
+id = 31
+length = 2
+source = "host"
+comment = "Digital value"
+signals = [
+    { name = "dig0", dtype = "bool", comment = "Digital value 0" },
+    { name = "dig1", dtype = "bool", comment = "Digital value 1" },
+    { name = "dig2", dtype = "bool", comment = "Digital value 2" },
+    { name = "dig3", dtype = "bool", comment = "Digital value 3" },
+    { name = "dig4", dtype = "bool", comment = "Digital value 4" },
+    { name = "dig5", dtype = "bool", comment = "Digital value 5" },
+    { name = "dig6", dtype = "bool", comment = "Digital value 6" },
+    { name = "dig7", dtype = "bool", comment = "Digital value 7" },
+    { name = "dig8", dtype = "bool", comment = "Digital value 0" },
+    { name = "dig9", dtype = "bool", comment = "Digital value 10" },
+    { name = "dig10", dtype = "bool", comment = "Digital value 11" },
+    { name = "dig11", dtype = "bool", comment = "Digital value 12" },
+    { name = "dig12", dtype = "bool", comment = "Digital value 13" },
+    { name = "dig13", dtype = "bool", comment = "Digital value 14" },
+    { name = "dig14", dtype = "bool", comment = "Digital value 15" },
+    { name = "dig15", dtype = "bool", comment = "Digital value 16" },
+]
+
+[msg.GYRO_VALUE]
+id = 30
+length = 8
+source = "host"
+comment = "Gyroscope rotational data"
+signals = [
+    { name = "position", dtype = "rfloat32", comment = "Position (rotations)"},
+    { name = "velocity", dtype = "rfloat32", comment = "Velocity (rotations per second)"}
+]

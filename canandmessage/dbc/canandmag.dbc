@@ -1,0 +1,207 @@
+VERSION ""
+
+
+NS_ :
+	NS_DESC_
+	CM_
+	BA_DEF_
+	BA_
+	VAL_
+	CAT_DEF_
+	CAT_
+	FILTER
+	BA_DEF_DEF_
+	EV_DATA_
+	ENVVAR_DATA_
+	SGTYPE_
+	SGTYPE_VAL_
+	BA_DEF_SGTYPE_
+	BA_SGTYPE_
+	SIG_TYPE_REF_
+	VAL_TABLE_
+	SIG_GROUP_
+	SIG_VALTYPE_
+	SIGTYPE_VALTYPE_
+	BO_TX_BU_
+	BA_DEF_REL_
+	BA_REL_
+	BA_DEF_DEF_REL_
+	BU_SG_REL_
+	BU_EV_REL_
+	BU_BO_REL_
+	SG_MUL_VAL_
+
+BS_: 
+BU_: canandmag
+
+BO_ 2265843648 position_output: 6 canandmag
+ SG_ relative_position : 0|32@1- (0.00006103515625,0) [-2147483648|2147483647] "" Vector__XXX
+ SG_ magnet_status : 32|2@1+ (1,0) [0|3] "" Vector__XXX
+ SG_ absolute_position : 34|14@1+ (0.00006103515625,0) [0|16383] "" Vector__XXX
+
+BO_ 2265843584 velocity_output: 3 canandmag
+ SG_ velocity : 0|22@1- (0.0009765625,0) [-2097152|2097151] "" Vector__XXX
+ SG_ magnet_status : 22|2@1+ (1,0) [0|3] "" Vector__XXX
+
+BO_ 2265843520 raw_position_output: 6 canandmag
+ SG_ raw_position : 0|14@1+ (0.00006103515625,0) [0|16383] "" Vector__XXX
+ SG_ magnet_status : 14|2@1+ (1,0) [0|3] "" Vector__XXX
+ SG_ timestamp : 16|32@1+ (1,0) [0|4294967295] "" Vector__XXX
+
+BO_ 2265842496 atomic_bond_specification: 8 canandmag
+ SG_ device_serial : 0|48@1+ (1,0) [0|281474976710655] "" Vector__XXX
+ SG_ max_supported_rate : 48|8@1+ (1,0) [0|255] "" Vector__XXX
+ SG_ current_rate : 56|8@1+ (1,0) [0|255] "" Vector__XXX
+
+BO_ 2265842432 atomic_bond_announcement: 8 Vector__XXX
+ SG_ gateway_serial : 0|48@1+ (1,0) [0|281474976710655] "" canandmag
+ SG_ flags_negotiation : 48|1@1+ (1,0) [0|1] "" canandmag
+ SG_ flags_init : 49|1@1+ (1,0) [0|1] "" canandmag
+ SG_ flags_confirm : 50|1@1+ (1,0) [0|1] "" canandmag
+ SG_ flags_begin_tx : 51|1@1+ (1,0) [0|1] "" canandmag
+ SG_ flags_bus_interrupt : 52|1@1+ (1,0) [0|1] "" canandmag
+ SG_ flags_reserved_bits : 53|3@1+ (1,0) [0|7] "" canandmag
+ SG_ rate : 56|8@1+ (1,0) [0|255] "" canandmag
+
+BO_ 2265842368 enumerate: 8 canandmag
+ SG_ serial : 0|48@1+ (1,0) [0|281474976710655] "" Vector__XXX
+ SG_ is_bootloader : 48|1@1+ (1,0) [0|1] "" Vector__XXX
+ SG_ reserved : 49|15@1+ (1,0) [0|32767] "" Vector__XXX
+
+BO_ 2265842304 ota_to_device: 8 Vector__XXX
+ SG_ to_device_data : 0|64@1+ (1,0) [0|18446744073709551615] "" canandmag
+
+BO_ 2265842240 ota_to_host: 8 canandmag
+ SG_ to_host_data : 0|64@1+ (1,0) [0|18446744073709551615] "" Vector__XXX
+
+BO_ 2265842176 ota_data: 8 Vector__XXX
+ SG_ data : 0|64@1+ (1,0) [0|18446744073709551615] "" canandmag
+
+BO_ 2265842112 party_mode: 8 Vector__XXX
+ SG_ party_level : 0|8@1+ (1,0) [0|255] "" canandmag
+
+BO_ 2265842048 status: 8 canandmag
+ SG_ faults_power_cycle : 0|1@1+ (1,0) [0|1] "" Vector__XXX
+ SG_ faults_can_id_conflict : 1|1@1+ (1,0) [0|1] "" Vector__XXX
+ SG_ faults_can_general_error : 2|1@1+ (1,0) [0|1] "" Vector__XXX
+ SG_ faults_out_of_temperature_range : 3|1@1+ (1,0) [0|1] "" Vector__XXX
+ SG_ faults_hardware_fault : 4|1@1+ (1,0) [0|1] "" Vector__XXX
+ SG_ faults_magnet_out_of_range : 5|1@1+ (1,0) [0|1] "" Vector__XXX
+ SG_ faults_under_volt : 6|1@1+ (1,0) [0|1] "" Vector__XXX
+ SG_ faults_reserved_bits : 7|1@1+ (1,0) [0|1] "" Vector__XXX
+ SG_ sticky_faults_power_cycle : 8|1@1+ (1,0) [0|1] "" Vector__XXX
+ SG_ sticky_faults_can_id_conflict : 9|1@1+ (1,0) [0|1] "" Vector__XXX
+ SG_ sticky_faults_can_general_error : 10|1@1+ (1,0) [0|1] "" Vector__XXX
+ SG_ sticky_faults_out_of_temperature_range : 11|1@1+ (1,0) [0|1] "" Vector__XXX
+ SG_ sticky_faults_hardware_fault : 12|1@1+ (1,0) [0|1] "" Vector__XXX
+ SG_ sticky_faults_magnet_out_of_range : 13|1@1+ (1,0) [0|1] "" Vector__XXX
+ SG_ sticky_faults_under_volt : 14|1@1+ (1,0) [0|1] "" Vector__XXX
+ SG_ sticky_faults_reserved_bits : 15|1@1+ (1,0) [0|1] "" Vector__XXX
+ SG_ temperature : 16|8@1- (1,0) [-128|127] "" Vector__XXX
+ SG_ reserved : 24|40@1+ (1,0) [0|1099511627775] "" Vector__XXX
+
+BO_ 2265841984 clear_sticky_faults: 8 Vector__XXX
+
+BO_ 2265841920 report_setting: 8 canandmag
+ SG_ address : 0|8@1+ (1,0) [0|255] "" Vector__XXX
+ SG_ value : 8|48@1+ (1,0) [0|281474976710655] "" Vector__XXX
+ SG_ flags_set_success : 56|1@1+ (1,0) [0|1] "" Vector__XXX
+ SG_ flags_commit_success : 57|1@1+ (1,0) [0|1] "" Vector__XXX
+ SG_ flags_reserved_bits : 58|6@1+ (1,0) [0|63] "" Vector__XXX
+
+BO_ 2265841856 set_setting: 8 Vector__XXX
+ SG_ address : 0|8@1+ (1,0) [0|255] "" canandmag
+ SG_ value : 8|48@1+ (1,0) [0|281474976710655] "" canandmag
+ SG_ setting_flags_ephemeral : 56|1@1+ (1,0) [0|1] "" canandmag
+ SG_ setting_flags_synch_hold : 57|1@1+ (1,0) [0|1] "" canandmag
+ SG_ setting_flags_reserved_0 : 58|2@1+ (1,0) [0|3] "" canandmag
+ SG_ setting_flags_synch_msg_count : 60|4@1+ (1,0) [0|15] "" canandmag
+
+BO_ 2265841792 setting_command: 8 Vector__XXX
+ SG_ control_flag : 0|8@1+ (1,0) [0|255] "" canandmag
+ SG_ setting_index : 8|8@1+ (1,0) [0|255] "" canandmag
+
+BO_ 2265841728 can_id_error: 8 canandmag
+ SG_ addr_value : 0|64@1+ (1,0) [0|18446744073709551615] "" Vector__XXX
+
+BO_ 2265841664 can_id_arbitrate: 8 Vector__XXX
+ SG_ addr_value : 0|64@1+ (1,0) [0|18446744073709551615] "" canandmag
+
+
+
+CM_ BO_ 2265843648 position_output "Position frame";
+CM_ SG_ 2265843648 relative_position "32-bit signed relative position in 1/16384-ths of a rotation. This value does not persist on reboots.";
+CM_ SG_ 2265843648 magnet_status "2-bit magnet status. If both bits are zero, the magnet is in range.";
+CM_ SG_ 2265843648 absolute_position "14-bit unsigned absolute position in 1/16384-ths of a rotation. The zero offset of the absolute encoder will preserve through reboots.";
+CM_ BO_ 2265843584 velocity_output "Velocity frame";
+CM_ SG_ 2265843584 velocity "Velocity as a 22-bit signed integer. One velocity tick corresponds to 1/1024th of a rotation per second.";
+CM_ SG_ 2265843584 magnet_status "2-bit magnet status. If both bits are zero, the magnet is in range.";
+CM_ BO_ 2265843520 raw_position_output "Raw position frame";
+CM_ SG_ 2265843520 raw_position "14-bit raw absolute position in 1/16384-ths of a rotation.";
+CM_ SG_ 2265843520 magnet_status "2-bit magnet status. If both bits are zero, the magnet is in range.";
+CM_ SG_ 2265843520 timestamp "32-bit sensor reading timestamp in microseconds since device boot.";
+CM_ BO_ 2265842496 atomic_bond_specification "Atomic bond specification. Sent by devices to announce capabilities.";
+CM_ SG_ 2265842496 device_serial "Device's unique serial number";
+CM_ SG_ 2265842496 max_supported_rate "Supported bus rates";
+CM_ SG_ 2265842496 current_rate "Current bus rate, if confirming";
+CM_ BO_ 2265842432 atomic_bond_announcement "Atomic bond announcement. Sent by gateway to control bus state, and by devices during negotiation.";
+CM_ SG_ 2265842432 gateway_serial "Gateway's unique serial number";
+CM_ SG_ 2265842432 flags_negotiation "Device should enter negotiation phase";
+CM_ SG_ 2265842432 flags_init "Device should initialize bus with new rate";
+CM_ SG_ 2265842432 flags_confirm "Device should confirm new bus rate";
+CM_ SG_ 2265842432 flags_begin_tx "Device should begin transmission";
+CM_ SG_ 2265842432 flags_bus_interrupt "Device should cease all transmission";
+CM_ SG_ 2265842432 flags_reserved_bits "Announcement Flags";
+CM_ SG_ 2265842432 rate "New bus rate for initialization";
+CM_ BO_ 2265842368 enumerate "Device enumerate response";
+CM_ SG_ 2265842368 serial "Device-unique serial number";
+CM_ SG_ 2265842368 is_bootloader "Device is in bootloader.";
+CM_ SG_ 2265842368 reserved "Reserved";
+CM_ BO_ 2265842304 ota_to_device "Firmware update command.";
+CM_ SG_ 2265842304 to_device_data "OTA to device data (dlc may vary)";
+CM_ BO_ 2265842240 ota_to_host "Firmware update response.";
+CM_ SG_ 2265842240 to_host_data "OTA to host data (dlc may vary)";
+CM_ BO_ 2265842176 ota_data "Firmware update payload";
+CM_ SG_ 2265842176 data "OTA data";
+CM_ BO_ 2265842112 party_mode "Party mode";
+CM_ SG_ 2265842112 party_level "Party level. 0 disables the strobe, whereas 1 enables it.";
+CM_ BO_ 2265842048 status "Status frame";
+CM_ SG_ 2265842048 faults_power_cycle "The power cycle fault flag, which is set to true when the encoder first boots. Clearing sticky faults and then checking this flag can be used to determine if the encoder rebooted. ";
+CM_ SG_ 2265842048 faults_can_id_conflict "The CAN ID conflict flag, which is set to true if there is a CAN id conflict. In practice, you should physically inspect the encoder to ensure it's not flashing blue. ";
+CM_ SG_ 2265842048 faults_can_general_error "The CAN general error flag, which will raise if the device encounters a CAN fault during operation. If communication with the device still functions, this will not register as an active fault for long if at all. This may raise due to wiring issues, such as an intermittently shorted CAN bus. ";
+CM_ SG_ 2265842048 faults_out_of_temperature_range "The temperature range flag, which will raise if the encoder is not between 0-70 degrees Celsius. This may be of concern if the encoder is near very active motors. ";
+CM_ SG_ 2265842048 faults_hardware_fault "The hardware fault flag, which will raise if a hardware issue is detected. Generally will raise if the device's controller cannot read the physical sensor itself. ";
+CM_ SG_ 2265842048 faults_magnet_out_of_range "The magnet out of range flag, which will raise if the measured shaft's magnet is not detected. This will match the encoder's LED shining red in normal operation. ";
+CM_ SG_ 2265842048 faults_under_volt "The undervolt flag, which will raise if the encoder is experiencing brownout conditions. ";
+CM_ SG_ 2265842048 faults_reserved_bits "8-bit active faults bitfield";
+CM_ SG_ 2265842048 sticky_faults_power_cycle "The power cycle fault flag, which is set to true when the encoder first boots. Clearing sticky faults and then checking this flag can be used to determine if the encoder rebooted. ";
+CM_ SG_ 2265842048 sticky_faults_can_id_conflict "The CAN ID conflict flag, which is set to true if there is a CAN id conflict. In practice, you should physically inspect the encoder to ensure it's not flashing blue. ";
+CM_ SG_ 2265842048 sticky_faults_can_general_error "The CAN general error flag, which will raise if the device encounters a CAN fault during operation. If communication with the device still functions, this will not register as an active fault for long if at all. This may raise due to wiring issues, such as an intermittently shorted CAN bus. ";
+CM_ SG_ 2265842048 sticky_faults_out_of_temperature_range "The temperature range flag, which will raise if the encoder is not between 0-70 degrees Celsius. This may be of concern if the encoder is near very active motors. ";
+CM_ SG_ 2265842048 sticky_faults_hardware_fault "The hardware fault flag, which will raise if a hardware issue is detected. Generally will raise if the device's controller cannot read the physical sensor itself. ";
+CM_ SG_ 2265842048 sticky_faults_magnet_out_of_range "The magnet out of range flag, which will raise if the measured shaft's magnet is not detected. This will match the encoder's LED shining red in normal operation. ";
+CM_ SG_ 2265842048 sticky_faults_under_volt "The undervolt flag, which will raise if the encoder is experiencing brownout conditions. ";
+CM_ SG_ 2265842048 sticky_faults_reserved_bits "8-bit sticky faults bitfield";
+CM_ SG_ 2265842048 temperature "8-bit signed temperature byte in Celsius";
+CM_ SG_ 2265842048 reserved "Reserved bits";
+CM_ BO_ 2265841984 clear_sticky_faults "Clear device sticky faults";
+CM_ BO_ 2265841920 report_setting "setting value report from device";
+CM_ SG_ 2265841920 address "Setting index to write to";
+CM_ SG_ 2265841920 value "6-byte setting value";
+CM_ SG_ 2265841920 flags_set_success "Whether the setting set/fetch was successful";
+CM_ SG_ 2265841920 flags_commit_success "Whether the setting synch commit was successful";
+CM_ SG_ 2265841920 flags_reserved_bits "Setting receive status";
+CM_ BO_ 2265841856 set_setting "update setting on device";
+CM_ SG_ 2265841856 address "Setting index to write to";
+CM_ SG_ 2265841856 value "6-byte setting value";
+CM_ SG_ 2265841856 setting_flags_ephemeral "Whether the setting should be set ephemeral";
+CM_ SG_ 2265841856 setting_flags_synch_hold "Whether the setting should be held until the next synch barrier";
+CM_ SG_ 2265841856 setting_flags_reserved_0 "Reserved";
+CM_ SG_ 2265841856 setting_flags_synch_msg_count "Synch message count";
+CM_ BO_ 2265841792 setting_command "setting control command";
+CM_ SG_ 2265841792 control_flag "Setting command index";
+CM_ SG_ 2265841792 setting_index "setting index to fetch";
+CM_ BO_ 2265841728 can_id_error "can id conflict tx packet";
+CM_ SG_ 2265841728 addr_value "Device-unique value that can be used during arbitration";
+CM_ BO_ 2265841664 can_id_arbitrate "select conflicting device to use";
+CM_ SG_ 2265841664 addr_value "Value corresponding to what was broadcasted in the CAN_ID_ERROR packet";

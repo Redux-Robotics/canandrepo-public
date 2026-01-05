@@ -1,0 +1,25 @@
+[package]
+name = "canandmessage_parser"
+authors = ["guineawheek <guineawheek@gmail.com"]
+description = "canandmessage TOML parser"
+version = "0.1.1"
+edition = "2021"
+documentation.workspace = true
+homepage.workspace = true
+repository.workspace = true
+license.workspace = true
+publish.workspace = true
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+
+[dependencies.toml]
+version = "0.8"
+default-features = false
+features = ["parse"]
+
+[dependencies.serde]
+version = "1.0"
+features = ["derive","alloc"]
+default-features = false

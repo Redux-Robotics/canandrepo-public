@@ -1,0 +1,3 @@
+python-can[gs_usb]
+tqdm
+pyusb

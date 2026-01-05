@@ -1,0 +1,141 @@
+[package]
+name = "socketcan"
+version = "3.6.0"
+edition = "2021"
+rust-version = "1.76"
+authors = [
+    "Marc Brinkmann <git@marcbrinkmann.de>",
+    "Frank Pagliughi <fpagliughi@mindspring.com>"
+]
+documentation = "https://docs.rs/socketcan"
+repository = "https://github.com/mbr/socketcan-rs"
+license = "MIT"
+description = """
+Linux SocketCAN library. Send and receive CAN frames via CANbus on Linux.
+"""
+
+# Features:
+#
+# "netlink" (default) - Whether to include CAN interface configuration 
+#       capabilities based on netlink kernel communications
+# "dump" (default) - Whether to include 'candump' log file parsing 
+#	capabilities.
+# "enumerate" - Ability to enumerate the available CAN network interfaces
+#
+# "utils" - Build the command-line utilities
+#
+# "tokio" - Async/await support with tokio
+# "async-io" - Async/await support with async-io
+# "async-std" - Async/await support for async-std using async-io
+# "smol" - Async/await support for smol using async-io
+#
+
+[features]
+default = ["netlink", "dump"]
+netlink = ["neli"]
+dump = []
+netlink_tests = ["netlink"]
+vcan_tests = ["netlink"]
+utils = ["clap", "anyhow"]
+tokio = ["dep:tokio", "mio", "futures"]
+async-std = ["dep:async-std", "dep:async-io"]
+async-io = ["dep:async-io"]
+enumerate = ["dep:libudev"]
+
+[dependencies]
+embedded-can = "0.4"
+nb = "1"
+log = "0.4"
+hex = "0.4"
+itertools = "0.13"
+libc = "0.2"
+nix = { version="0.29", features = ["poll", "process", "net", "uio"] }
+bitflags = "2.6"
+thiserror = "2"
+socket2 = { version = "0.5", features = ["all"] }
+clap = { version = "3.2", optional = true }
+anyhow = { version = "1", optional = true }
+tokio = { version = "1", features = ["net"], optional = true }
+mio = { version = "1", features = ["os-ext"], optional = true }
+futures = { version = "0.3", optional = true }
+async-io = { version = "1.13", optional = true }
+smol = { version = "1.3", optional = true }
+async-std = { version = "1.12", optional = true }
+libudev = { version = "0.3", optional = true }
+
+# This hack avoids building neli on non-linux platforms, which
+# avoids a ton of compile errors. Worthwhile together with the
+# build.rs script to error early when building for non-linux
+[target.'cfg(target_os = "linux")'.dependencies]
+neli = { version = "0.6", optional = true }
+
+[dev-dependencies]
+anyhow = "1.0"
+clap = "3.2"
+ctrlc = "3.2.2"
+nb = "1.0"
+# TODO: Is it possible to only include these for async builds?
+futures-timer = "0.3"
+futures-util = "0.3"
+serial_test = { version = "2.0", features = ["async"]}
+async-std = { version = "1.12", features = ["attributes"]}
+tokio = { version = "1", features = ["macros", "rt-multi-thread", "sync", "io-util"] }
+futures = "0.3"
+
+
+[[bin]]
+name = "rcan"
+required-features = ["utils"]
+
+[[example]]
+name = "playlog"
+required-features = ["dump"]
+
+[[example]]
+name = "enumerate"
+required-features = ["enumerate"]
+
+[[example]]
+name = "tokio_send"
+required-features = ["tokio"]
+
+[[example]]
+name = "tokio_bridge"
+required-features = ["tokio"]
+
+[[example]]
+name = "tokio_print_frames"
+required-features = ["tokio"]
+
+[[example]]
+name = "tokio_print_frames_timestamp"
+required-features = ["tokio"]
+
+[[example]]
+name = "tokio_average"
+required-features = ["tokio"]
+
+[[example]]
+name = "smol_send"
+required-features = ["smol"]
+
+[[example]]
+name = "smol_bridge"
+required-features = ["smol"]
+
+[[example]]
+name = "smol_print_frames"
+required-features = ["smol"]
+
+[[example]]
+name = "async_std_send"
+required-features = ["async-std"]
+
+[[example]]
+name = "async_std_bridge"
+required-features = ["async-std"]
+
+[[example]]
+name = "async_std_print_frames"
+required-features = ["async-std"]
+

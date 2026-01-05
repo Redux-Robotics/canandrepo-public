@@ -1,0 +1,231 @@
+VERSION ""
+
+
+NS_ :
+	NS_DESC_
+	CM_
+	BA_DEF_
+	BA_
+	VAL_
+	CAT_DEF_
+	CAT_
+	FILTER
+	BA_DEF_DEF_
+	EV_DATA_
+	ENVVAR_DATA_
+	SGTYPE_
+	SGTYPE_VAL_
+	BA_DEF_SGTYPE_
+	BA_SGTYPE_
+	SIG_TYPE_REF_
+	VAL_TABLE_
+	SIG_GROUP_
+	SIG_VALTYPE_
+	SIGTYPE_VALTYPE_
+	BO_TX_BU_
+	BA_DEF_REL_
+	BA_REL_
+	BA_DEF_DEF_REL_
+	BU_SG_REL_
+	BU_EV_REL_
+	BU_BO_REL_
+	SG_MUL_VAL_
+
+BS_: 
+BU_: canandgyro
+
+BO_ 2215512000 yaw_output: 6 canandgyro
+ SG_ yaw_yaw : 0|32@1+ (1,0) [0|0] "" Vector__XXX
+ SG_ yaw_wraparound : 32|16@1- (1,0) [-32768|32767] "" Vector__XXX
+
+BO_ 2215511936 angular_position_output: 8 canandgyro
+ SG_ w : 0|16@1- (0.00003051850947599719,0) [-32767|32767] "" Vector__XXX
+ SG_ x : 16|16@1- (0.00003051850947599719,0) [-32767|32767] "" Vector__XXX
+ SG_ y : 32|16@1- (0.00003051850947599719,0) [-32767|32767] "" Vector__XXX
+ SG_ z : 48|16@1- (0.00003051850947599719,0) [-32767|32767] "" Vector__XXX
+
+BO_ 2215511872 angular_velocity_output: 6 canandgyro
+ SG_ yaw : 0|16@1- (0.061037018951994385,0) [-32768|32767] "" Vector__XXX
+ SG_ pitch : 16|16@1- (0.061037018951994385,0) [-32768|32767] "" Vector__XXX
+ SG_ roll : 32|16@1- (0.061037018951994385,0) [-32768|32767] "" Vector__XXX
+
+BO_ 2215511808 acceleration_output: 6 canandgyro
+ SG_ z : 0|16@1- (0.00048828125,0) [-32768|32767] "" Vector__XXX
+ SG_ y : 16|16@1- (0.00048828125,0) [-32768|32767] "" Vector__XXX
+ SG_ x : 32|16@1- (0.00048828125,0) [-32768|32767] "" Vector__XXX
+
+BO_ 2215511744 calibrate: 8 Vector__XXX
+ SG_ calibration_type : 0|8@1+ (1,0) [0|255] "" canandgyro
+ SG_ reserved : 8|56@1+ (1,0) [0|72057594037927935] "" canandgyro
+
+BO_ 2215511680 calibration_status: 8 canandgyro
+ SG_ reserved : 0|64@1+ (1,0) [0|18446744073709551615] "" Vector__XXX
+
+BO_ 2215510848 atomic_bond_specification: 8 canandgyro
+ SG_ device_serial : 0|48@1+ (1,0) [0|281474976710655] "" Vector__XXX
+ SG_ max_supported_rate : 48|8@1+ (1,0) [0|255] "" Vector__XXX
+ SG_ current_rate : 56|8@1+ (1,0) [0|255] "" Vector__XXX
+
+BO_ 2215510784 atomic_bond_announcement: 8 Vector__XXX
+ SG_ gateway_serial : 0|48@1+ (1,0) [0|281474976710655] "" canandgyro
+ SG_ flags_negotiation : 48|1@1+ (1,0) [0|1] "" canandgyro
+ SG_ flags_init : 49|1@1+ (1,0) [0|1] "" canandgyro
+ SG_ flags_confirm : 50|1@1+ (1,0) [0|1] "" canandgyro
+ SG_ flags_begin_tx : 51|1@1+ (1,0) [0|1] "" canandgyro
+ SG_ flags_bus_interrupt : 52|1@1+ (1,0) [0|1] "" canandgyro
+ SG_ flags_reserved_bits : 53|3@1+ (1,0) [0|7] "" canandgyro
+ SG_ rate : 56|8@1+ (1,0) [0|255] "" canandgyro
+
+BO_ 2215510720 enumerate: 8 canandgyro
+ SG_ serial : 0|48@1+ (1,0) [0|281474976710655] "" Vector__XXX
+ SG_ is_bootloader : 48|1@1+ (1,0) [0|1] "" Vector__XXX
+ SG_ reserved : 49|15@1+ (1,0) [0|32767] "" Vector__XXX
+
+BO_ 2215510656 ota_to_device: 8 Vector__XXX
+ SG_ to_device_data : 0|64@1+ (1,0) [0|18446744073709551615] "" canandgyro
+
+BO_ 2215510592 ota_to_host: 8 canandgyro
+ SG_ to_host_data : 0|64@1+ (1,0) [0|18446744073709551615] "" Vector__XXX
+
+BO_ 2215510528 ota_data: 8 Vector__XXX
+ SG_ data : 0|64@1+ (1,0) [0|18446744073709551615] "" canandgyro
+
+BO_ 2215510464 party_mode: 8 Vector__XXX
+ SG_ party_level : 0|8@1+ (1,0) [0|255] "" canandgyro
+
+BO_ 2215510400 status: 8 canandgyro
+ SG_ faults_power_cycle : 0|1@1+ (1,0) [0|1] "" Vector__XXX
+ SG_ faults_can_id_conflict : 1|1@1+ (1,0) [0|1] "" Vector__XXX
+ SG_ faults_can_general_error : 2|1@1+ (1,0) [0|1] "" Vector__XXX
+ SG_ faults_out_of_temperature_range : 3|1@1+ (1,0) [0|1] "" Vector__XXX
+ SG_ faults_hardware_fault : 4|1@1+ (1,0) [0|1] "" Vector__XXX
+ SG_ faults_calibrating : 5|1@1+ (1,0) [0|1] "" Vector__XXX
+ SG_ faults_angular_velocity_saturation : 6|1@1+ (1,0) [0|1] "" Vector__XXX
+ SG_ faults_acceleration_saturation : 7|1@1+ (1,0) [0|1] "" Vector__XXX
+ SG_ sticky_faults_power_cycle : 8|1@1+ (1,0) [0|1] "" Vector__XXX
+ SG_ sticky_faults_can_id_conflict : 9|1@1+ (1,0) [0|1] "" Vector__XXX
+ SG_ sticky_faults_can_general_error : 10|1@1+ (1,0) [0|1] "" Vector__XXX
+ SG_ sticky_faults_out_of_temperature_range : 11|1@1+ (1,0) [0|1] "" Vector__XXX
+ SG_ sticky_faults_hardware_fault : 12|1@1+ (1,0) [0|1] "" Vector__XXX
+ SG_ sticky_faults_calibrating : 13|1@1+ (1,0) [0|1] "" Vector__XXX
+ SG_ sticky_faults_angular_velocity_saturation : 14|1@1+ (1,0) [0|1] "" Vector__XXX
+ SG_ sticky_faults_acceleration_saturation : 15|1@1+ (1,0) [0|1] "" Vector__XXX
+ SG_ temperature : 16|16@1- (0.00390625,0) [-32768|32767] "" Vector__XXX
+ SG_ reserved : 32|32@1+ (1,0) [0|4294967295] "" Vector__XXX
+
+BO_ 2215510336 clear_sticky_faults: 8 Vector__XXX
+
+BO_ 2215510272 report_setting: 8 canandgyro
+ SG_ address : 0|8@1+ (1,0) [0|255] "" Vector__XXX
+ SG_ value : 8|48@1+ (1,0) [0|281474976710655] "" Vector__XXX
+ SG_ flags_set_success : 56|1@1+ (1,0) [0|1] "" Vector__XXX
+ SG_ flags_commit_success : 57|1@1+ (1,0) [0|1] "" Vector__XXX
+ SG_ flags_reserved_bits : 58|6@1+ (1,0) [0|63] "" Vector__XXX
+
+BO_ 2215510208 set_setting: 8 Vector__XXX
+ SG_ address : 0|8@1+ (1,0) [0|255] "" canandgyro
+ SG_ value : 8|48@1+ (1,0) [0|281474976710655] "" canandgyro
+ SG_ setting_flags_ephemeral : 56|1@1+ (1,0) [0|1] "" canandgyro
+ SG_ setting_flags_synch_hold : 57|1@1+ (1,0) [0|1] "" canandgyro
+ SG_ setting_flags_reserved_0 : 58|2@1+ (1,0) [0|3] "" canandgyro
+ SG_ setting_flags_synch_msg_count : 60|4@1+ (1,0) [0|15] "" canandgyro
+
+BO_ 2215510144 setting_command: 8 Vector__XXX
+ SG_ control_flag : 0|8@1+ (1,0) [0|255] "" canandgyro
+ SG_ setting_index : 8|8@1+ (1,0) [0|255] "" canandgyro
+
+BO_ 2215510080 can_id_error: 8 canandgyro
+ SG_ addr_value : 0|64@1+ (1,0) [0|18446744073709551615] "" Vector__XXX
+
+BO_ 2215510016 can_id_arbitrate: 8 Vector__XXX
+ SG_ addr_value : 0|64@1+ (1,0) [0|18446744073709551615] "" canandgyro
+
+SIG_VALTYPE_ 2215512000 yaw_yaw : 1;
+
+
+CM_ BO_ 2215512000 yaw_output "Yaw angle frame";
+CM_ SG_ 2215512000 yaw_yaw "Yaw angle (f32 between [-pi..pi) radians)";
+CM_ SG_ 2215512000 yaw_wraparound "Wraparound counter";
+CM_ BO_ 2215511936 angular_position_output "Angular position quaternion frame";
+CM_ SG_ 2215511936 w "Quaternion w term";
+CM_ SG_ 2215511936 x "Quaternion x term";
+CM_ SG_ 2215511936 y "Quaternion y term";
+CM_ SG_ 2215511936 z "Quaternion z term";
+CM_ BO_ 2215511872 angular_velocity_output "Angular velocity frame";
+CM_ SG_ 2215511872 yaw "Yaw velocity";
+CM_ SG_ 2215511872 pitch "Pitch velocity";
+CM_ SG_ 2215511872 roll "Roll velocity";
+CM_ BO_ 2215511808 acceleration_output "Acceleration frame";
+CM_ SG_ 2215511808 z "Z-axis acceleration";
+CM_ SG_ 2215511808 y "Y-axis acceleration";
+CM_ SG_ 2215511808 x "X-axis acceleration";
+CM_ BO_ 2215511744 calibrate "Trigger Calibration";
+CM_ SG_ 2215511744 calibration_type "Calibration type";
+CM_ SG_ 2215511744 reserved "Reserved";
+CM_ BO_ 2215511680 calibration_status "Calibration Status";
+CM_ SG_ 2215511680 reserved "Reserved";
+CM_ BO_ 2215510848 atomic_bond_specification "Atomic bond specification. Sent by devices to announce capabilities.";
+CM_ SG_ 2215510848 device_serial "Device's unique serial number";
+CM_ SG_ 2215510848 max_supported_rate "Supported bus rates";
+CM_ SG_ 2215510848 current_rate "Current bus rate, if confirming";
+CM_ BO_ 2215510784 atomic_bond_announcement "Atomic bond announcement. Sent by gateway to control bus state, and by devices during negotiation.";
+CM_ SG_ 2215510784 gateway_serial "Gateway's unique serial number";
+CM_ SG_ 2215510784 flags_negotiation "Device should enter negotiation phase";
+CM_ SG_ 2215510784 flags_init "Device should initialize bus with new rate";
+CM_ SG_ 2215510784 flags_confirm "Device should confirm new bus rate";
+CM_ SG_ 2215510784 flags_begin_tx "Device should begin transmission";
+CM_ SG_ 2215510784 flags_bus_interrupt "Device should cease all transmission";
+CM_ SG_ 2215510784 flags_reserved_bits "Announcement Flags";
+CM_ SG_ 2215510784 rate "New bus rate for initialization";
+CM_ BO_ 2215510720 enumerate "Device enumerate response";
+CM_ SG_ 2215510720 serial "Device-unique serial number";
+CM_ SG_ 2215510720 is_bootloader "Device is in bootloader.";
+CM_ SG_ 2215510720 reserved "Reserved";
+CM_ BO_ 2215510656 ota_to_device "Firmware update command.";
+CM_ SG_ 2215510656 to_device_data "OTA to device data (dlc may vary)";
+CM_ BO_ 2215510592 ota_to_host "Firmware update response.";
+CM_ SG_ 2215510592 to_host_data "OTA to host data (dlc may vary)";
+CM_ BO_ 2215510528 ota_data "Firmware update payload";
+CM_ SG_ 2215510528 data "OTA data";
+CM_ BO_ 2215510464 party_mode "Party mode";
+CM_ SG_ 2215510464 party_level "Party level. 0 disables the strobe, whereas 1 enables it.";
+CM_ BO_ 2215510400 status "Status frame";
+CM_ SG_ 2215510400 faults_power_cycle "The power cycle fault flag, which is set to true when the device first boots. Clearing sticky faults and then checking this flag can be used to determine if the device rebooted. ";
+CM_ SG_ 2215510400 faults_can_id_conflict "The CAN ID conflict flag, which is set to true if there is a CAN id conflict. In practice, you should physically inspect the device to ensure it's not flashing blue. ";
+CM_ SG_ 2215510400 faults_can_general_error "The CAN general error flag, which will raise if the device encounters a CAN fault during operation. If communication with the device still functions, this will not register as an active fault for long if at all. This may raise due to wiring issues, such as an intermittently shorted CAN bus. ";
+CM_ SG_ 2215510400 faults_out_of_temperature_range "The temperature range flag, which will raise if the device is not between 0-70 degrees Celsius. This may be of concern if the device is near very active motors. ";
+CM_ SG_ 2215510400 faults_hardware_fault "The hardware fault flag, which will raise if a hardware issue is detected. Generally will raise if the device's controller cannot read the physical sensor itself. ";
+CM_ SG_ 2215510400 faults_calibrating "The calibration status flag, which will raise if the device is currently calibrating. ";
+CM_ SG_ 2215510400 faults_angular_velocity_saturation "The angular velocity saturation flag, which triggers on saturation of angular velocity. ";
+CM_ SG_ 2215510400 faults_acceleration_saturation "The acceleration saturation flag, which triggers on saturation of acceleration. ";
+CM_ SG_ 2215510400 sticky_faults_power_cycle "The power cycle fault flag, which is set to true when the device first boots. Clearing sticky faults and then checking this flag can be used to determine if the device rebooted. ";
+CM_ SG_ 2215510400 sticky_faults_can_id_conflict "The CAN ID conflict flag, which is set to true if there is a CAN id conflict. In practice, you should physically inspect the device to ensure it's not flashing blue. ";
+CM_ SG_ 2215510400 sticky_faults_can_general_error "The CAN general error flag, which will raise if the device encounters a CAN fault during operation. If communication with the device still functions, this will not register as an active fault for long if at all. This may raise due to wiring issues, such as an intermittently shorted CAN bus. ";
+CM_ SG_ 2215510400 sticky_faults_out_of_temperature_range "The temperature range flag, which will raise if the device is not between 0-70 degrees Celsius. This may be of concern if the device is near very active motors. ";
+CM_ SG_ 2215510400 sticky_faults_hardware_fault "The hardware fault flag, which will raise if a hardware issue is detected. Generally will raise if the device's controller cannot read the physical sensor itself. ";
+CM_ SG_ 2215510400 sticky_faults_calibrating "The calibration status flag, which will raise if the device is currently calibrating. ";
+CM_ SG_ 2215510400 sticky_faults_angular_velocity_saturation "The angular velocity saturation flag, which triggers on saturation of angular velocity. ";
+CM_ SG_ 2215510400 sticky_faults_acceleration_saturation "The acceleration saturation flag, which triggers on saturation of acceleration. ";
+CM_ SG_ 2215510400 temperature "16-bit signed temperature byte in 1/256ths of a Celsius";
+CM_ SG_ 2215510400 reserved "Reserved bits";
+CM_ BO_ 2215510336 clear_sticky_faults "Clear device sticky faults";
+CM_ BO_ 2215510272 report_setting "setting value report from device";
+CM_ SG_ 2215510272 address "Setting index to write to";
+CM_ SG_ 2215510272 value "6-byte setting value";
+CM_ SG_ 2215510272 flags_set_success "Whether the setting set/fetch was successful";
+CM_ SG_ 2215510272 flags_commit_success "Whether the setting synch commit was successful";
+CM_ SG_ 2215510272 flags_reserved_bits "Setting receive status";
+CM_ BO_ 2215510208 set_setting "update setting on device";
+CM_ SG_ 2215510208 address "Setting index to write to";
+CM_ SG_ 2215510208 value "6-byte setting value";
+CM_ SG_ 2215510208 setting_flags_ephemeral "Whether the setting should be set ephemeral";
+CM_ SG_ 2215510208 setting_flags_synch_hold "Whether the setting should be held until the next synch barrier";
+CM_ SG_ 2215510208 setting_flags_reserved_0 "Reserved";
+CM_ SG_ 2215510208 setting_flags_synch_msg_count "Synch message count";
+CM_ BO_ 2215510144 setting_command "setting control command";
+CM_ SG_ 2215510144 control_flag "Setting command index";
+CM_ SG_ 2215510144 setting_index "setting index to fetch";
+CM_ BO_ 2215510080 can_id_error "can id conflict tx packet";
+CM_ SG_ 2215510080 addr_value "Device-unique value that can be used during arbitration";
+CM_ BO_ 2215510016 can_id_arbitrate "select conflicting device to use";
+CM_ SG_ 2215510016 addr_value "Value corresponding to what was broadcasted in the CAN_ID_ERROR packet";

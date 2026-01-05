@@ -1,0 +1,8 @@
+/target
+__pycache__
+expand_test/src/lib.rs
+venv/
+.venv/
+.DS_Store
+out.txt
+AGENTS.md

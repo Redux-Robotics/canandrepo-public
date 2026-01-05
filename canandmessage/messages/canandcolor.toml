@@ -1,0 +1,438 @@
+
+name = "Canandcolor"
+base = ["CanandDevice"]
+arch = "n32g4fr"
+
+dev_type = 6
+dev_class = 0
+
+[vendordep]
+java_package = "com.reduxrobotics.sensors.canandcolor"
+cpp_namespace = "redux::sensors::canandcolor"
+
+[msg]
+[msg.DISTANCE_OUTPUT]
+id = 31
+length = 2
+source = "device"
+comment = "Distance frame"
+frame_period_setting = "DISTANCE_FRAME_PERIOD"
+signals = [
+    { name = "distance", dtype = "uint:16", comment = "16-bit distance value. Actual correspondance to real-world units is config and surface-dependent." }
+]
+
+[msg.COLOR_OUTPUT]
+id = 30
+length = 8
+source = "device"
+comment = "Color frame"
+frame_period_setting = "COLOR_FRAME_PERIOD"
+signals = [
+    { name = "red",   dtype = "uint:20", comment="Red reading magnitude" },
+    { name = "green", dtype = "uint:20", comment="Green reading magnitude" },
+    { name = "blue",  dtype = "uint:20", comment="Blue reading magnitude" },
+    { name = "period", dtype = "enum:COLOR_INTEGRATION_PERIOD", comment = "Color integration period" }
+]
+
+[msg.DIGITAL_OUTPUT]
+id = 29
+length = 5
+source = "device"
+comment = "Digital output frame"
+frame_period_setting = "DIGOUT_FRAME_PERIOD"
+signals = [
+    { name = "digout1_state", dtype = "bool", comment = "Digital output state for DIGOUT1" },
+    { name = "digout2_state", dtype = "bool", comment = "Digital output state for DIGOUT2" },
+    { name = "digout1_sticky", dtype = "bool", comment = "Sticky digital output state for DIGOUT1" },
+    { name = "digout2_sticky", dtype = "bool", comment = "Sticky digital output state for DIGOUT1" },
+    { name = "reserved",      dtype = "pad:4", comment = "Reserved" },
+    { name = "digout1_cond",  dtype = "digout_cond", comment = "DIGOUT1 condition slot flags. A value of 1 for bit N means that condition slot is true. Bits are indexed little-endian." },
+    { name = "digout2_cond",  dtype = "digout_cond", comment = "DIGOUT2 condition slot flags. A value of 1 for bit N means that condition slot is true. Bits are indexed little-endian." },
+]
+
+[msg.CLEAR_STICKY_DIGOUT]
+id = 28
+length = 0
+source = "host"
+comment = "Clear sticky digout state which is broadcast over CAN"
+signals = []
+
+[msg.STATUS]
+id = 6
+length = 8
+source = "device"
+comment = "Status frame"
+signals = [
+    { name = "faults",        dtype = "faults", comment = "8-bit active faults bitfield"},
+    { name = "sticky_faults", dtype = "faults", comment = "8-bit sticky faults bitfield"},
+    { name = "temperature",   dtype = "temperature", comment = "16-bit signed temperature byte in 1/256ths of a Celsius"},
+    { name = "reserved",      dtype = "pad:32", comment = "Reserved bits"}
+]
+
+[settings]
+
+# frame periods
+DISTANCE_FRAME_PERIOD       = { id = 255, dtype = "frame_period", default_value = 20, comment = "Distance frame period (ms)" }
+COLOR_FRAME_PERIOD          = { id = 254, dtype = "frame_period", default_value = 25, comment = "Color frame period (ms)" }
+DIGOUT_FRAME_PERIOD         = { id = 253, dtype = "frame_period", default_value = 100, comment = "Digout frame period (ms)" }
+
+
+DISTANCE_EXTRA_FRAME_MODE   = { id = 247, dtype = "enum:EXTRA_FRAME_MODE", comment = "Distance extra frame mode" }
+COLOR_EXTRA_FRAME_MODE      = { id = 246, dtype = "enum:EXTRA_FRAME_MODE", comment = "Color extra frame frame mode" }
+
+# device settings
+LAMP_BRIGHTNESS             = { id = 239, dtype = "lamp_brightness", comment = "Lamp LED brightness"}
+COLOR_INTEGRATION_PERIOD    = { id = 238, dtype = "enum:COLOR_INTEGRATION_PERIOD", comment = "Color integration period" }
+DISTANCE_INTEGRATION_PERIOD = { id = 237, dtype = "enum:DISTANCE_INTEGRATION_PERIOD", comment = "Distance integration period" }
+
+DIGOUT1_OUTPUT_CONFIG       = { id = 235, dtype = "digout_control_config", comment = "Digital output 1 control config" }
+DIGOUT2_OUTPUT_CONFIG       = { id = 234, dtype = "digout_control_config",  comment = "Digital output 2 control config" }
+DIGOUT1_MESSAGE_ON_CHANGE   = { id = 233, dtype = "digout_message_trigger", comment = "Digital output 1 send message on change"}
+DIGOUT2_MESSAGE_ON_CHANGE   = { id = 232, dtype = "digout_message_trigger", comment = "Digital output 2 send message on change"}
+
+
+# digout1
+DIGOUT1_CONFIG_0             = { id = 208, dtype = "digout_slot", vdep_setting = false, comment = "Digout1 config slot 0", table_fmt="omit" }
+DIGOUT1_CONFIG_1             = { id = 207, dtype = "digout_slot", vdep_setting = false, comment = "Digout1 config slot 1", table_fmt="omit" }
+DIGOUT1_CONFIG_2             = { id = 206, dtype = "digout_slot", vdep_setting = false, comment = "Digout1 config slot 2", table_fmt="omit" }
+DIGOUT1_CONFIG_3             = { id = 205, dtype = "digout_slot", vdep_setting = false, comment = "Digout1 config slot 3", table_fmt="omit" }
+DIGOUT1_CONFIG_4             = { id = 204, dtype = "digout_slot", vdep_setting = false, comment = "Digout1 config slot 4", table_fmt="omit" }
+DIGOUT1_CONFIG_5             = { id = 203, dtype = "digout_slot", vdep_setting = false, comment = "Digout1 config slot 5", table_fmt="omit" }
+DIGOUT1_CONFIG_6             = { id = 202, dtype = "digout_slot", vdep_setting = false, comment = "Digout1 config slot 6", table_fmt="omit" }
+DIGOUT1_CONFIG_7             = { id = 201, dtype = "digout_slot", vdep_setting = false, comment = "Digout1 config slot 7", table_fmt="omit" }
+DIGOUT1_CONFIG_8             = { id = 200, dtype = "digout_slot", vdep_setting = false, comment = "Digout1 config slot 8", table_fmt="omit" }
+DIGOUT1_CONFIG_9             = { id = 199, dtype = "digout_slot", vdep_setting = false, comment = "Digout1 config slot 9", table_fmt="omit" }
+DIGOUT1_CONFIG_10            = { id = 198, dtype = "digout_slot", vdep_setting = false, comment = "Digout1 config slot 10", table_fmt="omit" }
+DIGOUT1_CONFIG_11            = { id = 197, dtype = "digout_slot", vdep_setting = false, comment = "Digout1 config slot 11", table_fmt="omit" }
+DIGOUT1_CONFIG_12            = { id = 196, dtype = "digout_slot", vdep_setting = false, comment = "Digout1 config slot 12", table_fmt="omit" }
+DIGOUT1_CONFIG_13            = { id = 195, dtype = "digout_slot", vdep_setting = false, comment = "Digout1 config slot 13", table_fmt="omit" }
+DIGOUT1_CONFIG_14            = { id = 194, dtype = "digout_slot", vdep_setting = false, comment = "Digout1 config slot 14", table_fmt="omit" }
+DIGOUT1_CONFIG_15            = { id = 193, dtype = "digout_slot", vdep_setting = false, comment = "Digout1 config slot 15", table_fmt="omit" }
+
+DIGOUT2_CONFIG_0             = { id = 192, dtype = "digout_slot", vdep_setting = false, comment = "Digout2 config slot 0", table_fmt="omit" }
+DIGOUT2_CONFIG_1             = { id = 191, dtype = "digout_slot", vdep_setting = false, comment = "Digout2 config slot 1", table_fmt="omit" }
+DIGOUT2_CONFIG_2             = { id = 190, dtype = "digout_slot", vdep_setting = false, comment = "Digout2 config slot 2", table_fmt="omit" }
+DIGOUT2_CONFIG_3             = { id = 189, dtype = "digout_slot", vdep_setting = false, comment = "Digout2 config slot 3", table_fmt="omit" }
+DIGOUT2_CONFIG_4             = { id = 188, dtype = "digout_slot", vdep_setting = false, comment = "Digout2 config slot 4", table_fmt="omit" }
+DIGOUT2_CONFIG_5             = { id = 187, dtype = "digout_slot", vdep_setting = false, comment = "Digout2 config slot 5", table_fmt="omit" }
+DIGOUT2_CONFIG_6             = { id = 186, dtype = "digout_slot", vdep_setting = false, comment = "Digout2 config slot 6", table_fmt="omit" }
+DIGOUT2_CONFIG_7             = { id = 185, dtype = "digout_slot", vdep_setting = false, comment = "Digout2 config slot 7", table_fmt="omit" }
+DIGOUT2_CONFIG_8             = { id = 184, dtype = "digout_slot", vdep_setting = false, comment = "Digout2 config slot 8", table_fmt="omit" }
+DIGOUT2_CONFIG_9             = { id = 183, dtype = "digout_slot", vdep_setting = false, comment = "Digout2 config slot 9", table_fmt="omit" }
+DIGOUT2_CONFIG_10            = { id = 182, dtype = "digout_slot", vdep_setting = false, comment = "Digout2 config slot 10", table_fmt="omit" }
+DIGOUT2_CONFIG_11            = { id = 181, dtype = "digout_slot", vdep_setting = false, comment = "Digout2 config slot 11", table_fmt="omit" }
+DIGOUT2_CONFIG_12            = { id = 180, dtype = "digout_slot", vdep_setting = false, comment = "Digout2 config slot 12", table_fmt="omit" }
+DIGOUT2_CONFIG_13            = { id = 179, dtype = "digout_slot", vdep_setting = false, comment = "Digout2 config slot 13", table_fmt="omit" }
+DIGOUT2_CONFIG_14            = { id = 178, dtype = "digout_slot", vdep_setting = false, comment = "Digout2 config slot 14", table_fmt="omit" }
+DIGOUT2_CONFIG_15            = { id = 177, dtype = "digout_slot", vdep_setting = false, comment = "Digout2 config slot 15", table_fmt="omit" }
+
+NAME_0                       = { id = 1, dtype = "buf:48", default_value = 0x646e616e6143, vendordep = false, comment = "device_name[0:5]" } # Canand
+NAME_1                       = { id = 2, dtype = "buf:48", default_value = 0x00726f6c6f63, vendordep = false, comment = "device_name[6:11]" } # color\0
+NAME_2                       = { id = 3, dtype = "buf:48", default_value = 0, vendordep = false, comment = "device_name[12:17]" } # \0
+
+[setting_commands]
+CLEAR_DIGOUT1 = { id = 255, vendordep = true, comment = "Clear all digout1 slots"}
+CLEAR_DIGOUT2 = { id = 254, vendordep = true, comment = "Clear all digout2 slots"}
+FETCH_DIGOUT1 = { id = 253, vendordep = true, comment = "Fetch all digout1 slots and settings"}
+FETCH_DIGOUT2 = { id = 252, vendordep = true, comment = "Fetch all digout2 slots and settings"}
+
+[types]
+[types.faults]
+btype = "bitset"
+bits = 8
+
+bit_flags = [
+    { name = "power_cycle", comment = """
+The power cycle fault flag, which is set to true when the device first boots.
+Clearing sticky faults and then checking this flag can be used to determine if the device rebooted.
+"""},
+
+    { name = "can_id_conflict", comment = """
+The CAN ID conflict flag, which is set to true if there is a CAN id conflict.
+In practice, you should physically inspect the device to ensure it's not flashing blue.
+"""},
+
+    { name = "can_general_error", comment = """
+The CAN general error flag, which will raise if the device encounters a CAN fault during operation.
+If communication with the device still functions, this will not register as an active fault for long if at all.
+This may raise due to wiring issues, such as an intermittently shorted CAN bus.
+""" },
+
+    { name = "out_of_temperature_range", comment = """
+The temperature range flag, which will raise if the device is not between 0-70 degrees Celsius.
+This may be of concern if the device is near very active motors.
+""" },
+
+    { name = "hardware_fault_distance", comment = """
+The hardware fault flag corresponding to the distance sensor IC, which will raise if a hardware issue is detected.
+Generally will raise if the device's controller cannot read the physical sensor itself.
+"""}, 
+    { name = "hardware_fault_color", comment = """
+The hardware fault flag corresponding to the color sensor IC, which will raise if a hardware issue is detected.
+Generally will raise if the device's controller cannot read the physical sensor itself.
+"""},
+    { name = "i2c_bus_recovery", comment = """
+The I2C bus recovery flag, which will raise when the device needs to completely restart the I2C bus.
+This fault flag should not be active for very long; if it is stuck as an active fault, that may indicate a hardware issue.
+"""}
+]
+
+[types.temperature]
+comment = """Temperature as reported to/from the device. 
+1 LSB = 1/256th of a degree Celsius."""
+unit = "deg C"
+btype = "sint"
+utype = "float"
+bits = 16
+factor = [1, 256]
+min = -32768
+max = 32767
+
+[types.digout_cond]
+btype = "bitset"
+bits = 16
+default_value = 0
+bit_flags = [
+    { name = "slot0", comment = "Slot 0" },
+    { name = "slot1", comment = "Slot 1" },
+    { name = "slot2", comment = "Slot 2" },
+    { name = "slot3", comment = "Slot 3" },
+    { name = "slot4", comment = "Slot 4" },
+    { name = "slot5", comment = "Slot 5" },
+    { name = "slot6", comment = "Slot 6" },
+    { name = "slot7", comment = "Slot 7" },
+    { name = "slot8", comment = "Slot 8" },
+    { name = "slot9", comment = "Slot 9" },
+    { name = "slot10", comment = "Slot 10" },
+    { name = "slot11", comment = "Slot 11" },
+    { name = "slot12", comment = "Slot 12" },
+    { name = "slot13", comment = "Slot 13" },
+    { name = "slot14", comment = "Slot 14" },
+    { name = "slot15", comment = "Slot 15" },
+]
+
+[types.lamp_brightness]
+btype = "uint"
+dtype = "float"
+unit = "max brightness"
+min = 0
+max = 36000
+default_value = 36000
+bits = 16
+factor = [1, 36000]
+comment = "Lamp LED brightness, scalable from 0 (off) to 1.0 (full brightness)"
+
+[types.digout_control_config]
+comment = """
+Controls how a physical digital output should act.
+
+Only DIGOUT2 supports PWM output; if DIGOUT1 is configured to PWM mode, nothing will happen.
+"""
+btype = "struct"
+bits = 8
+signals = [
+    { name = "output_config",   dtype="enum:DIGOUT_OUTPUT_CONFIG", comment = "Enable digout pad" },
+    { name = "pwm_data_source", dtype="enum:DATA_SOURCE", comment = "The data source to use in PWM mode." },
+    { name = "reserved", dtype = "pad:32", comment = "Reserved" }
+]
+
+[types.digout_message_trigger]
+btype = "struct"
+comment = """
+Controls when a digout state message should be sent during a digout state transition.
+
+Even if the physical digital outputs GPIOs are not enabled for use, digout slots are still evaluated and 
+digout state messages on condition change can still be sent. 
+
+This allows the Canandcolor to send digout alerts over a bus like CAN within a millisecond of detecting a state change.
+"""
+bits = 2
+signals = [
+    { name = "positive_edge", dtype = "bool", comment = "Send digout message on positive edge (false->true)" },
+    { name = "negative_edge", dtype = "bool", comment = "Send digout message on negative edge (true->false)" }
+]
+
+[types.digout_slot]
+comment = """Digout slot.
+Represents a digital output slot -- a component of programmable digital logic updated at 1000 Hz to evaluate sensor conditions fast.
+
+The basic concept of digital output slots are that they let the Canandcolor detect and analyze things independent of and faster
+than the typical core robot control loop, as well as give signals to other control electronics (e.g. motor limit switch inputs).
+
+For example, a game element moving through a robot's indexer really fast may need a fast reaction from control electronics
+in order for an internal mechanical handoff to work. Digout slots can be used to detect when an element passes by and have
+the Canandcolor immidiately output a digital signal and/or a CAN message indicating that it has seen an element.
+
+There are two independently-operated digout "channels" each with 16 individual "slots".
+Each "slot" evaluates individual conditions about the current sensor readings e.g. comparing red and blue channels or
+or comparing the proximity sensor against a known constant proximity. 
+
+These slots can be composed together with boolean conditions to evaluate to an overall boolean condition (the channel's value).
+This channel value can be outputted over CAN via the :ref:`digital output message<msg_digital_output>` 
+and/or the associated physical digital output pin.
+Combined with :ref:`output trigger configuration<setting_digout1_message_on_change>`, 
+this can be used for interrupt-driven CAN operation.
+
+Individual digout slots (numbered 0 to 15 inclusive) are composed of the following components:
+
+* A boolean enabled field; if disabled, the slot always evaluates to true
+* How the slot "chains" with the next slot (next slot action)
+* A boolean indicating whether the slot should apply a logical NOT to its currently evaluated condition
+* The comparison operation to execute. If the evaluated expression could go negative, it saturates at 0.
+* A "left hand side", "A" or "LHS" data source
+* A "right hand side", "B" or "RHS" data source that can be scaled or added to before comparing with the LHS value.
+* An 8-bit unsigned "scaling immidiate" used to scale the RHS data source
+* A 21-bit signed "additive immidiate" added to the scaled RHS data source
+
+Digout slots can be grouped into "chains" by specifying their next slot action field.
+Each chain is comprised of adjacent slots that are joined together with an AND, OR, XOR, until a slot specifies termination.
+Each chain must be true for the overall digital output value to be true, and this behavior can be used to gate
+entire expressions around time requirements (e.g. for debouncing reasons)
+"""
+btype = "struct"
+bits = 48
+signals = [
+    { name = "slot_enabled", dtype = "bool", comment = "Enable the digout slot"}, # 1 bit
+    { name = "next_slot_action", dtype = "enum:NEXT_SLOT_ACTION", comment = "How the digout slot interacts with the next slot"}, # 2 bits.
+    { name = "invert_value", dtype = "bool", comment = "Invert the digout slot's boolean value"}, # 1 bit
+    { name = "opcode", dtype = "enum:SLOT_OPCODE", comment = "Opcode"}, # 7 bits
+    { name = "immidiate_additive", dtype="sint:21", comment = "Additive immidiate" }, # 21 bits, signed.
+    { name = "immidiate_scaling", dtype="scaling_factor", comment = "Scaling immidiate" }, # 8 bits, unsigned
+    { name = "data_source_a", dtype = "enum:DATA_SOURCE", comment = "First ``LHS`` data source" }, # 4 bits
+    { name = "data_source_b", dtype = "enum:DATA_SOURCE", comment = "Second ``RHS`` data source" }, # 4 bits
+]
+
+[types.scaling_factor]
+comment = """
+Scaling factor.
+Value of the RHS data source gets multiplied with ([affine_scale_value] + 1) / 256.
+
+Zero is not representable here because the zero data source should be used instead if that is desired.
+"""
+btype = "uint"
+dtype = "float"
+bits = 8
+factor = [1, 256]
+offset = 1
+default_value = 255
+
+[enums.EXTRA_FRAME_MODE]
+btype = "uint"
+bits = 8
+comment = """Extra frame period modes to minimize sensor latency.
+The sensors on the Canandcolor update relatively slowly due to their integrating nature. 
+This means periodic frames may not always have the most recent data. 
+
+For example, by default, the color sensor IC updates every 25 ms and is broadcast every 25 ms.
+If the last sensor IC update happens at t = 0 ms but the next frame period broadcast happens at t = 10 ms, the data will be 10 milliseconds behind.
+
+These options can address this problem in various ways:
+
+* ``DISABLED`` leaves it be, relying on the standard frame period interface.
+* ``EARLY_TRANSMIT_ON_CHANGE`` makes it such that if the frame period is not disabled, the frame will be broadcasted early and the frame period timer is reset. 
+  In the above example, this would broadcast the color frame at t = 0 ms, and the next color frame is scheduled for t = 25 ms instead of 35 ms.
+
+This option generally increases bus utilization.
+"""
+default_value = "EARLY_TRANSMIT_ON_CHANGE"
+[enums.EXTRA_FRAME_MODE.values]
+DISABLED = { id = 0, comment = "Do not emit extra frames beyond those specified in the frame period"}
+EARLY_TRANSMIT_ON_CHANGE = { id = 1, comment = "Transmits a frame immidiately once readings change"}
+#ALWAYS_TRANSMIT_ON_CHANGE = { id = 2, comment = "Transmits a frame immidiately once readings change even if disabled" }
+
+
+[enums.DIGOUT_OUTPUT_CONFIG]
+btype = "uint"
+bits = 8
+default_value = "DISABLED"
+comment = "How the physical digital output pin on the Canandcolor should act"
+[enums.DIGOUT_OUTPUT_CONFIG.values]
+DISABLED = { id = 0, comment = "Disable output on this pin" }
+DIGOUT_LOGIC_ACTIVE_HIGH = { id = 1, comment = "Use digital logic pin, output 3.3v on true and 0v on false" }
+DIGOUT_LOGIC_ACTIVE_LOW = { id = 2, comment = "Use digital logic pin, output 0v on true and 3.3v on false" }
+DUTY_CYCLE_OUTPUT = { id = 3, comment = "Output a duty cycle on this pin. Only works on DIG-2"}
+
+
+[enums.SLOT_OPCODE]
+btype = "uint"
+bits = 7
+comment = "Digout slot opcode specifying which boolean condition to evaluate"
+default_value = "EQUALS"
+
+[enums.SLOT_OPCODE.values]
+EQUALS = { id = 0, comment = "true if ``a = b * (imm_scaling + 1) / 256 + (imm_additive)``"}
+LESS_THAN = { id = 1, comment = "true if ``a < b * (imm_scaling + 1) / 256 + (imm_additive)``" }
+GREATER_THAN = { id = 2, comment = "true if ``a > b * (imm_scaling + 1) / 256 + (imm_additive)``" }
+LESS_THAN_OR_EQUALS = { id = 3, comment = "true if ``a <= b * (imm_scaling + 1) / 256 + (imm_additive)``" }
+GREATER_THAN_OR_EQUALS = { id = 4, comment = "true if``a >= b * (imm_scaling + 1) / 256 + (imm_additive)``" }
+PREV_SLOT_TRUE = { id = 5, comment = "true if previous slot true for ``b * (imm_scaling + 1) / 256 + (imm_additive)`` milliseconds" }
+PREV_CLAUSE_TRUE = { id = 6, comment = "true if previous joined-slot-chain true for ``b * (imm_scaling + 1) / 256 + (imm_additive)`` milliseconds" }
+
+[enums.NEXT_SLOT_ACTION]
+btype = "uint"
+bits = 2
+comment = "How the digout slot interacts with the next numbered slot by index (e.g. slot 0 to slot 1)"
+default_value = "TERMINATE_CHAIN"
+[enums.NEXT_SLOT_ACTION.values]
+TERMINATE_CHAIN    = {id = 0, comment = "Do not interact with the next slot"}
+OR_WITH_NEXT_SLOT  = {id = 1, comment = "Logical OR with next slot"}
+XOR_WITH_NEXT_SLOT = {id = 2, comment = "Logical XOR with next slot"}
+AND_WITH_NEXT_SLOT = {id = 3, comment = "Logical AND with next slot"}
+
+[enums.DATA_SOURCE]
+btype = "uint"
+bits = 4
+comment = "Data source for digital outputs (usable in digout slots or for PWM configuration)"
+default_value = "ZERO"
+[enums.DATA_SOURCE.values]
+ZERO       = {id = 0, comment = "Always reads zero; can be used to compare only to additive immidate0"}
+DISTANCE   = {id = 1, comment = "Distance reading"}
+RED        = {id = 2, comment = "Red reading"}
+GREEN      = {id = 3, comment = "Green reading"}
+BLUE       = {id = 4, comment = "Blue reading"}
+HUE        = {id = 5, comment = "Hue reading"}
+SATURATION = {id = 6, comment = "Saturation reading"}
+VALUE      = {id = 7, comment = "Value reading"}
+
+
+[enums.COLOR_INTEGRATION_PERIOD]
+bits = 4
+comment = """Color integration period. 
+This also determines the output resolution of the color channels.
+Shorter integration periods increase responsiveness at the cost of sensitivity to light, 
+as there is less time for light to collect on the sensor.
+
+In general, robotics applications favor shorter integration periods, so 25 ms is set as the default.
+
+Readings are always polled every 25 ms or 40 Hz.
+"""
+default_value = "PERIOD_25_ms_RESOLUTION_16_bit"
+
+[enums.COLOR_INTEGRATION_PERIOD.values]
+PERIOD_400_ms_RESOLUTION_20_bit = { id = 0, comment = "400 ms - 20 bit resolution" }
+PERIOD_200_ms_RESOLUTION_19_bit = { id = 1, comment = "200 ms - 19 bit resolution" }
+PERIOD_100_ms_RESOLUTION_18_bit = { id = 2, comment = "100 ms - 18 bit resolution" }
+PERIOD_50_ms_RESOLUTION_17_bit = { id = 3, comment = "50 ms - 17 bit resolution" }
+PERIOD_25_ms_RESOLUTION_16_bit = { id = 4, comment = "25 ms - 16 bit resolution" }
+#PERIOD_3p125_ms_RESOLUTION_13_bit = { id = 5, comment = "3.125 ms - 13 bit resolution. Not useful due to fixed 25ms update rate." }
+
+[enums.DISTANCE_INTEGRATION_PERIOD]
+bits = 4
+comment = """Distance integration period.
+This determines how long the sensor spends collecting IR light to determine a distance reading, which also determines its update rate.
+Longer integration periods increase sensitivity, but shorter integration periods have faster update rates.
+
+The default configuration is configured for an update rate of 20 ms.
+"""
+
+default_value = "PERIOD_20_ms"
+
+[enums.DISTANCE_INTEGRATION_PERIOD.values]
+PERIOD_5_ms = { id = 0, comment = "5 millisecond period" }
+PERIOD_7p5_ms = { id = 1, comment = "7.5 millisecond period" }
+PERIOD_10_ms = { id = 2, comment = "10 millisecond period" }
+PERIOD_12p5_ms = { id = 3, comment = "12.5 millisecond period" }
+PERIOD_15_ms = { id = 4, comment = "15 millisecond period" }
+PERIOD_17p5_ms = { id = 5, comment = "17.5 millisecond period" }
+PERIOD_20_ms = { id = 6, comment = "20 millisecond period" }
+PERIOD_40_ms = { id = 7, comment = "40 millisecond period" }

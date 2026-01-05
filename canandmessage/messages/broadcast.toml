@@ -1,0 +1,45 @@
+name = "ReduxBroadcast" # marketing name
+base = []
+arch = "base"
+is_public = true
+
+dev_type = 0 
+dev_class = 0
+
+
+[docs]
+reverse_msg = false
+reverse_stg = false
+reverse_stg_cmd = false
+
+[vendordep]
+java_package = "com.reduxrobotics.canand"
+cpp_namespace = "redux::canand"
+
+[msg]
+[msg.ENUMERATE_REQUEST]
+id = 0
+comment = "Enumerate request"
+min_length = 0
+source = "host"
+signals = []
+
+[msg.TIMESYNC_REQUEST]
+id = 1
+comment = "force a timesync"
+min_length = 0
+source = "host"
+signals = []
+
+[enums]
+[enums.ATOMIC_BOND_BUS_RATE]
+btype = "uint"
+bits = 8
+default_value = "RATE_1M_2B"
+comment = "The maximum bus rate supported by a device"
+
+[enums.ATOMIC_BOND_BUS_RATE.values]
+RATE_1M_2B = { id = 0, comment = "1 megabit/s CAN 2.0B" }
+RATE_RESERVED_0 = { id = 1, comment = "1 megabit/s CAN-FD" }
+RATE_RESERVED_1 = { id = 2, comment = "5 megabit/s CAN-FD" }
+RATE_RESERVED_2 = { id = 3, comment = "8 megabit/s CAN-FD" }

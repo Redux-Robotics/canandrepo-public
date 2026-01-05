@@ -1,0 +1,14 @@
+cargo-features = ["per-package-target"]
+[toolchain]
+channel = "nightly-2025-09-17"
+components = [ "rustfmt", "rustc", "cargo", "llvm-tools-preview" ]
+targets = [ 
+    "arm-unknown-linux-gnueabi",  # roboRio
+    "x86_64-pc-windows-msvc", # x64 windows
+    "aarch64-pc-windows-msvc", # arm64 windows
+    "x86_64-apple-darwin", # intel mac
+    "aarch64-apple-darwin", # apple silicon
+    "x86_64-unknown-linux-gnu", # x64 linux
+    "aarch64-unknown-linux-gnu", # arm64 linux and systemcore
+]
+profile = "minimal"

@@ -1,0 +1,400 @@
+name = "CanandDevice" # marketing name
+base = []
+arch = "base"
+is_public = true
+
+dev_type = 31 
+dev_class = 0
+
+
+[docs]
+reverse_msg = false
+reverse_stg = false
+reverse_stg_cmd = false
+
+[vendordep]
+java_package = "com.reduxrobotics.canand"
+cpp_namespace = "redux::canand"
+
+[msg]
+[msg.CAN_ID_ARBITRATE]
+id = 0
+comment = "select conflicting device to use"
+length = 8
+source = "host"
+is_public = false
+signals = [
+    { name = "addr_value", dtype = "buf:64", comment = "Value corresponding to what was broadcasted in the CAN_ID_ERROR packet" }
+]
+
+[msg.CAN_ID_ERROR]
+id = 1
+comment = "can id conflict tx packet"
+length = 8
+source = "device"
+is_public = false
+signals = [
+    { name = "addr_value", dtype = "buf:64", comment = "Device-unique value that can be used during arbitration", alchemist = false}
+]
+
+# these are public
+
+[msg.SETTING_COMMAND]
+id = 2
+min_length = 1
+source = "host"
+comment = "setting control command"
+signals = [
+    { name = "control_flag", dtype = "enum:SETTING_COMMAND", comment = "Setting command index" },
+    { name = "setting_index", dtype = "enum:SETTING", optional=true, muxed_match=["FETCH_SETTING_VALUE"], comment = "setting index to fetch" }
+]
+
+[msg.SET_SETTING]
+id = 3
+min_length = 8
+source = "host"
+comment = "update setting on device"
+signals = [
+    { name = "address", dtype = "enum:SETTING", comment = "Setting index to write to" },
+    { name = "value", dtype = "setting_data", comment = "6-byte setting value" }, # backfills with setting data
+    { name = "flags", dtype = "setting_flags", comment = "Setting flags"}
+]
+
+[msg.REPORT_SETTING]
+id = 4
+length = 8
+source = "device"
+comment = "setting value report from device"
+signals = [
+    { name = "address", dtype = "enum:SETTING", comment = "Setting index to write to", alchemist = false },
+    { name = "value", dtype = "setting_data", comment = "6-byte setting value", alchemist = false }, # backfills with setting data
+    { name = "flags", dtype = "setting_report_flags", comment = "Setting receive status", alchemist = false }
+]
+
+[msg.CLEAR_STICKY_FAULTS]
+id = 5
+min_length = 0
+source = "host"
+comment = "Clear device sticky faults"
+signals = []
+
+[msg.STATUS]
+id = 6
+length = 8
+frame_period_setting = "STATUS_FRAME_PERIOD"
+source = "device"
+comment = "Status frame"
+signals = [
+    { name = "dev_specific", dtype = "buf:64", comment = "Device-specific status data. See device pages for more information."}
+]
+
+[msg.PARTY_MODE]
+id = 7
+min_length = 1
+source = "host"
+comment = "Party mode"
+signals = [
+    { name = "party_level", dtype = "uint:8", comment = "Party level. 0 disables the strobe, whereas 1 enables it." }
+]
+
+# firmware updates. this assumes no OTA spec. Use the OTAvX mixin.
+
+# note that hard-fixing the min_length to always be 8 will break some old canandmag-spec otav0 stuff.
+# to avoid this, the firmware version/serial number should always be fetched and identified to avoid this particular problem.
+# lol
+[msg.OTA_DATA]
+id = 8
+min_length = 8
+source = "bidir"
+is_public = false
+comment = "Firmware update payload"
+signals = [
+    { name = "data", dtype = "buf:64", comment="OTA data", alchemist = false }
+]
+
+[msg.OTA_TO_HOST]
+id = 9
+min_length = 8
+source = "device"
+is_public = false
+comment = "Firmware update response."
+signals = [
+    { name = "to_host_data", dtype = "buf:64", comment="OTA to host data (dlc may vary)", alchemist = false }
+]
+
+[msg.OTA_TO_DEVICE]
+id = 10 
+min_length = 8
+source = "host"
+is_public = false
+comment = "Firmware update command."
+signals = [
+    { name = "to_device_data", dtype = "buf:64", comment="OTA to device data (dlc may vary)" }
+]
+
+[msg.ENUMERATE]
+id = 11
+length = 8
+source = "device"
+comment = "Device enumerate response"
+signals = [
+    { name = "serial", dtype = "buf:48", comment = "Device-unique serial number" },
+    { name = "is_bootloader", dtype = "bool", comment = "Device is in bootloader."},
+    { name = "reserved", dtype = "pad:15", comment = "Reserved" }
+]
+
+[msg.ATOMIC_BOND_ANNOUNCEMENT]
+id = 12
+length = 8
+source = "bidir"
+is_public = false
+comment = "Atomic bond announcement. Sent by gateway to control bus state, and by devices during negotiation."
+signals = [
+    { name = "gateway_serial", dtype = "buf:48", comment = "Gateway's unique serial number" },
+    { name = "flags", dtype = "atomic_announcement_flags", comment = "Announcement Flags" },
+    { name = "rate", dtype = "enum:ATOMIC_BOND_BUS_RATE", comment = "New bus rate for initialization" }
+]
+
+[msg.ATOMIC_BOND_SPECIFICATION]
+id = 13
+length = 8
+source = "device"
+is_public = false
+comment = "Atomic bond specification. Sent by devices to announce capabilities."
+signals = [
+    { name = "device_serial", dtype = "buf:48", comment = "Device's unique serial number" },
+    { name = "max_supported_rate", dtype = "enum:ATOMIC_BOND_BUS_RATE", comment = "Supported bus rates" },
+    { name = "current_rate", dtype = "enum:ATOMIC_BOND_BUS_RATE", comment = "Current bus rate, if confirming" }
+]
+
+[settings]
+
+[settings.CAN_ID]
+id = 0
+dtype = "can_device_id"
+vendordep = false
+reset_on_default = false
+comment = "CAN Device ID"
+
+[settings.NAME_0]
+id = 1
+dtype = "buf:48"
+default_value = 0x646e616e6143 # b'Canand'
+vendordep = false
+comment = "device_name[0:5]"
+
+[settings.NAME_1]
+id = 2
+dtype = "buf:48"
+default_value = 0x656369766544 #b'Device'
+vendordep = false
+comment = "device_name[6:11]"
+
+[settings.NAME_2]
+id = 3
+dtype = "buf:48"
+default_value = 0
+vendordep = false
+comment = "device_name[12:17]"
+
+[settings.STATUS_FRAME_PERIOD]
+id = 4
+dtype = "status_frame_period"
+vdep_setting = true
+default_value = 100
+comment = "Status frame period (ms)"
+
+[settings.SERIAL_NUMBER]
+id = 5
+vdep_setting = false
+dtype = "buf:48"
+writable = false
+comment = "Serial number"
+
+[settings.FIRMWARE_VERSION]
+id = 6
+vdep_setting = false
+dtype = "firmware_version"
+writable = false
+comment = "Firmware version"
+
+[settings.CHICKEN_BITS]
+id = 7
+dtype = "buf:48"
+default_value = 0
+vendordep = false
+is_public = false
+readable = false
+comment = "Device-specific chicken bits"
+
+[settings.DEVICE_TYPE]
+id = 8
+dtype = "uint:16"
+vdep_setting = false
+default_value = 0
+writable = false
+comment = "Device-specific type identifier"
+
+[settings.SCRATCH_0]
+id = 9
+dtype = "buf:48"
+default_value = 0
+vdep_setting = true
+comment = "User-writable scratch bytes 1"
+
+[settings.SCRATCH_1]
+id = 10
+dtype = "buf:48"
+default_value = 0
+vdep_setting = true
+comment = "User-writable scratch bytes 2"
+
+[setting_commands]
+[setting_commands.FETCH_SETTINGS]
+id = 0
+vendordep = true
+comment = "Fetch all settings from device via a series of :ref:`report setting<msg_report_setting>` messages of all indexes"
+
+
+[setting_commands.RESET_FACTORY_DEFAULT]
+id = 1
+vendordep = true
+comment = """Reset all resettanble settings to factory default, and broadcast all setting values via
+:ref:`report setting<msg_report_setting>` messages.
+"""
+
+[setting_commands.FETCH_SETTING_VALUE]
+id = 2
+vendordep = true
+comment = """Requests to fetch a single setting from device, with its value reported via the 
+:ref:`report setting<msg_report_setting>` message. 
+
+This requires the use of the second byte to specify the setting index to fetch."""
+
+
+[types]
+
+[types.frame_period]
+comment = """Frame period associated with some periodic data or status frame.
+1 LSB equals 1 ms of period, and setting the period to 0 will disable the corresponding frame.
+"""
+btype = "uint"
+utype = "float"
+unit = "seconds"
+min = 0
+max = 0xffff
+bits = 16
+factor = [1, 1000]
+
+[types.status_frame_period]
+comment = "Frame period specific to the :ref:`status frame<msg_status>`, as status frames cannot be set to 0 and disabled."
+btype = "uint"
+utype = "float"
+unit = "seconds"
+min = 1
+max = 16383
+default_value = 1000
+bits = 16
+factor = [1, 1000]
+
+[types.can_device_id]
+comment = """The CAN device id used by the device. 
+As specified by the FRC-CAN spec, this comprises the least significant 6 bits of the CAN id.
+"""
+btype = "uint"
+min = 0
+max = 63
+default_value = 0
+bits = 8
+
+[types.setting_flags]
+comment = """Information set on the :ref:`set settings<msg_set_setting>` message.
+
+Setting the ephemeral bit makes the setting not save to non-volatile memory and not persist on reboot, if applicable.
+
+Sending multiple messages with the synch hold message will queue them for application on device until
+a message with the bit unset and the number of messages expected to be in the queue (in synch_msg_count) is set.
+
+If the number of settings in the queue equals the number of settings in synch_message_count, all settings are applied
+and a report settings message with the commit_success bit is set. Otherwise, none of them are applied and the commit success
+bit is unset.
+
+Original Canandmags do not support the synch hold mechanism.
+"""
+btype = "struct"
+bits = 8
+signals = [
+    { name = "ephemeral", dtype = "bool", comment = "Whether the setting should be set ephemeral" },
+    { name = "synch_hold", dtype = "bool", comment = "Whether the setting should be held until the next synch barrier" },
+    { name = "reserved_0", dtype = "pad:2", comment = "Reserved"},
+    { name = "synch_msg_count", dtype = "uint:4", comment = "Synch message count"}
+    # the rest should be allowed as unused
+]
+
+[types.setting_report_flags]
+comment = "Bits set by the :ref:`report setting<msg_report_setting>` message to indicate success or failure"
+btype = "bitset"
+bits = 8
+bit_flags = [
+    { name = "set_success", comment = "Whether the setting set/fetch was successful" },
+    { name = "commit_success", comment = "Whether the setting synch commit was successful" }
+]
+
+[types.firmware_version]
+btype = "struct"
+bits = 32
+comment = "Firmware version reported by the device."
+signals = [
+    { name = "firmware_patch", dtype = "uint:8", comment = "Firmware version patch number" },
+    { name = "firmware_minor", dtype = "uint:8", comment = "Firmware version minor number" },
+    { name = "firmware_year", dtype = "uint:16", comment = "Firmware version year" },
+]
+
+[types.atomic_announcement_flags]
+btype = "bitset"
+bits = 8
+bit_flags = [
+    { name = "negotiation", comment = "Device should enter negotiation phase" },
+    { name = "init", comment = "Device should initialize bus with new rate" },
+    { name = "confirm", comment = "Device should confirm new bus rate" },
+    { name = "begin_tx", comment = "Device should begin transmission" },
+    { name = "bus_interrupt", comment = "Device should cease all transmission" }
+]
+
+[types.rfloat32]
+btype = "float"
+bits = 32
+comment = "An IEEE single-precision float32 that cannot be NaN or infinite."
+allow_nan_inf = false
+
+[types.pfloat32]
+btype = "float"
+bits = 32
+comment = "An IEEE single-precision float32 that must be non-negative but may be NaN or infinite."
+min = 0
+
+[types.prfloat32]
+btype = "float"
+bits = 32
+comment = "An IEEE single-precision float32 that must be non-negative AND cannot be NaN or infinite."
+min = 0
+allow_nan_inf = false
+
+[types.lfloat32]
+btype = "float"
+bits = 32
+comment = "An IEEE single-precision float32 constrained between 0 and 1 inclusive."
+min = 0
+max = 1
+
+[enums.ATOMIC_BOND_BUS_RATE]
+btype = "uint"
+bits = 8
+default_value = "RATE_1M_2B"
+comment = "The maximum bus rate supported by a device"
+
+[enums.ATOMIC_BOND_BUS_RATE.values]
+RATE_1M_2B = { id = 0, comment = "1 megabit/s CAN 2.0B" }
+RATE_RESERVED_0 = { id = 1, comment = "1 megabit/s CAN-FD" }
+RATE_RESERVED_1 = { id = 2, comment = "5 megabit/s CAN-FD" }
+RATE_RESERVED_2 = { id = 3, comment = "8 megabit/s CAN-FD" }

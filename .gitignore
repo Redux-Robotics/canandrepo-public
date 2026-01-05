@@ -1,0 +1,9 @@
+target/
+__pycache__
+*.pyc
+venv/
+.venv/
+.DS_Store
+rustc-ice*.txt
+rdxota.map
+*.log

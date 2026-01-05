@@ -1,0 +1,184 @@
+
+name = "Canandmag"
+base = ["CanandDevice"] #, "OTAv0"]
+arch = "esp32c3"
+
+dev_type = 7
+dev_class = 0
+
+[vendordep]
+java_package = "com.reduxrobotics.sensors.canandmag"
+cpp_namespace = "redux::sensors::canandmag"
+
+[msg]
+[msg.POSITION_OUTPUT]
+id = 31
+length = 6
+source = "device"
+comment = "Position frame"
+frame_period_setting = "POSITION_FRAME_PERIOD"
+signals = [
+    { name = "relative_position", dtype = "relative_position", comment = "32-bit signed relative position in 1/16384-ths of a rotation. This value does not persist on reboots." },
+    { name = "magnet_status",     dtype = "magnet_status", comment = "2-bit magnet status. If both bits are zero, the magnet is in range."},
+    { name = "absolute_position", dtype = "absolute_position", comment = "14-bit unsigned absolute position in 1/16384-ths of a rotation. The zero offset of the absolute encoder will preserve through reboots."},
+]
+
+[msg.VELOCITY_OUTPUT]
+id = 30
+length = 3
+source = "device"
+comment = "Velocity frame"
+frame_period_setting = "VELOCITY_FRAME_PERIOD"
+signals = [
+    { name = "velocity",      dtype = "velocity", comment = "Velocity as a 22-bit signed integer. One velocity tick corresponds to 1/1024th of a rotation per second."},
+    { name = "magnet_status", dtype = "magnet_status", comment="2-bit magnet status. If both bits are zero, the magnet is in range."}
+]
+
+[msg.RAW_POSITION_OUTPUT]
+id = 29
+length = 6
+source = "device"
+comment = "Raw position frame"
+frame_period_setting = "RAW_POSITION_FRAME_PERIOD"
+signals = [
+    { name = "raw_position",  dtype = "absolute_position", comment = "14-bit raw absolute position in 1/16384-ths of a rotation." },
+    { name = "magnet_status", dtype = "magnet_status", comment = "2-bit magnet status. If both bits are zero, the magnet is in range." },
+    { name = "timestamp",     dtype = "uint:32", comment = "32-bit sensor reading timestamp in microseconds since device boot." }
+]
+
+[msg.STATUS]
+id = 6
+length = 8
+comment = "Status frame"
+source = "device"
+frame_period_setting = "STATUS_FRAME_PERIOD"
+signals = [
+    { name = "faults",        dtype = "faults", comment = "8-bit active faults bitfield"},
+    { name = "sticky_faults", dtype = "faults", comment = "8-bit sticky faults bitfield"},
+    { name = "temperature",   dtype = "sint:8", comment = "8-bit signed temperature byte in Celsius"},
+    { name = "reserved",      dtype = "pad:40", comment = "Reserved bits"}
+]
+
+[settings]
+ZERO_OFFSET               = { id = 255, dtype = "zero_offset", esp32_nvs = { key = "zeroOffset", width = 16, reset_on_default = false}, comment = "Encoder zero offset" }
+VELOCITY_WINDOW           = { id = 254, dtype = "velocity_window", default_value = 100, esp32_nvs = {key = "velWindow", width = 8}, comment = "Velocity window width (value*250us)" }
+POSITION_FRAME_PERIOD     = { id = 253, dtype = "frame_period",    default_value = 20, esp32_nvs = { key = "posFramePer", width = 16}, comment = "Position frame period (ms)" }
+VELOCITY_FRAME_PERIOD     = { id = 252, dtype = "frame_period",    default_value = 20, esp32_nvs = { key = "velFramePer", width = 16}, comment = "Velocity frame period (ms)" }
+RAW_POSITION_FRAME_PERIOD = { id = 251, dtype = "frame_period",    default_value = 0,  esp32_nvs = { key = "rposFramePer", width = 16}, comment = "Raw position frame period (ms)" }
+INVERT_DIRECTION          = { id = 250, dtype = "bool",            default_value = 0,  esp32_nvs = { key = "invertDir", width = 8 }, comment = "Invert direction (0=ccw, 1=cw)"}
+RELATIVE_POSITION         = { id = 249, dtype = "relative_position", readable = false, vdep_setting = false, comment = "Set relative position value" }
+DISABLE_ZERO_BUTTON       = { id = 248, dtype = "bool",            default_value = 0,  esp32_nvs = { key = "disableZero", width = 8}, comment = "Disable the zero button" }
+
+NAME_0                    = { id = 1, dtype = "buf:48", default_value = 0x646e616e6143, vendordep = false, comment = "device_name[0:5]" } # Canand
+NAME_1                    = { id = 2, dtype = "buf:48", default_value = 0x00000067616d, vendordep = false, comment = "device_name[6:11]" } # mag\0\0\0
+NAME_2                    = { id = 3, dtype = "buf:48", default_value = 0, vendordep = false, comment = "device_name[12:17]" } # 0
+
+# This is a piece of legacy; it should probably be turned up to 100
+STATUS_FRAME_PERIOD       = { id = 4, dtype = "frame_period", default_value = 100, comment = "Status frame period (ms)" }
+
+[setting_commands]
+RESET_FACTORY_DEFAULT_KEEP_ZERO = { id = 255, vendordep = true, comment = "Reset to factory defaults, but keep encoder zero offset"}
+
+
+[types]
+
+[types.faults]
+btype = "bitset"
+bits = 8
+bit_flags = [
+    { name = "power_cycle", comment = """
+The power cycle fault flag, which is set to true when the encoder first boots.
+Clearing sticky faults and then checking this flag can be used to determine if the encoder rebooted.
+""" },
+    { name = "can_id_conflict", comment = """
+The CAN ID conflict flag, which is set to true if there is a CAN id conflict.
+In practice, you should physically inspect the encoder to ensure it's not flashing blue.
+""" },
+
+    { name = "can_general_error", comment = """
+The CAN general error flag, which will raise if the device encounters a CAN fault during operation.
+If communication with the device still functions, this will not register as an active fault for long if at all.
+This may raise due to wiring issues, such as an intermittently shorted CAN bus.
+""" },
+
+    { name = "out_of_temperature_range", comment = """
+The temperature range flag, which will raise if the encoder is not between 0-70 degrees Celsius.
+This may be of concern if the encoder is near very active motors.
+""" },
+
+    { name = "hardware_fault", comment = """
+The hardware fault flag, which will raise if a hardware issue is detected.
+Generally will raise if the device's controller cannot read the physical sensor itself.
+""" },
+
+    { name = "magnet_out_of_range", comment = """
+The magnet out of range flag, which will raise if the measured shaft's magnet is not detected.
+This will match the encoder's LED shining red in normal operation.
+""" },
+
+    { name = "under_volt", comment = """
+The undervolt flag, which will raise if the encoder is experiencing brownout conditions.
+""" },
+]
+
+[types.zero_offset]
+comment = """Data encapsulated by the zero offset setting.
+
+If sent with the position bit set, the offset_or_position field is treated as an absolute position.
+
+If sent with the position bit unset, the offset_or_position field updates zero offset directly.
+
+On operations that report settings, the read setting is always the zero offset.
+"""
+btype = "struct"
+bits = 17
+signals = [
+    { name = "offset_or_position", dtype = "absolute_position", comment = "Zero offset or position"},
+    { name = "padding",      dtype = "pad:2", comment = "Empty bits"},
+    { name = "position_bit", dtype = "bool", default_value = 0, comment = "True to set position instead of a zero offset."},
+]
+
+[types.velocity]
+comment = "Message velocity value"
+btype = "sint"
+utype = "float"
+unit = "rotation/second"
+bits = 22
+default_value = 0
+factor = [1, 1024]
+
+[types.relative_position]
+comment = "Relative position value"
+btype = "sint"
+utype = "float"
+bits = 32
+default_value = 0
+unit = "rotation"
+factor = [1, 16384]
+
+[types.absolute_position]
+comment = "Absolute position value"
+btype = "uint"
+utype = "float"
+bits = 14
+default_value = 0
+unit = "rotation"
+factor = [1, 16384]
+
+[types.magnet_status]
+comment = """Magnet status; if both bits are zero, the device magnet is in range.
+Magnet status usually updates slowly (on the order of seconds)."""
+btype = "uint"
+bits = 2
+default_value = 0
+
+[types.velocity_window]
+comment = "Number of samples used to average in the velocity window. Samples occur once every 250 microseconds."
+btype = "uint"
+utype = "float"
+bits = 8
+factor = [1, 4] # units: ms
+min = 1
+max = 255
+default_value = 100
+unit = "millisecond"

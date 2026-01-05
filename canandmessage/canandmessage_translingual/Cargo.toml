@@ -1,0 +1,13 @@
+[package]
+name = "canandmessage_translingual"
+version = "0.1.0"
+edition = "2021"
+description = "cross-language serdes generation for canandmessage"
+license = "LicenseRef-Redux-Proprietary"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+canandmessage = {path = "..", features = []}
+canandmessage_parser = {path = "../canandmessage_parser"}
+tera = "1.19.1"

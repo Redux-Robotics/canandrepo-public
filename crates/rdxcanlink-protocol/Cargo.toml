@@ -1,0 +1,16 @@
+[package]
+name = "rdxcanlink-protocol"
+version = "0.1.0"
+description = "Definitions for the Redux CANLink websocket protocol"
+authors.workspace = true
+edition.workspace = true
+documentation.workspace = true
+homepage.workspace = true
+repository.workspace = true
+license.workspace = true
+publish.workspace = true
+
+
+[features]
+default = ["std"]
+std = []
