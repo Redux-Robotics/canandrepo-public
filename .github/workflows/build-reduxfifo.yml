@@ -20,15 +20,24 @@ jobs:
           #  reduxfifo-features: "systemcore"
           #  reduxlib-options: "-Ponlylinuxsystemcore"
           #  toolchain: "/opt/systemcore/bin"
-          - artifact-name: Linux
-            build-options: "headers linuxathena linuxarm64 linuxx86-64"
+          - artifact-name: LinuxAthena
+            container: wpilib/roborio-cross-ubuntu:2025-22.04
+            build-options: "headers linuxathena"
             reduxfifo-features: "athena"
-            reduxlib-options: ""
-            toolchain0: "/opt/roborio/bin"
-            toolchain1: "/opt/bookworm/bin"
+            reduxlib-options: "-Ponlylinuxathena"
+          - artifact-name: LinuxArm64
+            container: wpilib/aarch64-cross-ubuntu:bookworm-22.04
+            build-options: "headers linuxarm64"
+            reduxfifo-features: "athena"
+            reduxlib-options: "-Ponlylinuxarm64"
+          - artifact-name: LinuxX86-64
+            container: wpilib/ubuntu-base:22.04
+            build-options: "headers linuxx86-64"
+            reduxfifo-features: "athena"
+            reduxlib-options: "-Pskiplinuxathena"
 
     name: "Build Vendordep - ${{ matrix.artifact-name }}"
-    runs-on: [self-hosted, Linux, enabled]
+    runs-on: ${{ matrix.container }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -37,19 +46,10 @@ jobs:
       - name: Fetch all history and metadata
         run: |
           git config --global --add safe.directory /__w/${{ github.event.repository.name }}/${{ github.event.repository.name }}
-      - uses: actions/setup-java@v4
-        with:
-          distribution: 'temurin'
-          java-version: 17
-          architecture: x64
       - uses: actions-rust-lang/setup-rust-toolchain@v1.13
         with:
           rustflags: "" # just put the artifacts in the bag
           cache: false
-      - run: echo "${{ matrix.toolchain0 }}" >> "${GITHUB_PATH}"
-        if: matrix.toolchain0 != ''
-      - run: echo "${{ matrix.toolchain1 }}" >> "${GITHUB_PATH}"
-        if: matrix.toolchain1 != ''
       - name: Build maven artifact
         run: echo "$PATH" && cd reduxfifo && cargo xtask --all ${{ matrix.build-options }} -- --no-default-features --features ${{ matrix.reduxfifo-features }}
       - name: Build with Gradle
@@ -73,16 +73,18 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - os: Windows
+          - os: windows-2022
             artifact-name: Windows
             architecture: x64
             build-options: "windowsx86-64"
-          - os: "macOS"
+            reduxfifo-features: "athena"
+          - os: macos-14
             artifact-name: macOS
             architecture: aarch64
             build-options: "osxuniversal"
+            reduxfifo-features: "athena"
     name: "Build Vendordep - ${{ matrix.artifact-name }}"
-    runs-on: [self-hosted, "${{ matrix.os }}", enabled]
+    runs-on: "${{ matrix.os }}"
     steps:
       - if: runner.os == 'Windows'
         name: Workaround Windows being a bad operating system
@@ -105,7 +107,7 @@ jobs:
           java-version: 17
           architecture: ${{ matrix.architecture }}
       - name: Build ReduxFIFO
-        run: cargo xtask --all headers ${{ matrix.build-options }} -- --no-default-features --features athena
+        run: cargo xtask --all headers ${{ matrix.build-options }} -- --no-default-features --features ${{ matrix.reduxfifo-features }}
         working-directory: reduxfifo
       - uses: actions/upload-artifact@v4
         with:
@@ -122,7 +124,7 @@ jobs:
   combine:
     name: Combine
     needs: [build-vendordep-linux, build-vendordep-host]
-    runs-on: blacksmith-4vcpu-ubuntu-2404
+    runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v4
         with:
@@ -138,21 +140,6 @@ jobs:
       - name: Generate vdep json
         run: (python3 mkvdepjson.py || true) && cp build/allOutputs/* ../final/vendordeps
         working-directory: ReduxLib
-      # - name: Combine (Release)
-      #   if: |
-      #     github.repository_owner == 'wpilibsuite' &&
-      #     startsWith(github.ref, 'refs/tags/v')
-      #   run: |
-      #     ./gradlew publish -Pthirdparty
-      #   working-directory: combiner
-      #   env:
-      #     RUN_AZURE_ARTIFACTORY_RELEASE: 'TRUE'
-      #     ARTIFACTORY_PUBLISH_USERNAME: ${{ secrets.ARTIFACTORY_USERNAME }}
-      #     ARTIFACTORY_PUBLISH_PASSWORD: ${{ secrets.ARTIFACTORY_PASSWORD }}
-      #- uses: actions/upload-artifact@v4
-      #  with:
-      #    name: Maven
-      #    path: ~/releases
       - uses: actions/upload-artifact@v4
         with:
           name: ReduxLib-offline-v${{ steps.reduxlib-version.outputs.REDUXLIB_VERSION }}-${{github.sha}}
