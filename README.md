@@ -2,20 +2,43 @@
 
 This is a monorepo for Redux Robotics open-source code. 
 
-## License
+## Licenses
 
-* Contents of `crates/`, `canandmessage/` and `reduxfifo/xtask` are `MIT OR Apache-2.0`
-* Contents of `reduxfifo/` are `LGPL-3.0-only` EXCEPT `reduxfifo/xtask` which is `MIT OR Apache-2.0`
-* Contents of `ReduxLib/` are generally `MPL 2.0`
+This repository uses multiple licenses.
 
-## Install guide
+If you wish to use code in this repository in a way that may be incompatible with its listed license, contact us at `support@reduxrobotics.com` and we can work something out.
 
-You need:
+### MIT OR Apache-2.0
+
+* `crates/*`
+* `canandmessage/*`
+* `reduxfifo/xtask/*`
+* `tools/*`
+* `.gitignore`
+* `.github/*`
+* `.vscode/*`
+
+### LGPL-3.0-only
+
+* `reduxfifo/*` EXCEPT `reduxfifo/xtask/`
+
+### Mozilla Public License 2.0
+
+* `ReduxLib/*`
+
+## Build guide (for advanced users)
+
+To install ReduxLib, consult https://docs.reduxrobotics.com.
+
+To build things in this repository, you need:
 
 * rustup to install toolchains from https://rustup.rs/
+* a copy of LLVM installed (e.g. `libclang-dev` from Debian) to build 
+* the current version of WPILib
+* A WPILib-compatible JVM (one comes for free in your WPILib install under `wpilib/YEAR/jdk` that you can set as your `JAVA_HOME`)
 
 
-## Building reduxlib 
+### Building reduxlib 
 
 First build reduxfifo
 
