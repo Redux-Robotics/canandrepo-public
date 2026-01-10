@@ -431,7 +431,7 @@ dependencies = [
 
 [[package]]
 name = "canandmiddleware"
-version = "2026.0.0-beta1"
+version = "2026.1.1"
 dependencies = [
  "anyhow",
  "async-trait",
@@ -933,7 +933,7 @@ checksum = "37909eebbb50d72f9059c3b6d82c0463f2ff062c9e95845c43a6c9c0355411be"
 
 [[package]]
 name = "fifocore"
-version = "2026.0.0-beta1"
+version = "2026.1.1"
 dependencies = [
  "anyhow",
  "bytemuck",
@@ -964,7 +964,7 @@ dependencies = [
  "tokio-serial",
  "tokio-tungstenite 0.27.0",
  "url",
- "wpihal 0.2026.1-beta-1",
+ "wpihal 0.2026.1",
  "wpihal 0.2027.0-0-alpha-2",
 ]
 
@@ -1360,7 +1360,7 @@ dependencies = [
  "libc",
  "percent-encoding",
  "pin-project-lite",
- "socket2 0.6.0",
+ "socket2 0.5.10",
  "tokio",
  "tower-service",
  "tracing",
@@ -2224,7 +2224,7 @@ dependencies = [
  "quinn-udp",
  "rustc-hash",
  "rustls",
- "socket2 0.6.0",
+ "socket2 0.5.10",
  "thiserror 2.0.16",
  "tokio",
  "tracing",
@@ -2261,7 +2261,7 @@ dependencies = [
  "cfg_aliases",
  "libc",
  "once_cell",
- "socket2 0.6.0",
+ "socket2 0.5.10",
  "tracing",
  "windows-sys 0.60.2",
 ]
@@ -2385,7 +2385,7 @@ dependencies = [
 
 [[package]]
 name = "reduxfifo"
-version = "2026.0.0-beta1"
+version = "2026.1.1"
 dependencies = [
  "build-data",
  "canandmiddleware",
@@ -2405,7 +2405,7 @@ dependencies = [
 
 [[package]]
 name = "reduxfifo-standalone"
-version = "2026.0.0-beta1"
+version = "2026.1.1"
 dependencies = [
  "anyhow",
  "canandmiddleware",
@@ -2418,7 +2418,7 @@ dependencies = [
 
 [[package]]
 name = "reduxfifo-util"
-version = "2026.0.0-beta1"
+version = "2026.1.1"
 dependencies = [
  "anyhow",
  "canandmessage",
@@ -4107,11 +4107,11 @@ checksum = "f17a85883d4e6d00e8a97c586de764dabcc06133f7f1d55dce5cdc070ad7fe59"
 
 [[package]]
 name = "wpihal"
-version = "0.2026.1-beta-1"
-source = "git+https://github.com/guineawheek/wpihal-rs?branch=2026#2db87560b5746ec2e26f1d77cb6d2a7c6e77bc28"
+version = "0.2026.1"
+source = "git+https://github.com/guineawheek/wpihal-rs?branch=2026#195a60409352b00dba23e01c2c25939259a57320"
 dependencies = [
- "wpihal-sys 2026.1.1-beta-1",
- "wpiutil 0.2026.1-beta-1",
+ "wpihal-sys 2026.1.1",
+ "wpiutil 0.2026.1",
 ]
 
 [[package]]
@@ -4126,12 +4126,12 @@ dependencies = [
 
 [[package]]
 name = "wpihal-sys"
-version = "2026.1.1-beta-1"
-source = "git+https://github.com/guineawheek/wpihal-rs?branch=2026#2db87560b5746ec2e26f1d77cb6d2a7c6e77bc28"
+version = "2026.1.1"
+source = "git+https://github.com/guineawheek/wpihal-rs?branch=2026#195a60409352b00dba23e01c2c25939259a57320"
 dependencies = [
  "bindgen",
  "regex",
- "wpilib-nativeutils 0.2026.1-beta-1",
+ "wpilib-nativeutils 0.2026.1",
 ]
 
 [[package]]
@@ -4146,8 +4146,8 @@ dependencies = [
 
 [[package]]
 name = "wpilib-nativeutils"
-version = "0.2026.1-beta-1"
-source = "git+https://github.com/guineawheek/wpihal-rs?branch=2026#2db87560b5746ec2e26f1d77cb6d2a7c6e77bc28"
+version = "0.2026.1"
+source = "git+https://github.com/guineawheek/wpihal-rs?branch=2026#195a60409352b00dba23e01c2c25939259a57320"
 dependencies = [
  "anyhow",
  "home",
@@ -4170,10 +4170,10 @@ dependencies = [
 
 [[package]]
 name = "wpiutil"
-version = "0.2026.1-beta-1"
-source = "git+https://github.com/guineawheek/wpihal-rs?branch=2026#2db87560b5746ec2e26f1d77cb6d2a7c6e77bc28"
+version = "0.2026.1"
+source = "git+https://github.com/guineawheek/wpihal-rs?branch=2026#195a60409352b00dba23e01c2c25939259a57320"
 dependencies = [
- "wpiutil-sys 2026.1.1-beta-1",
+ "wpiutil-sys 2026.1.1",
 ]
 
 [[package]]
@@ -4186,12 +4186,12 @@ dependencies = [
 
 [[package]]
 name = "wpiutil-sys"
-version = "2026.1.1-beta-1"
-source = "git+https://github.com/guineawheek/wpihal-rs?branch=2026#2db87560b5746ec2e26f1d77cb6d2a7c6e77bc28"
+version = "2026.1.1"
+source = "git+https://github.com/guineawheek/wpihal-rs?branch=2026#195a60409352b00dba23e01c2c25939259a57320"
 dependencies = [
  "bindgen",
  "regex",
- "wpilib-nativeutils 0.2026.1-beta-1",
+ "wpilib-nativeutils 0.2026.1",
 ]
 
 [[package]]

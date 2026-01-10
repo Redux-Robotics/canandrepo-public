@@ -7,6 +7,7 @@
 #include "frc/Timer.h"
 #include "hal/FRCUsageReporting.h"
 #include <cmath>
+#include <string>
 
 #if !defined(M_PI)
 // thanks msvc i love you so much
@@ -22,7 +23,7 @@ int16_t quat2U16(double v) {
 
 namespace redux::sensors::canandgyro {
     using namespace details;
-    Canandgyro::Canandgyro(int canID) : addr(4, (uint8_t) (canID & 0x3f)) {
+    Canandgyro::Canandgyro(int canID, std::string bus) : stg(*this), addr(redux::canand::MessageBus::ByBusString(bus), 4, (uint8_t) (canID & 0x3f)) {
         redux::canand::AddCANListener(this);
         HAL_Report(HALUsageReporting::kResourceType_Redux_future3, canID + 1);
     }

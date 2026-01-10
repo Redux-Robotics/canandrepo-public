@@ -21,13 +21,13 @@
 #include <atomic>
 
 /** Supported driver year */
-constexpr int DRIVER_YEAR = 2024;
+constexpr int DRIVER_YEAR = 2026;
 
 /** Supported driver major version */
-constexpr int DRIVER_MAJOR_VERSION = 2;
+constexpr int DRIVER_MAJOR_VERSION = 1;
 
 /** Supported driver minor version */
-constexpr int DRIVER_MINOR_VERSION = 0;
+constexpr int DRIVER_MINOR_VERSION = 1;
 
 constexpr int DRIVER_NUMER = (DRIVER_YEAR << 16) | (DRIVER_MAJOR_VERSION << 8) | (DRIVER_MINOR_VERSION);
 
@@ -64,7 +64,6 @@ public:
         fmt::print("[ReduxLib] CanandEventLoop started.\n");
         struct ReduxFIFO_Message* msgbuf = ReduxCore_AllocateBuffer(32);
         size_t messages_read = 0;
-        ReduxCore_OpenBusById(0);
 
         while (shouldRun.load()) {
             if (ReduxCore_BatchWaitForCANMessages(msgbuf, sizeof(msgbuf), &messages_read) == -1) break;

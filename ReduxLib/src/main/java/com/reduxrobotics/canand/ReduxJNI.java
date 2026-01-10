@@ -21,10 +21,10 @@ public class ReduxJNI {
   public static final int DRIVER_YEAR = 2026;
 
   /** Supported driver major version */
-  public static final int DRIVER_MAJOR_VERSION = 0;
+  public static final int DRIVER_MAJOR_VERSION = 1;
 
   /** Supported driver minor version */
-  public static final int DRIVER_MINOR_VERSION = 0;
+  public static final int DRIVER_MINOR_VERSION = 1;
 
   static boolean libraryLoaded = false;
 

@@ -1,3 +1,13 @@
+# 2026.1.1
+
+This is the first release against WPILib 2026.1.1.
+
+## New features
+* [C++] Canandcolor support
+
+## Bug fixes
+* [C++] works again, now with multi-bus support!
+
 # 2026.0.0-beta1
 
 ## New Features

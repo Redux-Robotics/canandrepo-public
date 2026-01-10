@@ -3,6 +3,7 @@
 
 #pragma once
 #include <stdint.h>
+#include <string>
 
 namespace redux::canand {
 /**
@@ -34,6 +35,16 @@ class MessageBus {
      * @return whether or not they refer to the same bus
      */
     inline bool Equals(MessageBus other) { return GetDescriptor() == other.GetDescriptor(); }
+
+    /**
+     * Constructs or fetches a bus by its bus string.
+     * If the bus is not opened, it will attempt to be opened.
+     * 
+     * If the bus cannot be opened, an error will be thrown.
+     * @param busString bus string, e.g. "halcan", "socketcan:can_s0", or "slcan:115200:/dev/ttyAMA0"
+     * @return bus instance
+     */
+    static MessageBus ByBusString(std::string busString);
   private:
     uint16_t fd;
 };

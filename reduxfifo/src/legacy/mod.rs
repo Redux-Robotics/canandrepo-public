@@ -57,13 +57,13 @@ pub extern "C" fn ReduxCore_GetVersion() -> i32 {
 /// @return the WPIHal bus ID on success, -1 on already started
 #[unsafe(no_mangle)]
 pub extern "C" fn ReduxCore_InitServer() -> i32 {
-    env_logger::init_from_env(
-        env_logger::Env::new().default_filter_or("debug,jni=off,warp=info,hyper=info,nusb=info"),
-    );
     let mut canlink_handle = REDUXCORE.lock();
     if canlink_handle.is_some() {
         -1
     } else {
+        env_logger::init_from_env(
+            env_logger::Env::new().default_filter_or("debug,jni=off,warp=info,hyper=info,nusb=info"),
+        );
         log_debug!("ReduxCore Init server");
         let (bus_req, bus_recv) = tokio::sync::mpsc::channel(10);
         let bus_task = INSTANCE
@@ -71,15 +71,12 @@ pub extern "C" fn ReduxCore_InitServer() -> i32 {
             .spawn(reduxcore::run_reduxcore(INSTANCE.clone(), bus_recv));
 
         let (sd_send, sd_recv) = watch::channel(false);
-        let canlink_task = INSTANCE
+        let canlink_task: JoinHandle<()> = INSTANCE
             .runtime()
             .spawn(canandmiddleware::rest_server::run_web_server(
                 sd_recv,
                 INSTANCE.clone(),
             ));
-        //let canlink_task = INSTANCE
-        //    .runtime()
-        //    .spawn((async |mut sd_recv: watch::Receiver<bool>| { let _ = sd_recv.changed().await; })(sd_recv));
         *canlink_handle = Some(ReduxCoreSession {
             bus_task,
             canlink_task,

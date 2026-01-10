@@ -2,7 +2,7 @@
 members = ["canandmiddleware", "fifocore", "reduxfifo-standalone", "reduxfifo-util", "xtask"]
 
 [workspace.package]
-version = "2026.0.0-beta1"
+version = "2026.1.1"
 license = "LGPL-3.0-only"
 authors = ["Bagholders of Redux Robotics"]
 edition = "2024"

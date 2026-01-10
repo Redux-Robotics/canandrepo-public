@@ -145,8 +145,9 @@ class Canandgyro : public redux::canand::CanandDevice{
      * Constructor with the device's id. This object will be constant with respect to whatever CAN id assigned to it,
      * so if a device changes id it may change which device this object reads from.
      * @param canID the device id to use
+     * @param bus the message bus to use. Defaults to "halcan".
     */
-    Canandgyro(int canID);
+    Canandgyro(int canID, std::string bus = "halcan");
     inline ~Canandgyro() { redux::canand::RemoveCANListener(this); }
 
     /**
@@ -424,6 +425,7 @@ class Canandgyro : public redux::canand::CanandDevice{
      * 
      * stg = enc.GetSettings(0_ms, 20_ms, 3); // Retry getitng the missing settings.
      * stg.AllSettingsReceived(); // far more likely to be true
+     * ```
      * 
      * @param timeout maximum number of seconds to wait for a settings operation before timing out (default 350_ms)
      * @param missingTimeout maximum number of seconds to wait for each settings retry before giving up
@@ -432,13 +434,13 @@ class Canandgyro : public redux::canand::CanandDevice{
      */
     inline CanandgyroSettings GetSettings(units::second_t timeout = 350_ms, units::second_t missingTimeout = 20_ms, uint32_t attempts = 3) { 
         return stg.GetSettings(timeout, missingTimeout, attempts); 
-    };
+    }
 
     /**
      * Tells the Canandgyro to begin transmitting its settings; once they are all transmitted (after ~200-300ms),
      * the values can be retrieved through the Canandgyro::GetSettingsAsync() function call
      */
-    inline void StartFetchSettings() { return stg.StartFetchSettings(); }
+    inline void StartFetchSettings() { stg.StartFetchSettings(); }
 
     /**
      * Non-blockingly returns a CanandgyroSettings object of the most recent known settings values received from the encoder.
@@ -523,7 +525,6 @@ class Canandgyro : public redux::canand::CanandDevice{
     /**
      * Resets the encoder to factory defaults, and then wait for all settings to be broadcasted 
      * back.
-     * @param clearZero whether to clear the zero offset from the encoder's memory as well
      * @param timeout how long to wait for the new settings to be confirmed by the encoder in 
      *     seconds (suggested at least 0.35 seconds)
      * @return CanandgyroSettings object of received settings. 

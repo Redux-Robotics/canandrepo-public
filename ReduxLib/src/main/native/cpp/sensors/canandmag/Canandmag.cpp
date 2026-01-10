@@ -5,16 +5,18 @@
 #include "redux/canand/CanandEventLoop.h"
 #include "redux/canand/CanandUtils.h"
 #include "redux/canand/CanandDevice.h"
+#include "redux/canand/MessageBus.h"
 #include "frc/Timer.h"
 #include "frc/Errors.h"
 #include "hal/FRCUsageReporting.h"
 #include <string.h>
+#include <string>
 #include <chrono>
 #include <stdexcept>
 
 namespace redux::sensors::canandmag {
     using namespace redux;
-    Canandmag::Canandmag(int canID) : stg(*this), addr(7, (uint8_t) (canID & 0x3f)) {
+    Canandmag::Canandmag(int canID, std::string bus) : stg(*this), addr(redux::canand::MessageBus::ByBusString(bus), 7, (uint8_t (canID & 0x3f))) {
         canand::AddCANListener(this);
         HAL_Report(HALUsageReporting::kResourceType_Redux_future1, canID + 1);
     }

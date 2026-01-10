@@ -46,7 +46,7 @@ rdxusb-protocol = { path = "../../crates/rdxusb-protocol"}
 rdxcanlink-protocol = { path = "../../crates/rdxcanlink-protocol" }
 frc-can-id = { path = "../../crates/frc-can-id" }
 
-wpihal-rio = { package = "wpihal", version = "0.2026.1-beta-1", git = "https://github.com/guineawheek/wpihal-rs", branch = "2026", optional = true}
+wpihal-rio = { package = "wpihal", version = "0.2026.1", git = "https://github.com/guineawheek/wpihal-rs", branch = "2026", optional = true}
 wpihal-mrc = { package = "wpihal", version = "0.2027.0-0-alpha-1", git = "https://github.com/guineawheek/wpihal-rs", branch = "2027", optional = true}
 
 log = "0.4.27"

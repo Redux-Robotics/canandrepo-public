@@ -67,7 +67,7 @@ class CanandAddress {
      * @param devType the device type
      * @param devId the device CAN id
      */
-    CanandAddress(MessageBus& bus, uint8_t devType, uint8_t devId) : bus{bus}, devType{devType}, devId{devId} {};
+    CanandAddress(MessageBus bus, uint8_t devType, uint8_t devId) : bus{bus}, devType{devType}, devId{devId} {};
 
     /**
      * Constructor with implicit Rio CAN bus.
