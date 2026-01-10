@@ -50,14 +50,13 @@ struct DigoutSlotState {
    * @return decoded DigoutSlotState
    */
   static constexpr DigoutSlotState FromMsg(details::msg::DigitalOutput msg) {
-
     return DigoutSlotState {
-      .digout1State{msg.digout1_state},
-      .digout2State{msg.digout2_state},
-      .digout1Sticky{msg.digout1_sticky},
-      .digout2Sticky{msg.digout2_sticky},
-      .digout1Cond{msg.digout1_cond},
-      .digout2Cond{msg.digout2_cond}
+      .digout1State = msg.digout1_state,
+      .digout2State = msg.digout2_state,
+      .digout1Sticky = msg.digout1_sticky,
+      .digout2Sticky = msg.digout2_sticky,
+      .digout1Cond = msg.digout1_cond,
+      .digout2Cond = msg.digout2_cond
     };
   }
 };
