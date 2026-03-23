@@ -1,0 +1,218 @@
+name: ReduxLib Docs Publish to S3
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Release version folder name (example: v2026.1.1)"
+        required: true
+        type: string
+      update_current:
+        description: "If true, also overwrite current/ with this release docs"
+        required: true
+        default: false
+        type: boolean
+      commit_hash:
+        description: "Optional git commit SHA to build docs from (overrides tag checkout)"
+        required: false
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  publish-docs:
+    name: Build docs and publish to Cloudflare R2 (S3 API)
+    runs-on: ubuntu-latest
+
+    env:
+      S3_BUCKET: ${{ secrets.REDUXLIB_DOCS_S3_BUCKET }}
+      S3_ENDPOINT: ${{ secrets.REDUXLIB_DOCS_S3_ENDPOINT }}
+      AWS_ACCESS_KEY_ID: ${{ secrets.REDUXLIB_DOCS_R2_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.REDUXLIB_DOCS_R2_SECRET_ACCESS_KEY }}
+      AWS_REGION: auto
+      METADATA_KEY: metav1.json
+
+    steps:
+      - name: Validate tag context or commit hash
+        shell: bash
+        run: |
+          set -euo pipefail
+          COMMIT_HASH="${{ github.event.inputs.commit_hash }}"
+
+          if [[ -z "${COMMIT_HASH}" && "${GITHUB_REF_TYPE}" != "tag" ]]; then
+            echo "This workflow must be run against a tag ref, unless commit_hash is provided."
+            echo "Current ref type: ${GITHUB_REF_TYPE}"
+            exit 1
+          fi
+
+          if [[ -n "${COMMIT_HASH}" ]]; then
+            if [[ ! "${COMMIT_HASH}" =~ ^[0-9a-fA-F]{7,40}$ ]]; then
+              echo "Invalid commit_hash input: ${COMMIT_HASH}"
+              echo "Expected a 7 to 40 character hexadecimal git SHA."
+              exit 1
+            fi
+          fi
+
+      - name: Validate inputs
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          VERSION="${{ github.event.inputs.version }}"
+
+          if [[ ! "${VERSION}" =~ ^v[0-9]+\.[0-9]+\.[0-9]+([.-][A-Za-z0-9._-]+)?$ ]]; then
+            echo "Invalid version input: ${VERSION}"
+            echo "Expected format like v2026.1.1 or v2026.1.1-beta0"
+            exit 1
+          fi
+
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.inputs.commit_hash != '' && github.event.inputs.commit_hash || github.ref }}
+
+      - name: Set up Temurin JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Install doxygen
+        shell: bash
+        run: |
+          set -euo pipefail
+          sudo apt-get update
+          sudo apt-get install -y doxygen graphviz
+
+      - name: Verify required env
+        shell: bash
+        run: |
+          set -euo pipefail
+          : "${S3_BUCKET:?S3 bucket is required via repo variable REDUXLIB_DOCS_S3_BUCKET}"
+          : "${S3_ENDPOINT:?S3 endpoint is required via repo variable REDUXLIB_DOCS_S3_ENDPOINT}"
+          : "${AWS_ACCESS_KEY_ID:?R2 access key is required via secret REDUXLIB_DOCS_R2_ACCESS_KEY_ID}"
+          : "${AWS_SECRET_ACCESS_KEY:?R2 secret key is required via secret REDUXLIB_DOCS_R2_SECRET_ACCESS_KEY}"
+
+      - name: Build ReduxLib Doxygen and JavaDocs
+        working-directory: ReduxLib
+        shell: bash
+        run: |
+          set -euo pipefail
+          chmod +x ./gradlew
+          rm -rf build/doxygen
+          ./gradlew --no-daemon clean doxygen javadoc
+
+      - name: Locate generated docs
+        id: docs
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          # Doxygen output from publish.gradle:
+          # outputDir = "$buildDir/doxygen/"
+          CPP_DIR="ReduxLib/build/doxygen/html"
+
+          # Gradle Javadoc default destination:
+          JAVA_DIR="ReduxLib/build/docs/javadoc"
+
+          if [[ ! -d "${CPP_DIR}" ]]; then
+            echo "Doxygen output directory not found: ${CPP_DIR}"
+            exit 1
+          fi
+          if [[ ! -d "${JAVA_DIR}" ]]; then
+            echo "Javadoc output directory not found: ${JAVA_DIR}"
+            exit 1
+          fi
+
+          echo "cpp_dir=${CPP_DIR}" >> "$GITHUB_OUTPUT"
+          echo "java_dir=${JAVA_DIR}" >> "$GITHUB_OUTPUT"
+
+      - name: Upload versioned docs to R2
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          VERSION="${{ github.event.inputs.version }}"
+          CPP_DIR="${{ steps.docs.outputs.cpp_dir }}"
+          JAVA_DIR="${{ steps.docs.outputs.java_dir }}"
+
+          aws s3 sync "${CPP_DIR}/" "s3://${S3_BUCKET}/${VERSION}/cpp/" --delete --endpoint-url "${S3_ENDPOINT}"
+          aws s3 sync "${JAVA_DIR}/" "s3://${S3_BUCKET}/${VERSION}/java/" --delete --endpoint-url "${S3_ENDPOINT}"
+
+      - name: Optionally update current alias
+        if: ${{ github.event.inputs.update_current == 'true' }}
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          CPP_DIR="${{ steps.docs.outputs.cpp_dir }}"
+          JAVA_DIR="${{ steps.docs.outputs.java_dir }}"
+
+          aws s3 sync "${CPP_DIR}/" "s3://${S3_BUCKET}/current/cpp/" --delete --endpoint-url "${S3_ENDPOINT}"
+          aws s3 sync "${JAVA_DIR}/" "s3://${S3_BUCKET}/current/java/" --delete --endpoint-url "${S3_ENDPOINT}"
+
+      - name: Download existing metadata
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          if aws s3api head-object --bucket "${S3_BUCKET}" --key "${METADATA_KEY}" --endpoint-url "${S3_ENDPOINT}" >/dev/null 2>&1; then
+            aws s3 cp "s3://${S3_BUCKET}/${METADATA_KEY}" "./metav1.json" --endpoint-url "${S3_ENDPOINT}"
+          else
+            echo "[]" > ./metav1.json
+          fi
+
+      - name: Update metadata with version if missing
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+
+          p = Path("metav1.json")
+          data = json.loads(p.read_text(encoding="utf-8"))
+
+          if not isinstance(data, list):
+              raise SystemExit("metav1.json must contain a top-level JSON array")
+
+          version = "${{ github.event.inputs.version }}/"
+
+          # Preserve existing order and values; append only if missing.
+          if version not in data:
+              data.append(version)
+
+          p.write_text(json.dumps(data, indent=2) + "\n", encoding="utf-8")
+          PY
+
+      - name: Upload updated metadata
+        shell: bash
+        run: |
+          set -euo pipefail
+          aws s3 cp "./metav1.json" "s3://${S3_BUCKET}/${METADATA_KEY}" \
+            --content-type "application/json" \
+            --endpoint-url "${S3_ENDPOINT}"
+
+      - name: Summary
+        shell: bash
+        run: |
+          set -euo pipefail
+          {
+            echo "## ReduxLib docs publish complete"
+            echo ""
+            echo "- Version: \`${{ github.event.inputs.version }}\`"
+            echo "- Commit hash override: \`${{ github.event.inputs.commit_hash || 'none (using workflow ref)' }}\`"
+            echo "- Updated current/: \`${{ github.event.inputs.update_current }}\`"
+            echo "- Bucket: \`${S3_BUCKET}\`"
+            echo "- Endpoint: \`${S3_ENDPOINT}\`"
+            echo "- Uploaded:"
+            echo "  - \`${{ github.event.inputs.version }}/cpp/\`"
+            echo "  - \`${{ github.event.inputs.version }}/java/\`"
+            if [[ "${{ github.event.inputs.update_current }}" == "true" ]]; then
+              echo "  - \`current/cpp/\`"
+              echo "  - \`current/java/\`"
+            fi
+            echo "- Metadata: \`${METADATA_KEY}\` updated (append-if-missing)"
+          } >> "$GITHUB_STEP_SUMMARY"
