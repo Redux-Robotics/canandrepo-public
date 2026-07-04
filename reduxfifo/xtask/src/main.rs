@@ -73,6 +73,8 @@ enum Compileable {
     OsxUniversal,
     #[value(name = "headers")]
     Headers,
+    #[value(name = "desktop")]
+    Desktop,
     #[default]
     #[value(name = "auto")]
     Auto,
@@ -106,6 +108,9 @@ fn main() -> anyhow::Result<()> {
             Compileable::Headers => {
                 build_maven_zip(&ci, Path::new("include"), GROUP_ID, ARTIFACT_ID, "headers")?;
             }
+            Compileable::Desktop => {
+                build_maven_desktop(&ci, &build_configs, &cargo_flags)?;
+            }
             Compileable::Auto => {
                 // always build headers
                 build_maven_zip(&ci, Path::new("include"), GROUP_ID, ARTIFACT_ID, "headers")?;
@@ -115,26 +120,41 @@ fn main() -> anyhow::Result<()> {
                 }
 
                 // build platform-dependent targets
-                #[cfg(target_os = "linux")]
-                {
-                    build_maven(&ci, Target::LinuxX86_64, &build_configs, &cargo_flags)?;
-                    if Path::new("/usr/local/aarch64-linux-gnu").exists() {
-                        build_maven(&ci, Target::LinuxArm64, &build_configs, &cargo_flags)?;
-                    }
+                build_maven_desktop(&ci, &build_configs, &cargo_flags)?;
+
+                // build extra targets if applicable
+                #[cfg(all(target_os = "linux", not(target_arch = "aarch64")))]
+                if Path::new("/usr/local/aarch64-linux-gnu").exists() {
+                    build_maven(&ci, Target::LinuxArm64, &build_configs, &cargo_flags)?;
                 }
 
-                #[cfg(target_os = "macos")]
-                build_maven(&ci, Target::OsxUniversal, &build_configs, &cargo_flags)?;
+                #[cfg(all(target_os = "windows", not(target_arch = "aarch64")))]
+                build_maven(&ci, Target::WindowsArm64, &build_configs, &cargo_flags)?
 
-                #[cfg(all(target_os = "windows", target_arch = "x86_64"))]
-                build_maven(&ci, Target::WindowsX86_64, &build_configs, &cargo_flags)?;
-
-                #[cfg(all(target_os = "windows", target_arch = "aarch64"))]
-                build_maven(&ci, Target::WindowsArm64, &build_configs, &cargo_flags)?;
             }
         }
     }
     Ok(())
+}
+
+
+fn build_maven_desktop(
+    crate_info: &ReduxFIFOCrate,
+    build_configs: &[BuildConfig],
+    cargo_flags: &Vec<String>,
+) -> anyhow::Result<()> {
+    #[cfg(all(target_os = "linux", target_arch = "x86_64"))]
+    let target = Target::LinuxX86_64;
+    #[cfg(all(target_os = "linux", target_arch = "aarch64"))]
+    let target = Target::LinuxArm64;
+    #[cfg(target_os = "macos")]
+    let target = Target::OsxUniversal;
+    #[cfg(all(target_os = "windows", target_arch = "x86_64"))]
+    let target = Target::WindowsX86_64;
+    #[cfg(all(target_os = "windows", target_arch = "aarch64"))]
+    let target = Target::WindowsArm64;
+
+    build_maven(&crate_info, target, &build_configs, &cargo_flags)
 }
 
 fn build_maven(
