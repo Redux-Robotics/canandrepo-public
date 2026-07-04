@@ -202,7 +202,9 @@ async fn run_ota(
         Ok(io) => io,
         Err(e) => {
             log_error!("[RdxOTA] Failed to open session: {e}");
-            let new_state = status.borrow().swap_state(OtaFlashState::Fail, Some(format!("{e}")));
+            let new_state = status
+                .borrow()
+                .swap_state(OtaFlashState::Fail, Some(format!("{e}")));
             status.send_replace(new_state);
             return;
         }
@@ -217,7 +219,9 @@ async fn run_ota(
         }
         Err(e) => {
             log_error!("OTA failed: {e}");
-            let new_state = status.borrow().swap_state(OtaFlashState::Fail, Some(format!("{e}")));
+            let new_state = status
+                .borrow()
+                .swap_state(OtaFlashState::Fail, Some(format!("{e}")));
             status.send_replace(new_state);
         }
     }
@@ -296,7 +300,18 @@ impl Drop for OtaTask {
     }
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Default, serde::Serialize, serde::Deserialize)]
+#[derive(
+    Debug,
+    Clone,
+    Copy,
+    PartialEq,
+    Eq,
+    PartialOrd,
+    Ord,
+    Default,
+    serde::Serialize,
+    serde::Deserialize,
+)]
 #[repr(u8)]
 pub enum OtaFlashState {
     #[default]
@@ -366,9 +381,12 @@ pub(crate) async fn ota_status_handler(
         }
     };
 
-    let json = state.ota_clients.lock().get(&addr).map(|inst| {
-        inst.status_recv.borrow().clone()
-    }).unwrap_or_default();
+    let json = state
+        .ota_clients
+        .lock()
+        .get(&addr)
+        .map(|inst| inst.status_recv.borrow().clone())
+        .unwrap_or_default();
 
     let mut response = (StatusCode::OK, axum::Json(json)).into_response();
     response

@@ -9,14 +9,11 @@
 //!
 //! Sessions can be opened from this bus
 //!
-use std::{
-    sync::Arc,
-    time::{Duration, SystemTime},
-};
+use std::{sync::Arc, time::Duration};
 
 use parking_lot::Mutex;
 use socketcan::{
-    Frame, Socket as _, SocketOptions,
+    Frame, SocketOptions,
     id::{FdFlags, id_to_canid_t},
 };
 
@@ -24,7 +21,8 @@ use crate::{
     MessageIdBuilder, ReduxFIFOMessage, ReduxFIFOSessionConfig, WriteBuffer,
     backends::{Backend, BackendOpen, SessionTable},
     error::Error,
-    log_debug, log_error, log_trace, timebase,
+    log_debug, log_error, log_trace,
+    timebase::now_us,
 };
 use embedded_can::Frame as _;
 
@@ -95,10 +93,10 @@ impl TryFrom<&ReduxFIFOMessage> for socketcan::CanAnyFrame {
 
 #[derive(Debug)]
 enum CanBus {
-    /// you have NO IDEA how badly i wanted to call this `CanTuah`
-    Can2(socketcan::tokio::CanSocketTimestamp),
-    /// sigh
-    CanFd(socketcan::tokio::CanFdSocketTimestamp),
+    /// CAN 2.0b-configured socket
+    Can2(socketcan::tokio::CanSocket),
+    /// CAN FD-configured socket
+    CanFd(socketcan::tokio::CanFdSocket),
 }
 
 impl CanBus {
@@ -113,19 +111,11 @@ impl CanBus {
         })?;
 
         if fd {
-            let bus = socketcan::tokio::CanFdSocketTimestamp::open_with_timestamping_mode(
-                &addr,
-                socketcan::socket::TimestampingMode::Hardware,
-            )
-            .map_err(open_fail)?;
-            let _ = bus.set_loopback(false);
+            let bus = socketcan::tokio::CanFdSocket::open_addr(&addr).map_err(open_fail)?;
+            bus.set_loopback(false).map_err(open_fail)?;
             Ok(Self::CanFd(bus))
         } else {
-            let bus = socketcan::tokio::CanSocketTimestamp::open_with_timestamping_mode(
-                &addr,
-                socketcan::socket::TimestampingMode::Hardware,
-            )
-            .map_err(open_fail)?;
+            let bus = socketcan::tokio::CanSocket::open_addr(&addr).map_err(open_fail)?;
             let _ = bus.set_loopback(false);
             Ok(Self::Can2(bus))
         }
@@ -138,18 +128,13 @@ impl CanBus {
         }
     }
 
-    async fn read_frame(
-        &self,
-    ) -> Result<(socketcan::frame::CanAnyFrame, Option<SystemTime>), std::io::Error> {
+    async fn read_frame(&self) -> Result<(socketcan::frame::CanAnyFrame, i64), std::io::Error> {
         match self {
             CanBus::Can2(sock) => sock
                 .read_frame()
                 .await
-                .map(|(frame, ts)| (frame.into(), ts)),
-            CanBus::CanFd(sock) => sock
-                .read_frame()
-                .await
-                .map(|(frame, ts)| (frame.into(), ts)),
+                .map(|frame| (frame.into(), now_us())),
+            CanBus::CanFd(sock) => sock.read_frame().await.map(|frame| (frame, now_us())),
         }
     }
 
@@ -176,14 +161,7 @@ impl CanBus {
         let mut data = [0u8; 64];
         let frame_data = frame.data();
         data[..frame_data.len()].copy_from_slice(frame_data);
-        let timestamp = match ts {
-            Some(s) => timebase::retimestamp_from_monotonic(
-                s.duration_since(std::time::SystemTime::UNIX_EPOCH)
-                    .unwrap()
-                    .as_micros() as i64,
-            ),
-            None => timebase::now_us() as u64,
-        };
+        let timestamp = ts as u64;
 
         let mut flags = 0;
         if self.is_fd() {
@@ -212,18 +190,14 @@ impl CanBus {
     }
 
     pub fn write(&self, frame: &ReduxFIFOMessage) -> Result<(), Error> {
-        let result = match self {
-            Self::Can2(bus) => {
-                let tu_frame: socketcan::CanFrame = frame.try_into()?;
-                bus.inner().write_frame(&tu_frame)
-            }
+        match self {
+            Self::Can2(bus) => bus.try_write_frame(frame.try_into()?),
             Self::CanFd(bus) => {
                 let fd_frame: socketcan::CanAnyFrame = frame.try_into()?;
-                bus.inner().write_frame(&fd_frame)
+                bus.try_write_frame(&fd_frame)
             }
-        };
-
-        result.map_err(|e| {
+        }
+        .map_err(|e| {
             if e.raw_os_error() == Some(105) || e.kind() == std::io::ErrorKind::WouldBlock {
                 // 105 => "No buffer space available"
                 Error::BusBufferFull

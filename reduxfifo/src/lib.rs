@@ -13,7 +13,7 @@ mod ffi;
 /// Native-acceleration for specific vendordep-facing tasks
 pub mod subsystems;
 
-#[cfg(feature = "legacy-driver")]
+#[cfg(feature = "reduxcore")]
 pub mod legacy;
 
 mod log;

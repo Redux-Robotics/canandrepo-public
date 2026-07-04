@@ -33,20 +33,18 @@ lto = "fat"
 lto = "fat"
 
 [features]
-default = ["athena"]
-wpihal-rio = ["fifocore/wpihal-rio"]
-wpihal-mrc = ["fifocore/wpihal-mrc"]
-
+default = ["reduxcore"]
 singleton = []
+
 jni = ["dep:jni"]
 ffi = ["singleton"]
-legacy-driver = ["dep:jni", "singleton", "ffi"]
+reduxcore = ["dep:jni", "singleton", "ffi"]
 tokio-console = ["dep:console-subscriber"]
 
 # prebaked feature sets for target platforms
-athena = ["legacy-driver", "fifocore/athena"]
-systemcore = ["legacy-driver", "fifocore/systemcore"]
-systemcore-sim = ["legacy-driver", "fifocore/systemcore-sim"]
+# enables systemcore-specific behavior
+systemcore = ["reduxcore", "fifocore/systemcore"]
+simulation = ["reduxcore"]
 
 [dependencies]
 fifocore = { path = "fifocore" }

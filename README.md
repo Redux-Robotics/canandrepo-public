@@ -44,7 +44,7 @@ First build reduxfifo
 
 ```shell
 $ cd reduxfifo
-$ cargo xtask --all headers linuxathena auto
+$ cargo xtask --all headers linuxsystemcore auto
 ```
 
 Then build ReduxLib and create a JSON that adds the build directories as Maven repos
