@@ -1,8 +1,8 @@
 [workspace]
-members = ["canandmiddleware", "fifocore", "reduxfifo-standalone", "reduxfifo-util", "xtask"]
+members = ["canandmiddleware", "fifocore", "reduxfifo-standalone", "reduxfifo-util"]
 
 [workspace.package]
-version = "2026.1.2"
+version = "2027.0.0-alpha-6"
 license = "LGPL-3.0-only"
 authors = ["Bagholders of Redux Robotics"]
 edition = "2024"

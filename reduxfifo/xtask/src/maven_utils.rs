@@ -1,10 +1,10 @@
+use anyhow::anyhow;
 use sha1::Digest;
 use std::{
     ffi::OsString,
     io::Write,
     path::{Path, PathBuf},
     process::Command,
-    sync::LazyLock,
 };
 
 use zip::write::SimpleFileOptions;
@@ -13,80 +13,51 @@ fn zip_options() -> SimpleFileOptions {
     SimpleFileOptions::default()
 }
 
-fn project_root() -> PathBuf {
-    Path::new(&env!("CARGO_MANIFEST_DIR"))
-        .ancestors()
-        .nth(1)
-        .unwrap()
-        .to_path_buf()
-}
-fn target_dir() -> PathBuf {
-    project_root().join("target")
-}
-
-static CARGO_TOML_INFO: LazyLock<cargo_toml::Manifest> = LazyLock::new(|| {
-    let cargo_toml_data = std::fs::read(project_root().join("Cargo.toml"))
-        .expect("Could not open ReduxFIFO Cargo.toml");
-    cargo_toml::Manifest::from_slice(cargo_toml_data.as_slice())
-        .expect("Could not parse ReduxFIFO Cargo.toml")
-});
-
-pub fn version() -> String {
-    CARGO_TOML_INFO
-        .workspace
-        .clone()
-        .unwrap()
-        .package
-        .unwrap()
-        .version
-        .unwrap()
+#[derive(Debug)]
+pub struct ReduxFIFOCrate {
+    /// workspace root
+    pub workspace_root: PathBuf,
+    /// target directory
+    pub target_dir: PathBuf,
+    /// Cargo.toml manifest
+    pub manifest: cargo_toml::Manifest,
+    /// crate version
+    pub version: semver::Version,
+    /// derive the year to get the version of the wpilib toolchain to use.
+    pub year: u64,
 }
 
-/// derive the year to get the version of the wpilib toolchain to use.
-pub fn year() -> u64 {
-    let version = semver::Version::parse(&version())
-        .expect("ReduxFIFO Cargo.toml is not in 'year-semver' format");
-    version.major
+impl ReduxFIFOCrate {
+    pub fn new(workspace_root: &Path) -> anyhow::Result<Self> {
+        let workspace_root = workspace_root.to_path_buf();
+        let manifest = cargo_toml::Manifest::from_path(workspace_root.join("Cargo.toml"))?;
+        let version = manifest
+            .workspace
+            .as_ref()
+            .ok_or(anyhow!("ReduxFIFO Cargo.toml isn't a workspace"))?
+            .package
+            .as_ref()
+            .ok_or(anyhow!("ReduxFIFO Cargo.toml lacks top-level package"))?
+            .version
+            .clone()
+            .ok_or(anyhow!(
+                "ReduxFIFO Cargo.toml is not in 'year-semver' format"
+            ))?;
+        let year = version.major;
+        let target_dir = workspace_root.join("target");
+
+        Ok(Self {
+            workspace_root,
+            target_dir,
+            manifest,
+            version,
+            year,
+        })
+    }
 }
 
 /// systemcore has a hardcoded year.
-pub const SYSTEMCORE_YEAR: &str = "2027_alpha1";
-
-pub fn locate_roborio_toolchain() -> Option<PathBuf> {
-    let toolchain_name = format!("arm-frc{}-linux-gnueabi-gcc", 2025);
-    if let Ok(w) = which::which(&toolchain_name) {
-        // sometimes the roborio toolchain is already in PATH (e.g. in buildserver containers)
-        return Some(w.parent().unwrap().into());
-    }
-
-    #[cfg(unix)]
-    let search_path = &[
-        // All unicies have their wpilib install in the home directory.
-        homedir::my_home()
-            .ok()??
-            .join(format!("wpilib/{}/roborio/bin", year())),
-        // the roborio-cross container
-        PathBuf::from("/usr/local/bin"),
-    ];
-
-    #[cfg(windows)]
-    let search_path = &[
-        // windows typically puts the roborio toolchain in C:\Users\Public for whatever reason
-        PathBuf::from(std::env::var("PUBLIC").unwrap_or("C:\\Users\\Public".into()))
-            .join(format!("wpilib\\{}\\roborio\\bin", year())),
-        homedir::my_home()
-            .ok()??
-            .join(format!("wpilib\\{}\\roborio\\bin", year())),
-    ];
-
-    for candidate in search_path {
-        let gcc = candidate.join(&toolchain_name);
-        if gcc.exists() && gcc.is_file() {
-            return Some(candidate.clone());
-        }
-    }
-    None
-}
+pub const SYSTEMCORE_YEAR: &str = "2027_alpha5";
 
 pub fn locate_systemcore_toolchain() -> Option<PathBuf> {
     if let Ok(w) = which::which("aarch64-bookworm-linux-gnu-gcc") {
@@ -97,21 +68,22 @@ pub fn locate_systemcore_toolchain() -> Option<PathBuf> {
     #[cfg(unix)]
     let search_path = &[
         // All unicies have their wpilib install in the home directory.
+        // For now.
         homedir::my_home()
             .ok()??
             .join(format!("wpilib/{}/systemcore/bin", SYSTEMCORE_YEAR)),
-        // the roborio-cross container
+        // the cross-compiler container
         PathBuf::from("/usr/local/bin"),
     ];
 
     #[cfg(windows)]
     let search_path = &[
-        // windows typically puts the roborio toolchain in C:\Users\Public for whatever reason
+        // windows typically puts the toolchain in C:\Users\Public for whatever reason
         PathBuf::from(std::env::var("PUBLIC").unwrap_or("C:\\Users\\Public".into()))
             .join(format!("wpilib\\{}\\systemcore\\bin", SYSTEMCORE_YEAR)),
         homedir::my_home()
             .ok()??
-            .join(format!("wpilib\\{}\\roborio\\bin", SYSTEMCORE_YEAR)),
+            .join(format!("wpilib\\{}\\systemcore\\bin", SYSTEMCORE_YEAR)),
     ];
 
     for candidate in search_path {
@@ -125,7 +97,6 @@ pub fn locate_systemcore_toolchain() -> Option<PathBuf> {
 
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
 pub enum Target {
-    LinuxAthena,
     LinuxSystemCore,
     WindowsX86_64,
     WindowsArm64,
@@ -199,7 +170,6 @@ impl OperatingSystem {
 
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
 pub enum Architecture {
-    Athena,
     SystemCore,
     X86_64,
     Arm64,
@@ -209,7 +179,6 @@ pub enum Architecture {
 impl Architecture {
     pub const fn name(&self) -> &'static str {
         match self {
-            Architecture::Athena => "athena",
             Architecture::SystemCore => "systemcore",
             Architecture::X86_64 => "x86-64",
             Architecture::Arm64 => "arm64",
@@ -233,11 +202,6 @@ impl Target {
     /// information about the target.
     pub const fn info(&self) -> TargetInfo {
         match self {
-            Target::LinuxAthena => TargetInfo {
-                triple: "arm-unknown-linux-gnueabi",
-                os: OperatingSystem::Linux,
-                arch: Architecture::Athena,
-            },
             Target::LinuxSystemCore => TargetInfo {
                 triple: "aarch64-unknown-linux-gnu",
                 os: OperatingSystem::Linux,
@@ -283,33 +247,22 @@ impl Target {
 
     pub fn build(
         &self,
+        crate_info: &ReduxFIFOCrate,
         build_config: &BuildConfig,
         cargo_flags: &Vec<String>,
     ) -> anyhow::Result<()> {
-        let cargo_toml_data = std::fs::read(project_root().join("Cargo.toml"))?;
-        let manifest = cargo_toml::Manifest::from_slice(cargo_toml_data.as_slice())?;
-        let lib_name = manifest.lib.unwrap().name.unwrap();
+        let lib_name = crate_info.manifest.clone().lib.unwrap().name.unwrap();
+        let dir = crate_info.workspace_root.as_path();
         let release = !build_config.is_debug();
 
         match self {
-            Target::LinuxAthena => {
-                let roborio_toolchain = locate_roborio_toolchain().expect(&format!(
-                    "Could not find roboRIO toolchain, is wpilib {} installed?",
-                    year()
-                ));
-                cargo_build(
-                    &self.info().triple,
-                    release,
-                    &[roborio_toolchain.to_str().unwrap()],
-                    cargo_flags,
-                )?;
-            }
             Target::LinuxSystemCore => {
                 let systemcore_toolchain = locate_systemcore_toolchain().expect(&format!(
                     "Could not find SystemCore toolchain, is wpilib {} installed?",
                     SYSTEMCORE_YEAR
                 ));
                 cargo_build(
+                    dir,
                     &self.info().triple,
                     release,
                     &[systemcore_toolchain.to_str().unwrap()],
@@ -318,8 +271,8 @@ impl Target {
             }
             Target::OsxUniversal => {
                 // osxuniversal needs to build twice and then lipo all the artifacts together
-                cargo_build("aarch64-apple-darwin", release, &[], cargo_flags)?;
-                cargo_build("x86_64-apple-darwin", release, &[], cargo_flags)?;
+                cargo_build(dir, "aarch64-apple-darwin", release, &[], cargo_flags)?;
+                cargo_build(dir, "x86_64-apple-darwin", release, &[], cargo_flags)?;
 
                 let (debug_release, static_shared) = match build_config {
                     BuildConfig::Shared => ("release", "dylib"),
@@ -329,13 +282,18 @@ impl Target {
                 };
 
                 std::fs::create_dir_all(
-                    target_dir().join(format!("universal-apple-darwin/{debug_release}")),
+                    crate_info
+                        .target_dir
+                        .join(format!("universal-apple-darwin/{debug_release}")),
                 )
                 .ok();
-                lipo(format!("{debug_release}/lib{lib_name}.{static_shared}").as_str())?;
+                lipo(
+                    dir,
+                    format!("{debug_release}/lib{lib_name}.{static_shared}").as_str(),
+                )?;
             }
             _other => {
-                cargo_build(&self.info().triple, release, &[], cargo_flags)?;
+                cargo_build(dir, &self.info().triple, release, &[], cargo_flags)?;
             }
         }
 
@@ -377,9 +335,9 @@ impl BuildConfig {
     }
 }
 
-fn lipo(artifact_path: &str) -> anyhow::Result<()> {
+fn lipo(dir: &Path, artifact_path: &str) -> anyhow::Result<()> {
     Command::new("lipo")
-        .current_dir(project_root())
+        .current_dir(dir)
         .arg("-create")
         .arg("-output")
         .arg(format!("target/universal-apple-darwin/{artifact_path}"))
@@ -402,6 +360,7 @@ fn append_to_path_variable(path: &str, entry: &str) -> String {
 }
 
 fn cargo_build(
+    dir: &Path,
     triple: &str,
     release: bool,
     path_env: &[&str],
@@ -409,7 +368,7 @@ fn cargo_build(
 ) -> anyhow::Result<()> {
     let cargo = std::env::var_os("CARGO").unwrap_or_else(|| "cargo".into());
     let mut cargo = Command::new(cargo);
-    cargo.current_dir(project_root());
+    cargo.current_dir(dir);
     cargo.arg("build");
     if release {
         cargo.arg("--release");
@@ -425,6 +384,16 @@ fn cargo_build(
     cargo.status()?;
 
     Ok(())
+}
+
+struct LowerHexAdapter<T>(T);
+impl<T: AsRef<[u8]>> core::fmt::Display for LowerHexAdapter<T> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        for b in self.0.as_ref() {
+            write!(f, "{b:02x}")?;
+        }
+        Ok(())
+    }
 }
 
 pub fn calc_hashes(file_path: &Path) -> anyhow::Result<()> {
@@ -443,19 +412,19 @@ pub fn calc_hashes(file_path: &Path) -> anyhow::Result<()> {
     h.update(&data);
     std::fs::write(
         file_path.with_extension(format!("{ext}.sha1")),
-        format!("{:x}", h.finalize()),
+        LowerHexAdapter(h.finalize()).to_string(),
     )?;
     let mut h = sha2::Sha256::new();
     h.update(&data);
     std::fs::write(
         file_path.with_extension(format!("{ext}.sha256")),
-        format!("{:x}", h.finalize()),
+        LowerHexAdapter(h.finalize()).to_string(),
     )?;
     let mut h = sha2::Sha512::new();
     h.update(&data);
     std::fs::write(
         file_path.with_extension(format!("{ext}.sha512")),
-        format!("{:x}", h.finalize()),
+        LowerHexAdapter(h.finalize()).to_string(),
     )?;
 
     Ok(())
@@ -466,6 +435,7 @@ const PATH_SEP: &str = "/";
 const PATH_SEP: &str = "\\";
 
 pub fn build_maven(
+    crate_info: &ReduxFIFOCrate,
     target: Target,
     group_id: &str,
     artifact_id: &str,
@@ -473,21 +443,22 @@ pub fn build_maven(
     cargo_flags: &Vec<String>,
 ) -> anyhow::Result<()> {
     eprintln!("Building target {target:?} with {build_configs:?}");
-    let version = version();
+    let version = crate_info.version.to_string();
     let group_id_as_path = PathBuf::from(OsString::from(group_id.replace(".", PATH_SEP)));
-    let lib_name = CARGO_TOML_INFO.clone().lib.unwrap().name.unwrap();
+    let lib_name = crate_info.manifest.clone().lib.unwrap().name.unwrap();
     let target_info = target.info();
 
-    let maven = target_dir()
+    let maven = crate_info
+        .target_dir
         .join("maven")
         .join(group_id_as_path)
         .join(artifact_id)
-        .join(&version);
+        .join(&crate_info.version.to_string());
     eprintln!("Creating maven target {maven:?}");
 
     std::fs::create_dir_all(&maven).ok();
     for build_config in build_configs {
-        target.build(build_config, cargo_flags)?;
+        target.build(crate_info, build_config, cargo_flags)?;
         let zipfname = maven.join(format!(
             "{artifact_id}-{version}-{}{}{}.zip",
             target_info.os.name(),
@@ -500,7 +471,7 @@ pub fn build_maven(
         let mut zip = zip::ZipWriter::new(zipf);
 
         zip.start_file("LICENSE.txt", zip_options())?;
-        zip.write_all(std::fs::read(project_root().join("LICENSE.txt"))?.as_slice())?;
+        zip.write_all(std::fs::read(crate_info.workspace_root.join("LICENSE.txt"))?.as_slice())?;
 
         // create the os/arch/linkage/ directory
         zip.add_directory(target_info.os.name(), zip_options())?;
@@ -526,13 +497,15 @@ pub fn build_maven(
         } else {
             target_info.os.shared_artifacts()
         };
-        let build_dir = target_dir()
-            .join(target_info.triple)
-            .join(if build_config.is_debug() {
-                "debug"
-            } else {
-                "release"
-            });
+        let build_dir =
+            crate_info
+                .target_dir
+                .join(target_info.triple)
+                .join(if build_config.is_debug() {
+                    "debug"
+                } else {
+                    "release"
+                });
         // write the artifact to the zip
         for artifact_bin in artifacts {
             let artifact_name = artifact_bin.source_name(lib_name.as_str());
@@ -548,25 +521,27 @@ pub fn build_maven(
 }
 
 pub fn build_maven_zip(
+    crate_info: &ReduxFIFOCrate,
     root_path: &Path,
     group_id: &str,
     artifact_id: &str,
     artifact_name: &str,
 ) -> anyhow::Result<()> {
-    let version = version();
+    let version = crate_info.version.to_string();
     let group_id_as_path = PathBuf::from(OsString::from(group_id.replace(".", PATH_SEP)));
 
-    let maven = target_dir()
+    let maven = crate_info
+        .target_dir
         .join("maven")
         .join(group_id_as_path)
         .join(artifact_id)
-        .join(&version);
+        .join(&version.to_string());
     std::fs::create_dir_all(&maven).ok();
     let zipfname = &maven.join(format!("{artifact_id}-{version}-{artifact_name}.zip"));
     let zipf = std::fs::File::create(zipfname)?;
     let mut zip = zip::ZipWriter::new(zipf);
     zip.start_file("LICENSE.txt", zip_options())?;
-    zip.write_all(std::fs::read(project_root().join("LICENSE.txt"))?.as_slice())?;
+    zip.write_all(std::fs::read(crate_info.workspace_root.join("LICENSE.txt"))?.as_slice())?;
 
     for entry in walkdir::WalkDir::new(root_path).into_iter() {
         let ent = entry?;
@@ -589,12 +564,17 @@ pub fn build_maven_zip(
     Ok(())
 }
 
-pub fn build_maven_metadata(group_id: &str, artifact_id: &str) -> anyhow::Result<()> {
+pub fn build_maven_metadata(
+    crate_info: &ReduxFIFOCrate,
+    group_id: &str,
+    artifact_id: &str,
+) -> anyhow::Result<()> {
     eprintln!("Building maven-metadata.xml file");
-    let version = version();
+    let version = crate_info.version.to_string();
     let group_id_as_path = PathBuf::from(OsString::from(group_id.replace(".", PATH_SEP)));
 
-    let maven = target_dir()
+    let maven = crate_info
+        .target_dir
         .join("maven")
         .join(group_id_as_path)
         .join(artifact_id);
@@ -623,16 +603,21 @@ pub fn build_maven_metadata(group_id: &str, artifact_id: &str) -> anyhow::Result
     Ok(())
 }
 
-pub fn build_maven_pom(group_id: &str, artifact_id: &str) -> anyhow::Result<()> {
+pub fn build_maven_pom(
+    crate_info: &ReduxFIFOCrate,
+    group_id: &str,
+    artifact_id: &str,
+) -> anyhow::Result<()> {
     eprintln!("Building POM file");
-    let version = version();
+    let version = crate_info.version.clone();
     let group_id_as_path = PathBuf::from(OsString::from(group_id.replace(".", "/")));
 
-    let maven = target_dir()
+    let maven = crate_info
+        .target_dir
         .join("maven")
         .join(group_id_as_path)
         .join(artifact_id)
-        .join(&version);
+        .join(&version.to_string());
     std::fs::create_dir_all(&maven).ok();
 
     let maven_pom_data = format!("<?xml version=\"1.0\" encoding=\"UTF-8\"?>

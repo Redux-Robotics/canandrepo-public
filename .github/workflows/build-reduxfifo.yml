@@ -17,17 +17,17 @@ jobs:
       matrix:
         include:
           - artifact-name: Systemcore
-            container: wpilib/systemcore-cross-ubuntu:2027-24.04
+            container: wpilib/systemcore-cross-debian:trixie
             build-options: "headers linuxsystemcore"
             reduxfifo-features: "systemcore"
             reduxlib-options: "-Ponlylinuxsystemcore"
           - artifact-name: LinuxArm64
-            container: wpilib/aarch64-cross-ubuntu:bookworm-24.04
+            container: wpilib/aarch64-cross-debian:trixie
             build-options: "headers linuxarm64"
             reduxfifo-features: "simulation"
             reduxlib-options: "-Ponlylinuxarm64"
           - artifact-name: LinuxX86-64
-            container: wpilib/ubuntu-base:24.04
+            container: wpilib/systemcore-cross-debian:trixie
             build-options: "headers linuxx86-64"
             reduxfifo-features: "simulation"
             reduxlib-options: "-Pskiplinuxsystemcore"
@@ -38,7 +38,7 @@ jobs:
     steps:
       - name: Install build dependencies
         run: apt-get update && apt-get install -y build-essential libclang-dev
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           submodules: true
           fetch-depth: 0
@@ -48,7 +48,7 @@ jobs:
       - uses: actions-rust-lang/setup-rust-toolchain@v1
         with:
           rustflags: "" # just put the artifacts in the bag
-          cache-workspaces: "crates -> crates/target\nreduxfifo -> reduxfifo/target"
+          cache-workspaces: "crates -> crates/target\nreduxfifo -> reduxfifo/target\nreduxfifo/xtask -> reduxfifo/xtask/target"
       - name: Build maven artifact
         run: echo "$PATH" && cd reduxfifo && cargo xtask --all ${{ matrix.build-options }} -- --no-default-features --features ${{ matrix.reduxfifo-features }}
       - name: Build with Gradle
@@ -77,7 +77,7 @@ jobs:
             architecture: x64
             build-options: "windowsx86-64"
             reduxfifo-features: "simulation"
-          - os: macos-14
+          - os: macos-15
             artifact-name: macOS
             architecture: aarch64
             build-options: "osxuniversal"
@@ -88,7 +88,7 @@ jobs:
       - if: runner.os == 'Windows'
         name: Workaround Windows being a bad operating system
         run: git config --system core.longpaths true
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           submodules: true
           fetch-depth: 0
@@ -99,8 +99,8 @@ jobs:
       - uses: actions-rust-lang/setup-rust-toolchain@v1
         with:
           rustflags: ""
-          cache-workspaces: "crates -> crates/target\nreduxfifo -> reduxfifo/target"
-      - uses: actions/setup-java@v4
+          cache-workspaces: "crates -> crates/target\nreduxfifo -> reduxfifo/target\nreduxfifo/xtask -> reduxfifo/xtask/target"
+      - uses: actions/setup-java@v5
         with:
           distribution: 'temurin'
           java-version: 25
@@ -108,14 +108,14 @@ jobs:
       - name: Build ReduxFIFO
         run: cargo xtask --all headers ${{ matrix.build-options }} -- --no-default-features --features ${{ matrix.reduxfifo-features }}
         working-directory: reduxfifo
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: ReduxFIFO-${{ matrix.artifact-name }}
           path: reduxfifo/target/maven
       - name: Build ReduxLib with Gradle
-        run: ./gradlew publish -PreleaseMode -Pskiplinusystemcore
+        run: ./gradlew publish -PreleaseMode -Pbuildalldesktop
         working-directory: ReduxLib
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: ReduxLib-${{matrix.artifact-name}}
           path: ReduxLib/build/repos/releases
@@ -125,13 +125,13 @@ jobs:
     needs: [build-vendordep-linux, build-vendordep-host]
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           submodules: true
           fetch-depth: 0
       - run: echo "REDUXLIB_VERSION=$(cat ReduxLib/version.txt)" >> "${GITHUB_OUTPUT}"
         id: reduxlib-version
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v8
         with:
           path: artifacts
       - name: Flatten Artifacts
@@ -139,7 +139,7 @@ jobs:
       - name: Generate vdep json
         run: (python3 mkvdepjson.py || true) && cp build/allOutputs/* ../final/vendordeps
         working-directory: ReduxLib
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: ReduxLib-offline-v${{ steps.reduxlib-version.outputs.REDUXLIB_VERSION }}-${{github.sha}}
           path: final
