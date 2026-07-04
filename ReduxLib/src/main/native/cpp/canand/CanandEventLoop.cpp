@@ -19,17 +19,6 @@
 #include "fmt/format.h"
 #include <atomic>
 
-/** Supported driver year */
-constexpr int DRIVER_YEAR = 2026;
-
-/** Supported driver major version */
-constexpr int DRIVER_MAJOR_VERSION = 1;
-
-/** Supported driver minor version */
-constexpr int DRIVER_MINOR_VERSION = 2;
-
-constexpr int DRIVER_NUMER = (DRIVER_YEAR << 16) | (DRIVER_MAJOR_VERSION << 8) | (DRIVER_MINOR_VERSION);
-
 static std::thread run_thread;
 static bool running = false;
 static std::mutex thread_lock;
@@ -162,18 +151,6 @@ static void CanandEventLoop_shutdownHook() {
 static void CanandEventLoop_ensureRunning() {
     // not thread safe. assumes you're holding thread_lock.
     if (!running) {
-        int ver = ReduxCore_GetVersion();
-        int yearVer = ((ver >> 16) & 0xffff);
-        int majorVer = ((ver >> 8) & 0xff);
-        int minorVer = (ver & 0xff);
-        if (ver != DRIVER_NUMER) {
-            FRC_ReportError(frc::err::Error, "Fatal Error: ReduxCore version v{}.{}.{} does not match vendordep version v{}.{}.{}",
-                yearVer, majorVer, minorVer,
-                DRIVER_YEAR, DRIVER_MAJOR_VERSION, DRIVER_MINOR_VERSION
-            );
-            std::exit(1);
-        }
-
         ReduxCore_InitServer();
         running = true;
         run_thread = std::thread(std::bind(&::CanandEventLoop::run, &event_loop));
