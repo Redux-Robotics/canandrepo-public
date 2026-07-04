@@ -3,7 +3,7 @@ cargo-features = ["per-package-target"]
 [workspace]
 resolver = "2"
 members = ["./*"]
-exclude = ["target", "socketcan"]
+exclude = ["target"]
 
 [workspace.package]
 authors = ["Bagholders of Redux Robotics"]
