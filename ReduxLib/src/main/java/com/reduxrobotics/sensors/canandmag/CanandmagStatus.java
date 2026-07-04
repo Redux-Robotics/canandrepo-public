@@ -5,7 +5,7 @@ package com.reduxrobotics.sensors.canandmag;
 
 import com.reduxrobotics.sensors.canandmag.wpistruct.CanandmagStatusStruct;
 
-import edu.wpi.first.util.struct.StructSerializable;
+import org.wpilib.util.struct.StructSerializable;
 
 /**
  * Container record class representing a {@link Canandmag}'s status.

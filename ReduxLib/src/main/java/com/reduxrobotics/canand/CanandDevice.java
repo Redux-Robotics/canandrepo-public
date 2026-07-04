@@ -3,7 +3,7 @@
 
 package com.reduxrobotics.canand;
 
-import edu.wpi.first.wpilibj.DriverStation;
+import org.wpilib.driverstation.DriverStation;
 
 /**
  * Base class for Redux CAN devices. 

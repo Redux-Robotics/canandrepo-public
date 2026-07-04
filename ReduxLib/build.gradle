@@ -1,14 +1,18 @@
+import org.wpilib.toolchain.*
+
 plugins {
   id 'cpp'
   id 'java'
   // id 'google-test'
-  id 'edu.wpi.first.wpilib.repositories.WPILibRepositoriesPlugin' version '2025.0'
-  id 'edu.wpi.first.NativeUtils' version '2026.0.1'
-  id 'edu.wpi.first.GradleJni' version '1.1.0'
-  id 'edu.wpi.first.GradleVsCode' version '2.1.0'
+  id 'org.wpilib.WPILibRepositoriesPlugin' version '2027.0.0'
+  id 'org.wpilib.NativeUtils' version '2027.10.0'
+  id 'org.wpilib.GradleJni' version '2027.0.0'
+  id 'org.wpilib.GradleVsCode' version '2027.0.0'
   id "org.ysb33r.doxygen" version "0.7.0"
 }
-import org.gradle.internal.os.OperatingSystem
+
+// WPILib Version
+ext.wpilibVersion = "2027.0.0-alpha-6"
 
 repositories {
   mavenCentral()
@@ -19,40 +23,116 @@ repositories {
     url = uri("../reduxfifo/target/maven")
   }
 }
+
+wpilibRepositories.use2027Repos()
 if (project.hasProperty('releaseMode')) {
   wpilibRepositories.addAllReleaseRepositories(project)
 } else {
   wpilibRepositories.addAllDevelopmentRepositories(project)
 }
 
-// WPILib Version
-ext.wpilibVersion = "2026.+"
+java {
+  sourceCompatibility = JavaVersion.VERSION_25
+  targetCompatibility = JavaVersion.VERSION_25
+}
+var javaVersion = "25"
+
+def pubVersion = project.file("version.txt").text.trim()
 
 // Apply C++ configuration
 apply from: 'config.gradle'
 
 // Apply Java configuration
 dependencies {
-    implementation "edu.wpi.first.cscore:cscore-java:$wpilibVersion"
-    implementation "edu.wpi.first.cameraserver:cameraserver-java:$wpilibVersion"
-    implementation "edu.wpi.first.ntcore:ntcore-java:$wpilibVersion"
-    implementation "edu.wpi.first.wpilibj:wpilibj-java:$wpilibVersion"
-    implementation "edu.wpi.first.wpiutil:wpiutil-java:$wpilibVersion"
-    implementation "edu.wpi.first.wpimath:wpimath-java:$wpilibVersion"
-    implementation "edu.wpi.first.wpiunits:wpiunits-java:$wpilibVersion"
-    implementation "edu.wpi.first.hal:hal-java:$wpilibVersion"
+    annotationProcessor "io.avaje:avaje-jsonb-generator:3.11"
+    implementation "io.avaje:avaje-jsonb:3.11"
+    implementation "org.wpilib.cscore:cscore-java:$wpilibVersion"
+    implementation "org.wpilib.cameraserver:cameraserver-java:$wpilibVersion"
+    implementation "org.wpilib.ntcore:ntcore-java:$wpilibVersion"
+    implementation "org.wpilib.wpilibj:wpilibj-java:$wpilibVersion"
+    implementation "org.wpilib.wpiutil:wpiutil-java:$wpilibVersion"
+    implementation "org.wpilib.wpimath:wpimath-java:$wpilibVersion"
+    implementation "org.wpilib.wpiunits:wpiunits-java:$wpilibVersion"
+    implementation "org.wpilib.datalog:datalog-java:$wpilibVersion"
+    implementation "org.wpilib.hal:hal-java:$wpilibVersion"
     implementation "org.ejml:ejml-simple:0.44.0"
-    implementation "com.fasterxml.jackson.core:jackson-annotations:2.19.2"
-    implementation "com.fasterxml.jackson.core:jackson-core:2.19.2"
-    implementation "com.fasterxml.jackson.core:jackson-databind:2.19.2"
-    implementation 'edu.wpi.first.thirdparty.frc2025.opencv:opencv-java:4.10.0-2'
+    implementation 'org.wpilib.thirdparty.opencv:opencv-java:2027-4.13.0-3'
+
+    testImplementation 'org.junit.jupiter:junit-jupiter:5.10.1'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+    testRuntimeOnly 'us.hebi.quickbuf:quickbuf-runtime:1.4'
 }
+
+// Set up java tests
+//test {
+//    useJUnitPlatform()
+//    systemProperty 'junit.jupiter.extensions.autodetection.enabled', 'true'
+//    testLogging {
+//        events "failed"
+//        exceptionFormat = "full"
+//    }
+//}
+//
+//if (project.hasProperty('onlylinuxarm64') || project.hasProperty('onlywindowsarm64') || project.hasProperty('onlylinuxsystemcore')) {
+//    test.enabled = false
+//}
 
 tasks.withType(JavaCompile) {
     // workaround for https://bugs.java.com/bugdatabase/view_bug.do?bug_id=JDK-8278540
     options.compilerArgs.add '-XDstringConcat=inline'
     //options.compilerArgs.add '--enable-preview'
     options.encoding = 'UTF-8'
+}
+
+// javadoc config
+// this is a javascript file whose entire job is to locate the root javadoc directory and then load highlight.js
+// it _would_ be more performant to scan over every html in doLast and inject the scripts that way but like...ugh.
+// the reason why we don't load hljs from a CDN is because these javadocs are expected to also function offline.
+
+javadoc {
+    def hljsBootstrapFile = file("docs/hljs_bootstrap.js")
+    inputs.file(hljsBootstrapFile)
+
+    def hljsStylesheet = file("docs/hljs.gh.css")
+    inputs.file(hljsStylesheet)
+
+    // Anything in this dir will get plopped into the output root
+    def resources = fileTree("docs/javadoc-resources")
+    inputs.files(resources)
+
+    options {
+        // Enable preview features
+        options.addBooleanOption("-enable-preview", true)
+        //options.addStringOption("-release", '25')
+        // Enable UTF-8 support
+        options.addStringOption("charset", "utf-8")
+        options.addStringOption("docencoding", "utf-8")
+        options.addStringOption("encoding", "utf-8")
+        // Syntax highlighting
+        addStringOption("-add-stylesheet", hljsStylesheet.toString())
+        addBooleanOption("-allow-script-in-comments", true)
+        // Setup Javadocs to link back to WPILib docs
+        links "https://docs.oracle.com/en/java/javase/$javaVersion/docs/api/", "https://github.wpilib.org/allwpilib/docs/release/java/"
+    }
+
+    doFirst {
+        // Configure this during task execution since it relies on an input file
+        options {
+            // Windows does not like newlines in the javadoc command
+            def strippedBootstrap = hljsBootstrapFile.text.replaceAll("\n", "").replaceAll("\r", "")
+            if (!OperatingSystem.current().isWindows()) {
+                // Windows command line parsing in general could be broken; just don't do syntax highlighted javadocs
+                // In practice, web-hosted javadocs should be made on Linux anyway
+                addStringOption("header", "<script type=\"text/javascript\">${strippedBootstrap}</script>")
+            }
+        }
+    }
+    doLast {
+        copy {
+            from resources
+            into destinationDir
+        }
+    }
 }
 
 // Set up exports properly
@@ -77,7 +157,7 @@ nativeUtils {
   }
   nativeDependencyContainer {
     ReduxFIFO(getNativeDependencyTypeClass('WPISharedMavenDependency')) {
-      version = "2026.1.1"
+      version = pubVersion
       groupId = "com.reduxrobotics.frc"
       artifactId = "ReduxLib-fifo"
       ext = "zip"
@@ -88,15 +168,18 @@ nativeUtils {
         "windowsarm64",
         "linuxarm64",
         "linuxx86-64",
-        "linuxathena",
+        "linuxsystemcore",
         "osxuniversal"
       ]
     }
   }
 }
-nativeUtils.platformConfigs.named("linuxathena").configure {
-  it.cppCompiler.args.add('-fconcepts-diagnostics-depth=42069')
+
+ext.getCurrentArch = {
+    return NativePlatforms.desktop
 }
+
+def systemArch = getCurrentArch()
 
 // in theory this should check for UB but i don't think it works?
 // gradle moment.
@@ -122,8 +205,7 @@ model {
           }
         }
       }
-
-      nativeUtils.useRequiredLibrary(it, 'wpilib_shared', "ReduxFIFO")
+      nativeUtils.useRequiredLibrary(it, 'wpilib_shared', 'ReduxFIFO')
     }
   }
   // testSuites {
@@ -141,29 +223,11 @@ model {
 
   //       nativeUtils.useRequiredLibrary(it, "wpilib_executable_shared", "googletest_static")
   //   }
-
-  //   ReduxCoreTest {
-  //       sources.cpp {
-  //           source {
-  //               srcDir 'src/test/driver/cpp'
-  //               include '**/*.cpp'
-  //           }
-  //       }
-
-  //       nativeUtils.useRequiredLibrary(it, "wpilib_executable_shared", "googletest_static")
-  //   }
   // }
 }
 
 apply from: 'publish.gradle'
 
 wrapper {
-  gradleVersion = '8.14.3'
-}
-
-task listrepos {
-    doLast {
-        println "Repositories:"
-        project.repositories.each { println "Name: " + it.name + "; url: " + it.url }
-   }
+  gradleVersion = '9.4.1'
 }

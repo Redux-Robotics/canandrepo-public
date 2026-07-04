@@ -5,8 +5,8 @@ package com.reduxrobotics.sensors.canandcolor;
 
 import com.reduxrobotics.sensors.canandcolor.wpistruct.CanandcolorColorDataStruct;
 
-import edu.wpi.first.util.struct.StructSerializable;
-import edu.wpi.first.wpilibj.util.Color;
+import org.wpilib.util.struct.StructSerializable;
+import org.wpilib.wpilibj.util.Color;
 
 /**
  * Record class to hold detected color values.

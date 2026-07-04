@@ -2,7 +2,6 @@
 // This is open source and can be modified and shared under the Mozilla Public License v2.0.
 
 package com.reduxrobotics.sensors.canandmag;
-import java.util.concurrent.atomic.AtomicInteger;
 
 import com.reduxrobotics.canand.*;
 import com.reduxrobotics.frames.ByteArrayFrame;
@@ -10,8 +9,7 @@ import com.reduxrobotics.frames.DoubleFrame;
 import com.reduxrobotics.frames.Frame;
 import com.reduxrobotics.frames.FrameData;
 
-import edu.wpi.first.hal.HAL;
-import edu.wpi.first.hal.FRCNetComm.tResourceType;
+import org.wpilib.hardware.hal.HAL;
 
 /**
  * Class for the CAN interface of the 
@@ -110,7 +108,6 @@ public class Canandmag extends CanandDevice {
 
     /** Conversion factor for number of position packet ticks per rotation. */
     public static final double kCountsPerRotation = 16384;
-    private static AtomicInteger reportingIndex = new AtomicInteger(0);
 
     /**
      * Instantiates a new Canandmag object. 
@@ -121,6 +118,10 @@ public class Canandmag extends CanandDevice {
      */
     public Canandmag(int devID) {
         this(devID, "halcan");
+    }
+
+    public Canandmag(int devID, int busID) {
+        
     }
 
     /**
@@ -134,7 +135,7 @@ public class Canandmag extends CanandDevice {
         // the product ID is 0
         addr = new CanandAddress(bus, 7, devID);
         stg = new CanandSettingsManager<>(this, CanandmagSettings::new);
-        HAL.report(tResourceType.kResourceType_Redux_future1, reportingIndex.incrementAndGet());
+        HAL.reportUsage("ReduxCanandmag", String.format("[%d:%s]", devID, bus));
     }
 
     /**

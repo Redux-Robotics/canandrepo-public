@@ -14,12 +14,12 @@ import com.reduxrobotics.frames.ByteArrayFrame;
 import com.reduxrobotics.frames.DoubleFrame;
 import com.reduxrobotics.frames.Frame;
 
-import edu.wpi.first.hal.HAL;
-import edu.wpi.first.hal.FRCNetComm.tResourceType;
-import edu.wpi.first.math.VecBuilder;
-import edu.wpi.first.math.geometry.Quaternion;
-import edu.wpi.first.math.geometry.Rotation2d;
-import edu.wpi.first.math.geometry.Rotation3d;
+import org.wpilib.hal.HAL;
+import org.wpilib.hal.FRCNetComm.tResourceType;
+import org.wpilib.math.VecBuilder;
+import org.wpilib.math.geometry.Quaternion;
+import org.wpilib.math.geometry.Rotation2d;
+import org.wpilib.math.geometry.Rotation3d;
 
 /**
  * Class for the CAN interface of the 

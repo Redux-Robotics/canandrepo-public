@@ -11,8 +11,8 @@ import com.reduxrobotics.frames.Frame;
 import com.reduxrobotics.frames.FrameData;
 import com.reduxrobotics.frames.LongFrame;
 
-import edu.wpi.first.hal.HAL;
-import edu.wpi.first.hal.FRCNetComm.tResourceType;
+import org.wpilib.hal.HAL;
+import org.wpilib.hal.FRCNetComm.tResourceType;
 
 /**
  * Class for the CAN interface of the 

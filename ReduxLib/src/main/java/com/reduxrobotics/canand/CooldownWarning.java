@@ -3,7 +3,7 @@
 
 package com.reduxrobotics.canand;
 
-import edu.wpi.first.wpilibj.DriverStation;
+import org.wpilib.wpilibj.DriverStation;
 
 /**
  * Class that yells at the user if {@link #feed} is called too often in too short a succession.

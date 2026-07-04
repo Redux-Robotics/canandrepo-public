@@ -7,7 +7,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import edu.wpi.first.wpilibj.DriverStation;
+import org.wpilib.wpilibj.DriverStation;
 
 /**
  * Common logic for settings management for {@link CanandDevice}s.

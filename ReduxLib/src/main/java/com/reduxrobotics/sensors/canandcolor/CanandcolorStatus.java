@@ -5,7 +5,7 @@ package com.reduxrobotics.sensors.canandcolor;
 
 import com.reduxrobotics.sensors.canandcolor.wpistruct.CanandcolorStatusStruct;
 
-import edu.wpi.first.util.struct.StructSerializable;
+import org.wpilib.util.struct.StructSerializable;
 
 /**
  * Container record class representing a {@link Canandcolor}'s status.

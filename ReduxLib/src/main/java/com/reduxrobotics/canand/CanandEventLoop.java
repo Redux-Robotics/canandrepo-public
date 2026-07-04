@@ -8,8 +8,8 @@ import java.nio.ByteOrder;
 import java.util.ArrayList;
 import java.util.List;
 
-import edu.wpi.first.wpilibj.DriverStation;
-import edu.wpi.first.wpilibj.Notifier;
+import org.wpilib.wpilibj.DriverStation;
+import org.wpilib.system.Notifier;
 
 /**
  * Class that runs the CAN packet ingest loop, and starts the CANLink interface.

@@ -7,7 +7,7 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import edu.wpi.first.util.RuntimeLoader;
+import org.wpilib.util.RuntimeLoader;
 
 
 /**

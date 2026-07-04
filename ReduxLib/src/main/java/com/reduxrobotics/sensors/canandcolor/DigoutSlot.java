@@ -3,7 +3,7 @@
 
 package com.reduxrobotics.sensors.canandcolor;
 
-import edu.wpi.first.math.MathUtil;
+import org.wpilib.math.MathUtil;
 
 /**
  * 

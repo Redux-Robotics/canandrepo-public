@@ -5,7 +5,7 @@ package com.reduxrobotics.sensors.canandcolor;
 
 import com.reduxrobotics.sensors.canandcolor.wpistruct.DigoutSlotStateStruct;
 
-import edu.wpi.first.util.struct.StructSerializable;
+import org.wpilib.util.struct.StructSerializable;
 
 /**
  * Class representing the state of the Canandcolor digout channels and slots.

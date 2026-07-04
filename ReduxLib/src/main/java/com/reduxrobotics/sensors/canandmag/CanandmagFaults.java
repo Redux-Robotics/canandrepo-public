@@ -5,7 +5,7 @@ package com.reduxrobotics.sensors.canandmag;
 
 import com.reduxrobotics.sensors.canandmag.wpistruct.CanandmagFaultsStruct;
 
-import edu.wpi.first.util.struct.StructSerializable;
+import org.wpilib.util.struct.StructSerializable;
 
 /**
  * A class to hold device faults for the {@link Canandmag}. 

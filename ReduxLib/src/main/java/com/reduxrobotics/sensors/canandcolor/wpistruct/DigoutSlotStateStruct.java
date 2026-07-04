@@ -9,7 +9,7 @@ import com.reduxrobotics.sensors.canandcolor.CanandcolorDetails;
 import com.reduxrobotics.sensors.canandcolor.DigoutChannel;
 import com.reduxrobotics.sensors.canandcolor.DigoutSlotState;
 
-import edu.wpi.first.util.struct.Struct;
+import org.wpilib.util.struct.Struct;
 
 /** WPILib struct implementation for {@link DigoutSlotState} */
 public class DigoutSlotStateStruct implements Struct<DigoutSlotState> {

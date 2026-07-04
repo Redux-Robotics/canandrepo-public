@@ -116,5 +116,5 @@
           }
       ]
   },
-  "java.import.gradle.java.home": "/usr/lib/jvm/java-17-openjdk",
+  "java.import.gradle.java.home": "/usr/lib/jvm/java-25-openjdk",
 }
