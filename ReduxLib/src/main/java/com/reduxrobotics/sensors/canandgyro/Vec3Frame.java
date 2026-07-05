@@ -5,8 +5,8 @@ package com.reduxrobotics.sensors.canandgyro;
 
 import com.reduxrobotics.frames.Frame;
 
-import org.wpilib.math.VecBuilder;
-import org.wpilib.math.Vector;
+import org.wpilib.math.linalg.VecBuilder;
+import org.wpilib.math.linalg.Vector;
 import org.wpilib.math.numbers.N3;
 
 /**

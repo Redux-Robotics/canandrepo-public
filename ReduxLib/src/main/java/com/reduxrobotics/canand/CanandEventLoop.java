@@ -8,7 +8,7 @@ import java.nio.ByteOrder;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.wpilib.wpilibj.DriverStation;
+import org.wpilib.driverstation.Alert;
 import org.wpilib.system.Notifier;
 
 /**
@@ -43,6 +43,7 @@ public class CanandEventLoop implements Runnable {
 
     private static class DeviceEntry {
         CanandDevice device;
+        Alert missingAlert = CanandUtils.canandAlert(Alert.Level.HIGH);
         CheckState state = CheckState.kUnchecked;
         double presenceThreshold = 2.0;
         int repeatTimeout = 20;
@@ -124,22 +125,23 @@ public class CanandEventLoop implements Runnable {
         ent.presenceThreshold = threshold;
     }
 
-    private void reportMissingDevice(String deviceName) {
-        DriverStation.reportError(
-            String.format("Not receiving data from %s - likely disconnected from robot. Check wiring and/or frame periods!",
-            deviceName), false);
-    }
-
     /**
      * Periodic function that checks to ensure devices actually exist on bus.
      */
     private synchronized void deviceCheckerTask() {
-        if (CanandUtils.getFPGATimestamp() < 2.0) { return; }
+        if (CanandUtils.getFPGATimestamp() < 0.5) { return; }
         for (DeviceEntry ent: listeners) {
             CanandDevice device = ent.device;
             if (device.getAddress() == null) continue; // object not done constructing
             switch (ent.state) {
                 case kUnchecked: {
+                    ent.missingAlert.setText(
+                        String.format(
+                            "Not receiving data from %s - likely disconnected from robot. Check wiring and/or frame periods!",
+                            device.toString()
+                        )
+                    );
+
                     if (device.getMinimumFirmwareVersion() == null) {
                         // skip this check entirely
                         ent.state = CheckState.kDisconnected;
@@ -170,7 +172,6 @@ public class CanandEventLoop implements Runnable {
                 }
                 case kConnected: {
                     if (!device.isConnected(ent.presenceThreshold) && enableDevicePresenceWarnings) {
-                        reportMissingDevice(device.toString());
                         ent.state = CheckState.kDisconnected;
                     }
                     break;
@@ -178,9 +179,10 @@ public class CanandEventLoop implements Runnable {
                 case kDisconnected: {
                     if (device.isConnected(ent.presenceThreshold)) {
                         ent.state = CheckState.kConnected;
+                        ent.missingAlert.set(false);
                         ent.repeatTimeout = 20;
                     } else if (ent.repeatTimeout-- <= 0) {
-                        reportMissingDevice(device.toString());
+                        ent.missingAlert.set(true);
                         ent.repeatTimeout = 20;
                     }
                     break;
@@ -243,8 +245,11 @@ public class CanandEventLoop implements Runnable {
                                 listener.handleMessage(msg);
                             }
                         } catch (Exception e) {
-                            DriverStation.reportError("Exception in CanandEventLoop message listener: \n" 
-                            + e.getClass().getName() + ": " + e.getMessage(), e.getStackTrace());
+                            System.err.printf("Exception in CanandEventLoop message listener: %s: %s\n",
+                                e.getClass().getName(),
+                                e.getMessage()
+                            );
+                            e.printStackTrace();
                         }
                     }
                 }

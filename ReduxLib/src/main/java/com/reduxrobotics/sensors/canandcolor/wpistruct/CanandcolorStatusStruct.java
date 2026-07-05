@@ -25,7 +25,7 @@ public class CanandcolorStatusStruct implements Struct<CanandcolorStatus> {
 
     @Override
     public int getSize() {
-        return 2 + kSizeDouble;
+        return 2 + DOUBLE_SIZE;
     }
 
     @Override

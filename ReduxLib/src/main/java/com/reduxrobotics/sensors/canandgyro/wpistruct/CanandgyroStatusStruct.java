@@ -27,7 +27,7 @@ public class CanandgyroStatusStruct implements Struct<CanandgyroStatus> {
 
     @Override
     public int getSize() {
-        return 2 + kSizeDouble;
+        return 2 + DOUBLE_SIZE;
     }
 
     @Override

@@ -103,7 +103,7 @@ javadoc {
     options {
         // Enable preview features
         options.addBooleanOption("-enable-preview", true)
-        //options.addStringOption("-release", '25')
+        options.addStringOption("-release", '25')
         // Enable UTF-8 support
         options.addStringOption("charset", "utf-8")
         options.addStringOption("docencoding", "utf-8")
@@ -120,7 +120,7 @@ javadoc {
         options {
             // Windows does not like newlines in the javadoc command
             def strippedBootstrap = hljsBootstrapFile.text.replaceAll("\n", "").replaceAll("\r", "")
-            if (!OperatingSystem.current().isWindows()) {
+            if (!System.getProperty("os.name").toLowerCase().startsWith("win")) {
                 // Windows command line parsing in general could be broken; just don't do syntax highlighted javadocs
                 // In practice, web-hosted javadocs should be made on Linux anyway
                 addStringOption("header", "<script type=\"text/javascript\">${strippedBootstrap}</script>")

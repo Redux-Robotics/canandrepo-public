@@ -5,6 +5,7 @@ package com.reduxrobotics.canand;
 
 import java.util.BitSet;
 
+import org.wpilib.driverstation.Alert;
 import org.wpilib.hardware.hal.HALUtil;
 
 /**
@@ -257,7 +258,7 @@ public class CanandUtils {
      * Always returns the hardware FPGA timestamp.
      * 
      * <p> <i>Certain</i> popular libraries think it is really funny to replace 
-     * {@link org.wpilib.time.Timer#getFPGATimestamp} with a version that only updates 
+     * {@link org.wpilib.system.Timer#getMonotonicTimestamp} with a version that only updates 
      * every 20 milliseconds.
      * 
      * <p> Unfortunately for us, this makes ReduxLib internals not function correctly, so this calls 
@@ -267,5 +268,15 @@ public class CanandUtils {
      */
     public static double getFPGATimestamp() {
         return HALUtil.getMonotonicTime() / 1000000.0;
+    }
+
+    /// Make a new [Alert] with the vendor-specific group.
+    public static Alert canandAlert(Alert.Level level) {
+        return new Alert("CanandAlerts", "", level);
+    }
+
+    /// Make a new [Alert] with the vendor-specific group and pre-baked message.
+    public static Alert canandAlert(String message, Alert.Level level) {
+        return new Alert("CanandAlerts", message, level);
     }
 }

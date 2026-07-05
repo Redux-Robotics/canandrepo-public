@@ -117,11 +117,18 @@ public class Canandmag extends CanandDevice {
      * @param devID the device id to use [0..63]
      */
     public Canandmag(int devID) {
-        this(devID, "halcan");
+        this(devID, 0);
     }
 
+    /// Instantiates a new Canandmag object.
+    /// 
+    /// This object will be constant with respect to whatever CAN id assigned to it, so if a device 
+    /// changes id it may change which device this object reads from.
+    /// 
+    /// @param devID the device id to use [0..=63]
+    /// @param busID the CAN bus ID to use [0..=4]
     public Canandmag(int devID, int busID) {
-        
+        this(devID, "socketcan:can_s" + busID);
     }
 
     /**
@@ -135,7 +142,7 @@ public class Canandmag extends CanandDevice {
         // the product ID is 0
         addr = new CanandAddress(bus, 7, devID);
         stg = new CanandSettingsManager<>(this, CanandmagSettings::new);
-        HAL.reportUsage("ReduxCanandmag", String.format("[%d:%s]", devID, bus));
+        HAL.reportUsage("Canandmag", String.format("[%d:%s]", devID, bus));
     }
 
     /**

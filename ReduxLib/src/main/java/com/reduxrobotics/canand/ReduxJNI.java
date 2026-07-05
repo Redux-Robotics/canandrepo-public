@@ -7,8 +7,6 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import org.wpilib.util.RuntimeLoader;
-
 
 /**
  * Java side of the Redux device driver JNI wrapper.
@@ -61,8 +59,8 @@ public class ReduxJNI {
   static {
     if (Helper.getExtractOnStaticLoad()) {
       try {
-        RuntimeLoader.loadLibrary("reduxfifo");
-      } catch (IOException ex) {
+        System.loadLibrary("reduxfifo");
+      } catch (UnsatisfiedLinkError ex) {
         ex.printStackTrace();
         System.exit(1);
       }
@@ -78,7 +76,7 @@ public class ReduxJNI {
     if (libraryLoaded) {
       return;
     }
-    RuntimeLoader.loadLibrary("reduxfifo");
+    System.loadLibrary("reduxfifo");
     libraryLoaded = true;
   }
 

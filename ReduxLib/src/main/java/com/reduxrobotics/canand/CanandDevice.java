@@ -3,7 +3,7 @@
 
 package com.reduxrobotics.canand;
 
-import org.wpilib.driverstation.DriverStation;
+import org.wpilib.driverstation.Alert;
 
 /**
  * Base class for Redux CAN devices. 
@@ -39,6 +39,9 @@ import org.wpilib.driverstation.DriverStation;
      *  gets called in {@link #preHandleMessage}.
      */
     protected double lastMessageTs = Double.NEGATIVE_INFINITY;
+
+    protected Alert reachabilityAlert = CanandUtils.canandAlert(Alert.Level.MEDIUM);
+    protected Alert firmwareAgeAlert = CanandUtils.canandAlert(Alert.Level.HIGH);
 
     /**
      * Default constructor that just adds the device to the incoming CAN message listener. 
@@ -126,27 +129,33 @@ import org.wpilib.driverstation.DriverStation;
         CanandFirmwareVersion minFirmwareVersion = getMinimumFirmwareVersion();
         if (minFirmwareVersion == null) return;
         if (receivedFirmwareVersion == null) {
-            // yell that the device may not be on bus
-            DriverStation.reportError(
-                String.format("%s did not respond to a firmware version check" + 
-                " -- is the device powered and connected to the robot?", 
-                toString()), false);
+            if (!reachabilityAlert.get()) {
+                // yell that the device may not be on bus
+                reachabilityAlert.setText(
+                    String.format("%s did not respond to a firmware version check" + 
+                    " -- is the device powered and connected to the robot?", 
+                    toString()));
+            }
+            reachabilityAlert.set(true);
             return;
+        } else {
+            reachabilityAlert.set(false);
         }
         String hostname = System.getenv("HOSTNAME");
         if (hostname == null) {
-            hostname = "roborio-XXXX-frc";
+            hostname = "robot";
         }
 
         if (receivedFirmwareVersion.compareTo(getMinimumFirmwareVersion()) < 0) {
-            DriverStation.reportError(
+            firmwareAgeAlert.setText(
                 String.format("%s is running too old firmware (%s < minimum %s)" + 
-                " -- please update the device at http://%s.local:7244/ to avoid unforeseen errors!",
+                " -- please update the device at http://%s.lan:7244/ to avoid unforeseen errors!",
                 toString(), 
                 receivedFirmwareVersion.toString(), 
                 getMinimumFirmwareVersion().toString(),
                 hostname
-            ), false);
+            ));
+            firmwareAgeAlert.set(true);
         }
     }
 
@@ -203,8 +212,9 @@ import org.wpilib.driverstation.DriverStation;
 
     @Override
     public String toString() {
-        return String.format("%s[device_id=%d]", 
+        return String.format("%s[bus=%s,device_id=%d]", 
             this.getClass().getSimpleName(),
+            this.getAddress().getBus().getDescriptor(),
             this.getAddress().getDeviceId()
         );
     }
