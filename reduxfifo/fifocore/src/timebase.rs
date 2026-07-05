@@ -43,7 +43,7 @@ pub fn monotonic_us() -> i64 {
 
 /// Monotonic microsecond timer with a platform-defined time base.
 #[cfg(windows)]
-fn monotonic_us() -> i64 {
+pub fn monotonic_us() -> i64 {
     // look, i really didn't want to pull in the windows crate for TWO FUNCTIONS
     #[link(name = "user32")]
     unsafe extern "system" {
