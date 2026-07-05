@@ -17,17 +17,17 @@ jobs:
       matrix:
         include:
           - artifact-name: Systemcore
-            container: wpilib/systemcore-cross-debian:trixie
+            container: wpilib/systemcore-cross-ubuntu:2027-24.04
             build-options: "headers linuxsystemcore"
             reduxfifo-features: "systemcore"
             reduxlib-options: "-Ponlylinuxsystemcore"
           - artifact-name: LinuxArm64
-            container: wpilib/aarch64-cross-debian:trixie
+            container: wpilib/aarch64-cross-ubuntu:2027-bookworm-24.04
             build-options: "headers linuxarm64"
             reduxfifo-features: "simulation"
             reduxlib-options: "-Ponlylinuxarm64"
           - artifact-name: LinuxX86-64
-            container: wpilib/systemcore-cross-debian:trixie
+            container: wpilib/systemcore-cross-ubuntu:2027-24.04
             build-options: "headers linuxx86-64"
             reduxfifo-features: "simulation"
             reduxlib-options: "-Pskiplinuxsystemcore"
@@ -48,6 +48,7 @@ jobs:
       - uses: actions-rust-lang/setup-rust-toolchain@v1
         with:
           rustflags: "" # just put the artifacts in the bag
+          cache-key: ${{ matrix.artifact-name }}
           cache-workspaces: "crates -> crates/target\nreduxfifo -> reduxfifo/target\nreduxfifo/xtask -> reduxfifo/xtask/target"
       - name: Build maven artifact
         run: echo "$PATH" && cd reduxfifo && cargo xtask --all ${{ matrix.build-options }} -- --no-default-features --features ${{ matrix.reduxfifo-features }}
