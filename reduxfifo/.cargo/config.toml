@@ -4,9 +4,3 @@ xtask = "run --release --manifest-path ./xtask/Cargo.toml --"
 rustflags = [
   "--cfg", "tokio_unstable"
 ]
-
-# i mean, we don't link to wpihal anymore so why do i need these anyway...?
-
-#[target.aarch64-unknown-linux-gnu]
-#linker = "aarch64-bookworm-linux-gnu-gcc"
-#ar = "aarch64-bookworm-linux-gnu-ar"

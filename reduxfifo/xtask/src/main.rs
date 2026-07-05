@@ -124,19 +124,18 @@ fn main() -> anyhow::Result<()> {
 
                 // build extra targets if applicable
                 #[cfg(all(target_os = "linux", not(target_arch = "aarch64")))]
-                if Path::new("/usr/local/aarch64-linux-gnu").exists() {
+                {
+                    //if Path::new("/usr/local/aarch64-linux-gnu").exists() {
                     build_maven(&ci, Target::LinuxArm64, &build_configs, &cargo_flags)?;
                 }
 
                 #[cfg(all(target_os = "windows", not(target_arch = "aarch64")))]
                 build_maven(&ci, Target::WindowsArm64, &build_configs, &cargo_flags)?
-
             }
         }
     }
     Ok(())
 }
-
 
 fn build_maven_desktop(
     crate_info: &ReduxFIFOCrate,

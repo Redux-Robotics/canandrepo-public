@@ -257,15 +257,16 @@ impl Target {
 
         match self {
             Target::LinuxSystemCore => {
-                let systemcore_toolchain = locate_systemcore_toolchain().expect(&format!(
-                    "Could not find SystemCore toolchain, is wpilib {} installed?",
-                    SYSTEMCORE_YEAR
-                ));
+                //let systemcore_toolchain = locate_systemcore_toolchain().expect(&format!(
+                //    "Could not find SystemCore toolchain, is wpilib {} installed?",
+                //    SYSTEMCORE_YEAR
+                //));
                 cargo_build(
                     dir,
                     &self.info().triple,
                     release,
-                    &[systemcore_toolchain.to_str().unwrap()],
+                    //&[systemcore_toolchain.to_str().unwrap()],
+                    &[],
                     cargo_flags,
                 )?;
             }
