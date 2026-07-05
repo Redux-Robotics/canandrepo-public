@@ -9,8 +9,6 @@ import com.reduxrobotics.frames.Frame;
 import com.reduxrobotics.frames.FrameData;
 import com.reduxrobotics.frames.LongFrame;
 
-import org.wpilib.hardware.hal.HAL;
-
 /**
  * Class for the CAN interface of the 
  * <a href="https://docs.reduxrobotics.com/canandcolor/index.html">Canandcolor.</a>
@@ -144,7 +142,7 @@ public class Canandcolor extends CanandDevice {
         digout1 = new DigoutChannel(this, DigoutChannel.Index.kDigout1);
         digout2 = new DigoutChannel(this, DigoutChannel.Index.kDigout2);
 
-        HAL.reportUsage("Canandcolor", String.format("[%d:%s]", devID, bus));
+        CanandUtils.reportUsage("Canandcolor", bus, devID);
     }
 
     /**

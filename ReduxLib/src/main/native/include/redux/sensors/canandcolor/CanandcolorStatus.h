@@ -2,7 +2,7 @@
 // This is open source and can be modified and shared under the Mozilla Public License v2.0.
 
 #pragma once
-#include <units/temperature.h>
+#include <wpi/units/temperature.hpp>
 #include "redux/sensors/canandcolor/CanandcolorFaults.h"
 
 namespace redux::sensors::canandcolor {
@@ -23,7 +23,7 @@ struct CanandcolorStatus {
       uint8_t activeFaultsRaw,
       uint8_t stickyFaultsRaw,
       bool faultsValid,
-      units::celsius_t temp
+      wpi::units::celsius_t temp
     ) :
       activeFaults{activeFaultsRaw, faultsValid},
       stickyFaults{stickyFaultsRaw, faultsValid},
@@ -34,7 +34,7 @@ struct CanandcolorStatus {
   /** Sticky faults (valid if faultsValid is true). */
   CanandcolorFaults stickyFaults;
   /** Temperature in degrees Celsius. */
-  units::celsius_t temperature;
+  wpi::units::celsius_t temperature;
 };
 
 }  // namespace redux::sensors::canandcolor

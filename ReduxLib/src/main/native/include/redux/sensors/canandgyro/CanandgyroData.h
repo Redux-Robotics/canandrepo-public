@@ -6,8 +6,8 @@
 #include <cinttypes>
 #include <algorithm>
 #include <Eigen/Core>
-#include <units/force.h>
-#include <units/angular_velocity.h>
+#include <wpi/units/force.hpp>
+#include <wpi/units/angular_velocity.hpp>
 
 namespace redux::sensors::canandgyro {
 
@@ -23,28 +23,28 @@ class AngularVelocity {
    * 
   */
     constexpr AngularVelocity(
-        const units::turns_per_second_t roll, 
-        const units::turns_per_second_t pitch,
-        const units::turns_per_second_t yaw
+        const wpi::units::turns_per_second_t roll, 
+        const wpi::units::turns_per_second_t pitch,
+        const wpi::units::turns_per_second_t yaw
     ) : roll{roll}, pitch{pitch}, yaw{yaw} {};
 
     /** 
      * Roll velocity.
      * @return roll velocity in angular velocity units
      */
-    constexpr units::turns_per_second_t Roll() const { return this->roll; }
+    constexpr wpi::units::turns_per_second_t Roll() const { return this->roll; }
 
     /** 
      * Pitch velocity.
      * @return pitch velocity in angular velocity units
      */
-    constexpr units::turns_per_second_t Pitch() const { return this->pitch; }
+    constexpr wpi::units::turns_per_second_t Pitch() const { return this->pitch; }
 
     /** 
      * Yaw velocity.
      * @return yaw velocity in angular velocity units
      */
-    constexpr units::turns_per_second_t Yaw() const { return this->yaw; }
+    constexpr wpi::units::turns_per_second_t Yaw() const { return this->yaw; }
 
     /**
      * Converts to a Eigen::Vector3d with roll/pitch/yaw velocity as the first/second/third element 
@@ -53,17 +53,17 @@ class AngularVelocity {
      */
     inline Eigen::Vector3d ToVector3d() {
         return Eigen::Vector3d {
-            this->roll.convert<units::radians_per_second>().value(),
-            this->pitch.convert<units::radians_per_second>().value(),
-            this->yaw.convert<units::radians_per_second>().value(),
+            this->roll.convert<wpi::units::radians_per_second>().value(),
+            this->pitch.convert<wpi::units::radians_per_second>().value(),
+            this->yaw.convert<wpi::units::radians_per_second>().value(),
         };
     }
 
 
   private:
-    units::turns_per_second_t roll;
-    units::turns_per_second_t pitch;
-    units::turns_per_second_t yaw;
+    wpi::units::turns_per_second_t roll;
+    wpi::units::turns_per_second_t pitch;
+    wpi::units::turns_per_second_t yaw;
 
 };
 
@@ -80,26 +80,26 @@ class Acceleration {
    * @param z z-axis
    */
     constexpr Acceleration(
-        const units::standard_gravity_t x,
-        const units::standard_gravity_t y,
-        const units::standard_gravity_t z
+        const wpi::units::standard_gravity_t x,
+        const wpi::units::standard_gravity_t y,
+        const wpi::units::standard_gravity_t z
     ) : x{x}, y{y}, z{z} {};
 
     /** 
      * X-axis component
      * @return x in accelerational units
      */
-    constexpr units::standard_gravity_t X() const { return this->x; }
+    constexpr wpi::units::standard_gravity_t X() const { return this->x; }
     /**
      * Y-axis component
      * @return y in accelerational units
      */
-    constexpr units::standard_gravity_t Y() const { return this->y; }
+    constexpr wpi::units::standard_gravity_t Y() const { return this->y; }
     /**
      * Z-axis component
      * @return z in accelerational units
      */
-    constexpr units::standard_gravity_t Z() const { return this->z; }
+    constexpr wpi::units::standard_gravity_t Z() const { return this->z; }
 
     /**
      * Converts to a Eigen Vector3d with X/Y/Z-axis acceleration as the first/second/third element 
@@ -116,9 +116,9 @@ class Acceleration {
 
 
   private:
-    units::standard_gravity_t x;
-    units::standard_gravity_t y;
-    units::standard_gravity_t z;
+    wpi::units::standard_gravity_t x;
+    wpi::units::standard_gravity_t y;
+    wpi::units::standard_gravity_t z;
 
 };
 

@@ -4,9 +4,9 @@
 #pragma once
 #include "redux/sensors/canandmag/CanandmagFaults.h"
 #include "redux/sensors/canandmag/CanandmagStatus.h"
-#include "wpi/struct/Struct.h"
+#include <wpi/util/struct/Struct.hpp>
 
-namespace wpi {
+namespace wpi::util {
 
 /** WPILib struct template for CanandmagFaults */
 template <>
@@ -79,11 +79,11 @@ struct Struct<::redux::sensors::canandmag::CanandmagStatus> {
      */
     static void ForEachNested(
         std::invocable<std::string_view, std::string_view> auto fn) {
-     wpi::ForEachStructSchema<::redux::sensors::canandmag::CanandmagFaults>(fn);
+     wpi::util::ForEachStructSchema<::redux::sensors::canandmag::CanandmagFaults>(fn);
     }
 };
 }
 
-static_assert(wpi::StructSerializable<::redux::sensors::canandmag::CanandmagStatus>);
-static_assert(wpi::StructSerializable<::redux::sensors::canandmag::CanandmagFaults>);
-static_assert(wpi::HasNestedStruct<::redux::sensors::canandmag::CanandmagStatus>);
+static_assert(wpi::util::StructSerializable<::redux::sensors::canandmag::CanandmagStatus>);
+static_assert(wpi::util::StructSerializable<::redux::sensors::canandmag::CanandmagFaults>);
+static_assert(wpi::util::HasNestedStruct<::redux::sensors::canandmag::CanandmagStatus>);

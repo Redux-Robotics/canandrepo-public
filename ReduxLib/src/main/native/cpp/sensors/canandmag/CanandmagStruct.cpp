@@ -3,12 +3,12 @@
 
 #include "redux/sensors/Canandmag.h"
 #include "redux/sensors/canandmag/CanandmagStruct.h"
-#include "wpi/struct/Struct.h"
+#include <wpi/util/struct/Struct.hpp>
 
-namespace wpi {
+namespace wpi::util {
 
     ::redux::sensors::canandmag::CanandmagFaults Struct<::redux::sensors::canandmag::CanandmagFaults>::Unpack(std::span<const uint8_t> data) {
-        auto b = wpi::UnpackStruct<uint8_t, 0>(data);
+        auto b = wpi::util::UnpackStruct<uint8_t, 0>(data);
         return redux::sensors::canandmag::CanandmagFaults(b, true);
     }
 
@@ -26,20 +26,20 @@ namespace wpi {
     }
 
     ::redux::sensors::canandmag::CanandmagStatus Struct<::redux::sensors::canandmag::CanandmagStatus>::Unpack(std::span<const uint8_t> data) {
-        uint8_t active_faults = wpi::UnpackStruct<uint8_t, 0>(data);
+        uint8_t active_faults = wpi::util::UnpackStruct<uint8_t, 0>(data);
         return redux::sensors::canandmag::CanandmagStatus(
             active_faults,
-            wpi::UnpackStruct<uint8_t, 1>(data),    
+            wpi::util::UnpackStruct<uint8_t, 1>(data),    
             true,
-            units::celsius_t{wpi::UnpackStruct<double, 2>(data)},
+            wpi::units::celsius_t{wpi::util::UnpackStruct<double, 2>(data)},
             (active_faults & (1 << 5)) == 0
         );
     }
 
     void Struct<redux::sensors::canandmag::CanandmagStatus>::Pack(
         std::span<uint8_t> data, const redux::sensors::canandmag::CanandmagStatus& value) {
-        wpi::PackStruct<0>(data, value.activeFaults);
-        wpi::PackStruct<1>(data, value.stickyFaults);
-        wpi::PackStruct<2>(data, value.temperature.value());
+        wpi::util::PackStruct<0>(data, value.activeFaults);
+        wpi::util::PackStruct<1>(data, value.stickyFaults);
+        wpi::util::PackStruct<2>(data, value.temperature.value());
     }
 }

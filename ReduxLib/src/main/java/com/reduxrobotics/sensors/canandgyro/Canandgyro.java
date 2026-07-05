@@ -9,11 +9,11 @@ import com.reduxrobotics.canand.CanandAddress;
 import com.reduxrobotics.canand.CanandDevice;
 import com.reduxrobotics.canand.CanandMessage;
 import com.reduxrobotics.canand.CanandSettingsManager;
+import com.reduxrobotics.canand.CanandUtils;
 import com.reduxrobotics.frames.ByteArrayFrame;
 import com.reduxrobotics.frames.DoubleFrame;
 import com.reduxrobotics.frames.Frame;
 
-import org.wpilib.hardware.hal.HAL;
 import org.wpilib.math.linalg.VecBuilder;
 import org.wpilib.math.geometry.Quaternion;
 import org.wpilib.math.geometry.Rotation2d;
@@ -133,7 +133,7 @@ public class Canandgyro extends CanandDevice {
      * @param devID the device id assigned to it.
      */
     public Canandgyro(int devID) {
-        this(devID, "halcan");
+        this(devID, "socketcan:can_s0");
     }
     /// Instantiates a new Canandgyro object.
     /// 
@@ -155,7 +155,7 @@ public class Canandgyro extends CanandDevice {
         super();
         addr = new CanandAddress(bus, 4, devID);
         stg = new CanandSettingsManager<>(this, CanandgyroSettings::new);
-        HAL.reportUsage("Canandgyro", String.format("[%d:%s]", devID, bus));
+        CanandUtils.reportUsage("Canandgyro", bus, devID);
     }
 
     // wpilib helper objects

@@ -6,6 +6,7 @@ package com.reduxrobotics.canand;
 import java.util.BitSet;
 
 import org.wpilib.driverstation.Alert;
+import org.wpilib.hardware.hal.HAL;
 import org.wpilib.hardware.hal.HALUtil;
 
 /**
@@ -268,6 +269,14 @@ public class CanandUtils {
      */
     public static double getFPGATimestamp() {
         return HALUtil.getMonotonicTime() / 1000000.0;
+    }
+
+    /// Report usage.
+    public static void reportUsage(String resource, String bus, int id) {
+        HAL.reportUsage(
+            String.format("Redux/%s[%s][%d]", resource, bus, id),
+            "{}"
+        );
     }
 
     /// Make a new [Alert] with the vendor-specific group.

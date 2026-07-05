@@ -6,9 +6,8 @@
 #include "redux/canand/CanandUtils.h"
 #include "redux/canand/CanandDevice.h"
 #include "redux/canand/MessageBus.h"
-#include "frc/Timer.h"
-#include "frc/Errors.h"
-#include "hal/FRCUsageReporting.h"
+#include <wpi/system/Timer.hpp>
+#include <wpi/hal/Errors.h>
 #include <string.h>
 #include <string>
 #include <chrono>
@@ -18,30 +17,30 @@ namespace redux::sensors::canandmag {
     using namespace redux;
     Canandmag::Canandmag(int canID, std::string bus) : stg(*this), addr(redux::canand::MessageBus::ByBusString(bus), 7, (uint8_t (canID & 0x3f))) {
         canand::AddCANListener(this);
-        HAL_Report(HALUsageReporting::kResourceType_Redux_future1, canID + 1);
+        canand::utils::reportUsage("Canandmag", bus, canID);
     }
 
-    units::turn_t Canandmag::GetPosition() {
+    wpi::units::turn_t Canandmag::GetPosition() {
         return position.GetValue();
     }
 
-    units::turn_t Canandmag::GetAbsPosition() {
+    wpi::units::turn_t Canandmag::GetAbsPosition() {
         return absPosition.GetValue();
     }
 
-    bool Canandmag::SetPosition(units::turn_t newPosition, units::second_t timeout) {
+    bool Canandmag::SetPosition(wpi::units::turn_t newPosition, wpi::units::second_t timeout) {
         if (newPosition < -131072_tr || newPosition >= 131072_tr) 
             throw std::out_of_range("new relative position is not in the range [-131072..131072) turns"); 
         int32_t newPos = (int32_t) (newPosition.to<double>() * kCountsPerRotation);
         return stg.ConfirmSetSetting(details::Setting::kRelativePosition, ((uint8_t*) &newPos), 4, timeout, 0).IsValid();
     }
 
-    bool Canandmag::SetAbsPosition(units::turn_t newPosition, units::second_t timeout, bool ephemeral) {
+    bool Canandmag::SetAbsPosition(wpi::units::turn_t newPosition, wpi::units::second_t timeout, bool ephemeral) {
         if (newPosition < 0_tr || newPosition >= 1_tr) 
             throw std::out_of_range("new relative position is not in the range [0.0..1.0) turns"); 
         
         if (!ephemeral && setAbsPositionWarning.feed()) {
-            FRC_ReportError(frc::err::Error, 
+            fmt::println(stderr,  
                 ("Calling SetAbsPosition() at high frequency will quickly wear out the Canandmag's internal flash.\n"\
                 "Consider either using SetPosition() instead or passing in ephemeral=true to not write to flash.")
             );
@@ -54,11 +53,11 @@ namespace redux::sensors::canandmag {
         return stg.ConfirmSetSetting(details::Setting::kZeroOffset, buf, 3, timeout, flags).IsValid();
     }
 
-    bool Canandmag::ZeroAll(units::second_t timeout) {
+    bool Canandmag::ZeroAll(wpi::units::second_t timeout) {
         return (SetPosition(0_tr, timeout) && SetAbsPosition(0_tr, timeout)) == 1;
     }
 
-    units::turns_per_second_t Canandmag::GetVelocity() {
+    wpi::units::turns_per_second_t Canandmag::GetVelocity() {
         return velocity.GetValue();
     }
 
@@ -81,7 +80,7 @@ namespace redux::sensors::canandmag {
         status.Update(CanandmagStatus{0, 0, false, status.GetValue().temperature, status.GetValue().magnetInRange}, status.GetTimestamp());
     }
 
-    units::celsius_t Canandmag::GetTemperature() {
+    wpi::units::celsius_t Canandmag::GetTemperature() {
         return status.GetValue().temperature;
     }
 
@@ -96,27 +95,27 @@ namespace redux::sensors::canandmag {
         uint64_t dataLong = 0;
         memcpy(&dataLong, msg.GetData(), msg.GetLength()); // buffer is guarenteed to be 8 bytes
         dataRecvOnce = true;
-        lastMessageTime = frc::Timer::GetFPGATimestamp();
+        lastMessageTime = wpi::Timer::GetMonotonicTimestamp();
         uint32_t dataLength = msg.GetLength();
         uint8_t* data = msg.GetData();
-        units::second_t ts = msg.GetTimestamp();
+        wpi::units::second_t ts = msg.GetTimestamp();
         
         switch(msg.GetApiIndex()) {
             case details::Message::kPositionOutput: {
                 if (dataLength != 6) break;
-                position.Update(units::turn_t{(*(int32_t*) data) / kCountsPerRotation}, ts);
-                absPosition.Update(units::turn_t{((dataLong >> 34) & 0x3fff) / kCountsPerRotation}, ts);
+                position.Update(wpi::units::turn_t{(*(int32_t*) data) / kCountsPerRotation}, ts);
+                absPosition.Update(wpi::units::turn_t{((dataLong >> 34) & 0x3fff) / kCountsPerRotation}, ts);
                 break;
             }
             case details::Message::kVelocityOutput: {
                 if (dataLength != 3) break;
                 int32_t tmp = (dataLong & 0x3fffff);
-                velocity.Update(units::turns_per_second_t{ ((tmp << 10) >> 10) / kCountsPerRotationPerSecond}, ts);
+                velocity.Update(wpi::units::turns_per_second_t{ ((tmp << 10) >> 10) / kCountsPerRotationPerSecond}, ts);
                 break;
             }
             case details::Message::kStatus: {
                 if (dataLength != 8) break;
-                status.Update(CanandmagStatus{data[0], data[1], true, units::celsius_t{static_cast<double>((int8_t) data[2])}, (data[0] & 0b100000) == 0}, ts);
+                status.Update(CanandmagStatus{data[0], data[1], true, wpi::units::celsius_t{static_cast<double>((int8_t) data[2])}, (data[0] & 0b100000) == 0}, ts);
                 break;
             }
             case details::Message::kReportSetting: {

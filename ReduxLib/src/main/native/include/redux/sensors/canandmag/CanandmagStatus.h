@@ -2,7 +2,7 @@
 // This is open source and can be modified and shared under the Mozilla Public License v2.0.
 
 #pragma once
-#include <units/temperature.h>
+#include <wpi/units/temperature.hpp>
 #include "redux/sensors/canandmag/CanandmagFaults.h"
 
 namespace redux::sensors::canandmag {
@@ -19,7 +19,7 @@ struct CanandmagStatus {
    * @param temp MCU temp
    * @param magnetInRange whether the encoder magnet is in range
   */
-  constexpr CanandmagStatus(uint8_t activeFaultsRaw, uint8_t stickyFaultsRaw, bool faultsValid, units::celsius_t temp, bool magnetInRange): \
+  constexpr CanandmagStatus(uint8_t activeFaultsRaw, uint8_t stickyFaultsRaw, bool faultsValid, wpi::units::celsius_t temp, bool magnetInRange): \
     activeFaults{activeFaultsRaw, faultsValid}, stickyFaults{stickyFaultsRaw, faultsValid}, temperature{temp}, magnetInRange{magnetInRange} {};
   public:
     /** Active faults. */
@@ -27,7 +27,7 @@ struct CanandmagStatus {
     /** Sticky faults. */
     CanandmagFaults stickyFaults;
     /** Encoder MCU temperature (celsius). */
-    units::celsius_t temperature;
+    wpi::units::celsius_t temperature;
     /** Whether the magnet is in range. */
     bool magnetInRange;
 };

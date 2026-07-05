@@ -6,7 +6,7 @@
 
 #include "redux/sensors/canandcolor/Canandcolor.h"
 #include "redux/canand/CanandEventLoop.h"
-#include "hal/FRCUsageReporting.h"
+#include <wpi/hal/UsageReporting.hpp>
 
 namespace redux::sensors::canandcolor {
   using namespace details;
@@ -22,7 +22,7 @@ Canandcolor::Canandcolor(int canID, std::string bus) :
     lastMessageTime_{0_s} {
 
   canand::AddCANListener(this);
-  HAL_Report(HALUsageReporting::kResourceType_Redux_future2, canID + 1);
+  canand::utils::reportUsage("Canandcolor", bus, canID);
 }
 
 Canandcolor::~Canandcolor() {
@@ -73,7 +73,7 @@ CanandcolorFaults Canandcolor::GetActiveFaults() {
   return status_.GetValue().activeFaults;
 }
 
-units::celsius_t Canandcolor::GetTemperature() {
+wpi::units::celsius_t Canandcolor::GetTemperature() {
   return status_.GetValue().temperature;
 }
 
@@ -97,7 +97,7 @@ void Canandcolor::SetPartyMode(uint8_t level) {
   SendCANMessage(msg::kPartyMode, data, 1);
 }
 
-CanandcolorSettings Canandcolor::GetSettings(units::second_t timeout, units::second_t missingTimeout, uint32_t attempts) {
+CanandcolorSettings Canandcolor::GetSettings(wpi::units::second_t timeout, wpi::units::second_t missingTimeout, uint32_t attempts) {
   return stg_.GetSettings(timeout, missingTimeout, attempts);
 }
 
@@ -109,11 +109,11 @@ CanandcolorSettings Canandcolor::GetSettingsAsync() {
   return stg_.GetKnownSettings();
 }
 
-CanandcolorSettings Canandcolor::SetSettings(CanandcolorSettings& settings, units::second_t timeout, uint32_t attempts) {
+CanandcolorSettings Canandcolor::SetSettings(CanandcolorSettings& settings, wpi::units::second_t timeout, uint32_t attempts) {
   return stg_.SetSettings(settings, timeout, attempts);
 }
 
-CanandcolorSettings Canandcolor::ResetFactoryDefaults(units::second_t timeout) {
+CanandcolorSettings Canandcolor::ResetFactoryDefaults(wpi::units::second_t timeout) {
   return stg_.SendReceiveSettingCommand(details::types::SettingCommand::kResetFactoryDefault, timeout, true);
 }
 
@@ -126,7 +126,7 @@ void Canandcolor::HandleMessage(redux::canand::CanandMessage& msg) {
   uint64_t dataLong = 0;
   memcpy(&dataLong, msg.GetData(), msg.GetLength());
   dataRecvOnce_ = true;
-  units::second_t ts = msg.GetTimestamp();
+  wpi::units::second_t ts = msg.GetTimestamp();
 
   switch(msg.GetApiIndex()) {
     case msg::kDistanceOutput: {
@@ -156,7 +156,7 @@ void Canandcolor::HandleMessage(redux::canand::CanandMessage& msg) {
           statusPacket.faults,
           statusPacket.sticky_faults,
           true,
-          units::celsius_t{static_cast<double>(statusPacket.temperature) / 256.0}
+          wpi::units::celsius_t{static_cast<double>(statusPacket.temperature) / 256.0}
       }, ts);
       break;
     }

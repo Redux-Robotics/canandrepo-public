@@ -4,7 +4,9 @@
 #pragma once
 #include <cstdint>
 #include <chrono>
-#include <units/time.h>
+#include <wpi/units/time.hpp>
+#include <wpi/hal/UsageReporting.hpp>
+#include <fmt/format.h>
 #include <bit>
 
 /**
@@ -88,11 +90,15 @@ namespace redux::canand::utils {
      * 
      * Useful for condition variables.
      * 
-     * @param seconds in units::second_t terms
+     * @param seconds in wpi::units::second_t terms
      * @return seconds in std::chrono::duration terms
      */
-    constexpr std::chrono::duration<double, std::ratio<1LL, 1LL>> toChronoSeconds(units::second_t seconds) {
+    constexpr std::chrono::duration<double, std::ratio<1LL, 1LL>> toChronoSeconds(wpi::units::second_t seconds) {
         return seconds.to<double>() * std::chrono::seconds(1);
+    }
+
+    inline void reportUsage(std::string_view name, std::string_view bus, int id) {
+        HAL_ReportUsage(fmt::format("Redux/{}[{}][{}]", name, bus, id), "{}");
     }
 
     /**

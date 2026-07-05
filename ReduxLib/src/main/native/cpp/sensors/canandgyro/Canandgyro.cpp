@@ -4,8 +4,8 @@
 #include "redux/sensors/Canandgyro.h"
 #include "redux/canand/CanandUtils.h"
 #include "redux/frames/Frame.h"
-#include "frc/Timer.h"
-#include "hal/FRCUsageReporting.h"
+#include <wpi/system/Timer.hpp>
+#include <wpi/hal/UsageReporting.hpp>
 #include <cmath>
 #include <string>
 
@@ -25,16 +25,16 @@ namespace redux::sensors::canandgyro {
     using namespace details;
     Canandgyro::Canandgyro(int canID, std::string bus) : stg(*this), addr(redux::canand::MessageBus::ByBusString(bus), 4, (uint8_t) (canID & 0x3f)) {
         redux::canand::AddCANListener(this);
-        HAL_Report(HALUsageReporting::kResourceType_Redux_future3, canID + 1);
+        canand::utils::reportUsage("Canandgyro", bus, canID);
     }
 
     void Canandgyro::StartCalibration() {
         uint8_t data[8] = { 0 };
         SendCANMessage(msg::kCalibrate, data, 8);
-        calibrating.Update(true, frc::Timer::GetFPGATimestamp());
+        calibrating.Update(true, wpi::Timer::GetMonotonicTimestamp());
     }
 
-    bool Canandgyro::WaitForCalibrationToFinish(units::second_t timeout) {
+    bool Canandgyro::WaitForCalibrationToFinish(wpi::units::second_t timeout) {
         if (timeout <= 0_ms) { return !calibrating.GetValue(); }
         auto data = frames::WaitForFrames(timeout, this->calibrating);
         if (!data) { return false; }
@@ -43,7 +43,7 @@ namespace redux::sensors::canandgyro {
         return result.GetValue();
     }
 
-    bool Canandgyro::SetPose(frc::Quaternion newPose, units::second_t timeout, uint32_t attempts) {
+    bool Canandgyro::SetPose(wpi::math::Quaternion newPose, wpi::units::second_t timeout, uint32_t attempts) {
         newPose = newPose.Normalize();
         uint8_t idxToSet = (newPose.W() >= 0) ? setting::kSetPosePositiveW : setting::kSetPoseNegativeW;
 
@@ -58,7 +58,7 @@ namespace redux::sensors::canandgyro {
         return success;
     }
 
-    bool Canandgyro::SetYaw(units::turn_t yaw, units::second_t timeout, uint32_t attempts) {
+    bool Canandgyro::SetYaw(wpi::units::turn_t yaw, wpi::units::second_t timeout, uint32_t attempts) {
 
         // wraparounds counts how many times we've rotated past the plus/minus 180 degree point.
         // so to convert whole rotations into this format, we need to add/subtract 0.5 rotations so 
@@ -97,17 +97,17 @@ namespace redux::sensors::canandgyro {
     void Canandgyro::HandleMessage(redux::canand::CanandMessage& msg) {
         uint64_t dataLong = 0;
         memcpy(&dataLong, msg.GetData(), msg.GetLength()); // buffer is guarenteed to be 8 bytes
-        lastMessageTime = frc::Timer::GetFPGATimestamp();
+        lastMessageTime = wpi::Timer::GetMonotonicTimestamp();
         uint32_t dataLength = msg.GetLength();
         //uint8_t* data = msg.GetData();
-        units::second_t ts = msg.GetTimestamp();
+        wpi::units::second_t ts = msg.GetTimestamp();
 
         switch(msg.GetApiIndex()) {
             case msg::kYawOutput: {
                 if (dataLength != msg::YawOutput::DLC_MAX) break;
                 auto yawPacket = msg::YawOutput::decode(dataLong).yaw;
-                auto singleYawValue = units::radian_t{yawPacket.yaw};
-                auto yawValue = singleYawValue + units::turn_t{static_cast<double>(yawPacket.wraparound)};
+                auto singleYawValue = wpi::units::radian_t{yawPacket.yaw};
+                auto yawValue = singleYawValue + wpi::units::turn_t{static_cast<double>(yawPacket.wraparound)};
                 this->multiYaw.Update(yawValue, ts);
                 this->singleYaw.Update(singleYawValue, ts);
                 break;
@@ -115,7 +115,7 @@ namespace redux::sensors::canandgyro {
             case msg::kAngularPositionOutput: {
                 if (dataLength != msg::AngularPositionOutput::DLC_MAX) break;
                 auto localQuat = msg::AngularPositionOutput::decode(dataLong);
-                quat.Update(frc::Quaternion {
+                quat.Update(wpi::math::Quaternion {
                     localQuat.w / 32767.0,
                     localQuat.x / 32767.0,
                     localQuat.y / 32767.0,
@@ -128,9 +128,9 @@ namespace redux::sensors::canandgyro {
                 auto localVel = msg::AngularVelocityOutput::decode(dataLong);
 
                 vel.Update(AngularVelocity {
-                    units::degrees_per_second_t{localVel.roll * 2000.0 / 32767.0},
-                    units::degrees_per_second_t{localVel.pitch * 2000.0 / 32767.0},
-                    units::degrees_per_second_t{localVel.yaw * 2000.0 / 32767.0},
+                    wpi::units::degrees_per_second_t{localVel.roll * 2000.0 / 32767.0},
+                    wpi::units::degrees_per_second_t{localVel.pitch * 2000.0 / 32767.0},
+                    wpi::units::degrees_per_second_t{localVel.yaw * 2000.0 / 32767.0},
                 }, ts);
 
                 break;
@@ -139,9 +139,9 @@ namespace redux::sensors::canandgyro {
                 if (dataLength != msg::AccelerationOutput::DLC_MAX) break;
                 auto localAccel = msg::AccelerationOutput::decode(dataLong);
                 accel.Update(Acceleration {
-                    units::standard_gravity_t{localAccel.x * 16.0 / 32767.0},
-                    units::standard_gravity_t{localAccel.y * 16.0 / 32767.0},
-                    units::standard_gravity_t{localAccel.z * 16.0 / 32767.0},
+                    wpi::units::standard_gravity_t{localAccel.x * 16.0 / 32767.0},
+                    wpi::units::standard_gravity_t{localAccel.y * 16.0 / 32767.0},
+                    wpi::units::standard_gravity_t{localAccel.z * 16.0 / 32767.0},
                 }, ts);
                 break;
             }
@@ -158,7 +158,7 @@ namespace redux::sensors::canandgyro {
                     localStatus.faults,
                     localStatus.sticky_faults,
                     true, 
-                    units::celsius_t{static_cast<double>(localStatus.temperature) / 256.0 }
+                    wpi::units::celsius_t{static_cast<double>(localStatus.temperature) / 256.0 }
                 }, ts);
                 if (!status.GetValue().activeFaults.calibrating) {
                     calibrating.Update(false, ts);

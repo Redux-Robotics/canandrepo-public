@@ -10,26 +10,26 @@ namespace redux::sensors::canandmag {
         return details::VDEP_SETTINGS; 
     }
 
-    void CanandmagSettings::SetVelocityFilterWidth(units::millisecond_t widthMs) {
+    void CanandmagSettings::SetVelocityFilterWidth(wpi::units::millisecond_t widthMs) {
         if (widthMs < 0.25_ms || widthMs > 63.75_ms) { throw std::out_of_range("velocity widthMs must be between 0.25_ms and 63.75_ms");}
         uint8_t width = (uint8_t) (widthMs.to<double>() * 4);
         values[details::Setting::kVelocityWindow] = width;
     }
 
-    void CanandmagSettings::SetPositionFramePeriod(units::second_t period) {
+    void CanandmagSettings::SetPositionFramePeriod(wpi::units::second_t period) {
         if (period < 0_ms || period > 65535_ms) { throw std::out_of_range("period must be between 0_s and 65.535_s");}
-        values[details::Setting::kPositionFramePeriod] = period.convert<units::milliseconds>().to<uint16_t>();
+        values[details::Setting::kPositionFramePeriod] = period.convert<wpi::units::milliseconds>().to<uint16_t>();
     }
 
-    void CanandmagSettings::SetVelocityFramePeriod(units::second_t period) {
+    void CanandmagSettings::SetVelocityFramePeriod(wpi::units::second_t period) {
         if (period < 0_ms || period > 65535_ms) { throw std::out_of_range("period must be between 0_s and 65.535_s");}
-        values[details::Setting::kVelocityFramePeriod] = period.convert<units::milliseconds>().to<uint16_t>();
+        values[details::Setting::kVelocityFramePeriod] = period.convert<wpi::units::milliseconds>().to<uint16_t>();
     }
 
 
-    void CanandmagSettings::SetStatusFramePeriod(units::second_t period) {
+    void CanandmagSettings::SetStatusFramePeriod(wpi::units::second_t period) {
         if (period < 1_ms || period > 16383_ms) { throw std::out_of_range("period must be between 0.001_s and 16.383_s");}
-        values[details::Setting::kStatusFramePeriod]  = period.convert<units::milliseconds>().to<uint16_t>();
+        values[details::Setting::kStatusFramePeriod]  = period.convert<wpi::units::milliseconds>().to<uint16_t>();
     }
 
     void CanandmagSettings::SetInvertDirection(bool invert) {
@@ -40,30 +40,30 @@ namespace redux::sensors::canandmag {
         values[details::Setting::kDisableZeroButton] = disable;
     }
 
-    void CanandmagSettings::SetZeroOffset(units::turn_t offset) {
+    void CanandmagSettings::SetZeroOffset(wpi::units::turn_t offset) {
         if (offset < 0_deg || offset >= 1_tr) { throw std::out_of_range("offset must be between 0 rotations inclusive and 1 rotations exclusive"); }
         uint16_t newPos = ((uint16_t) (offset.to<double>() * Canandmag::kCountsPerRotation));
         values[details::Setting::kZeroOffset] = newPos;
     }
 
-    std::optional<units::millisecond_t> CanandmagSettings::GetVelocityFilterWidth() {
+    std::optional<wpi::units::millisecond_t> CanandmagSettings::GetVelocityFilterWidth() {
         if (!values.contains(details::Setting::kVelocityWindow)) return std::nullopt;
-        return std::optional<units::millisecond_t>{(values[details::Setting::kVelocityWindow] & 0xff) / 4.0f};
+        return std::optional<wpi::units::millisecond_t>{(values[details::Setting::kVelocityWindow] & 0xff) / 4.0f};
     }
 
-    std::optional<units::second_t> CanandmagSettings::GetPositionFramePeriod() {
+    std::optional<wpi::units::second_t> CanandmagSettings::GetPositionFramePeriod() {
         if (!values.contains(details::Setting::kPositionFramePeriod)) return std::nullopt;
-        return std::optional<units::millisecond_t>{values[details::Setting::kPositionFramePeriod]};
+        return std::optional<wpi::units::millisecond_t>{values[details::Setting::kPositionFramePeriod]};
     }
 
-    std::optional<units::second_t> CanandmagSettings::GetVelocityFramePeriod() {
+    std::optional<wpi::units::second_t> CanandmagSettings::GetVelocityFramePeriod() {
         if (!values.contains(details::Setting::kVelocityFramePeriod)) return std::nullopt;
-        return std::optional<units::millisecond_t>{values[details::Setting::kVelocityFramePeriod]};
+        return std::optional<wpi::units::millisecond_t>{values[details::Setting::kVelocityFramePeriod]};
     }
 
-    std::optional<units::second_t> CanandmagSettings::GetStatusFramePeriod() {
+    std::optional<wpi::units::second_t> CanandmagSettings::GetStatusFramePeriod() {
         if (!values.contains(details::Setting::kStatusFramePeriod)) return std::nullopt;
-        return std::optional<units::millisecond_t>{values[details::Setting::kStatusFramePeriod]};
+        return std::optional<wpi::units::millisecond_t>{values[details::Setting::kStatusFramePeriod]};
     }
 
     std::optional<bool> CanandmagSettings::GetInvertDirection() {
@@ -76,8 +76,8 @@ namespace redux::sensors::canandmag {
         return std::optional<bool>{values[details::Setting::kDisableZeroButton] != 0};
     }
 
-    std::optional<units::turn_t> CanandmagSettings::GetZeroOffset() {
+    std::optional<wpi::units::turn_t> CanandmagSettings::GetZeroOffset() {
         if (!values.contains(details::Setting::kZeroOffset)) return std::nullopt;
-        return units::turn_t{values[details::Setting::kZeroOffset] / Canandmag::kCountsPerRotation};
+        return wpi::units::turn_t{values[details::Setting::kZeroOffset] / Canandmag::kCountsPerRotation};
     }
 }

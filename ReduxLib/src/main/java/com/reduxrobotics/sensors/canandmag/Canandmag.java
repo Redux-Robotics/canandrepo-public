@@ -9,8 +9,6 @@ import com.reduxrobotics.frames.DoubleFrame;
 import com.reduxrobotics.frames.Frame;
 import com.reduxrobotics.frames.FrameData;
 
-import org.wpilib.hardware.hal.HAL;
-
 /**
  * Class for the CAN interface of the 
  * <a href="https://docs.reduxrobotics.com/canandmag/index.html">Canandmag.</a>
@@ -142,7 +140,7 @@ public class Canandmag extends CanandDevice {
         // the product ID is 0
         addr = new CanandAddress(bus, 7, devID);
         stg = new CanandSettingsManager<>(this, CanandmagSettings::new);
-        HAL.reportUsage("Canandmag", String.format("[%d:%s]", devID, bus));
+        CanandUtils.reportUsage("Canandmag", bus, devID);
     }
 
     /**

@@ -4,7 +4,7 @@
 #pragma once
 #include <cstdint>
 #include "DigoutSlot.h"
-#include "units/time.h"
+#include <wpi/units/time.hpp>
 
 namespace redux::sensors::canandcolor {
 
@@ -73,21 +73,21 @@ class DigoutSlotBuilder {
    * @param durationMs duration in milliseconds
    * @return reference to this builder
    */
-  DigoutSlotBuilder& PrevSlotTrue(units::millisecond_t durationMs);
+  DigoutSlotBuilder& PrevSlotTrue(wpi::units::millisecond_t durationMs);
 
   /**
    * Sets this slot to be true if the previous chain clause has been true for at least the given duration.
    * @param durationMs duration in milliseconds
    * @return reference to this builder
    */
-  DigoutSlotBuilder& PrevChainTrueFor(units::millisecond_t durationMs);
+  DigoutSlotBuilder& PrevChainTrueFor(wpi::units::millisecond_t durationMs);
 
   /**
    * Sets this slot to be true for at least the given duration (device-defined behavior).
    * @param durationMs duration in milliseconds
    * @return reference to this builder
    */
-  DigoutSlotBuilder& TrueFor(units::millisecond_t durationMs);
+  DigoutSlotBuilder& TrueFor(wpi::units::millisecond_t durationMs);
 
   /**
    * Applies a scaling factor (device-defined) to this slot.

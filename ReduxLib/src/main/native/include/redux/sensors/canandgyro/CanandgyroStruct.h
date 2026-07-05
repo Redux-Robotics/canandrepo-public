@@ -5,9 +5,9 @@
 #include "redux/sensors/canandgyro/CanandgyroFaults.h"
 #include "redux/sensors/canandgyro/CanandgyroData.h"
 #include "redux/sensors/canandgyro/CanandgyroStatus.h"
-#include "wpi/struct/Struct.h"
+#include <wpi/util/struct/Struct.hpp>
 
-namespace wpi {
+namespace wpi::util {
 
 /** WPILib struct template for CanandgyroFaults */
 template <>
@@ -80,7 +80,7 @@ struct Struct<::redux::sensors::canandgyro::CanandgyroStatus> {
      */
     static void ForEachNested(
         std::invocable<std::string_view, std::string_view> auto fn) {
-     wpi::ForEachStructSchema<::redux::sensors::canandgyro::CanandgyroFaults>(fn);
+     wpi::util::ForEachStructSchema<::redux::sensors::canandgyro::CanandgyroFaults>(fn);
     }
 };
 
@@ -148,8 +148,8 @@ struct Struct<::redux::sensors::canandgyro::Acceleration> {
 }
 
 
-static_assert(wpi::StructSerializable<::redux::sensors::canandgyro::AngularVelocity>);
-static_assert(wpi::StructSerializable<::redux::sensors::canandgyro::Acceleration>);
-static_assert(wpi::StructSerializable<::redux::sensors::canandgyro::CanandgyroStatus>);
-static_assert(wpi::StructSerializable<::redux::sensors::canandgyro::CanandgyroFaults>);
-static_assert(wpi::HasNestedStruct<::redux::sensors::canandgyro::CanandgyroStatus>);
+static_assert(wpi::util::StructSerializable<::redux::sensors::canandgyro::AngularVelocity>);
+static_assert(wpi::util::StructSerializable<::redux::sensors::canandgyro::Acceleration>);
+static_assert(wpi::util::StructSerializable<::redux::sensors::canandgyro::CanandgyroStatus>);
+static_assert(wpi::util::StructSerializable<::redux::sensors::canandgyro::CanandgyroFaults>);
+static_assert(wpi::util::HasNestedStruct<::redux::sensors::canandgyro::CanandgyroStatus>);
