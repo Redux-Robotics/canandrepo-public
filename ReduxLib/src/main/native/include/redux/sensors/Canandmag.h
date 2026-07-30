@@ -7,10 +7,10 @@
 #include <mutex>
 #include <condition_variable>
 #include <optional>
-#include <units/angle.h>
-#include <units/angular_velocity.h>
-#include <units/time.h>
-#include <units/temperature.h>
+#include <wpi/units/angle.hpp>
+#include <wpi/units/angular_velocity.hpp>
+#include <wpi/units/time.hpp>
+#include <wpi/units/temperature.hpp>
 #include "redux/canand/CanandDevice.h"
 #include "redux/canand/CanandEventLoop.h"
 #include "redux/canand/CanandSettingsManager.h"
@@ -83,7 +83,7 @@ namespace redux::sensors::canandmag {
  * fmt::print("Encoder rebooted: {}\n", faults.powerCycle);
  * 
  * // Timestamped data
- * redux::frames::FrameData<units::turn_t> posFrameData = canandmag.GetPositionFrame().GetFrameData(); // gets current position + timestamp together
+ * redux::frames::FrameData<wpi::units::turn_t> posFrameData = canandmag.GetPositionFrame().GetFrameData(); // gets current position + timestamp together
  * posFrameData.GetValue(); // fetched position in rotations
  * posFrameData.GetTimestamp(); // timestamp of the previous position
  * ```
@@ -95,9 +95,9 @@ class Canandmag : public redux::canand::CanandDevice{
      * Constructor with the device's id. This object will be constant with respect to whatever CAN id assigned to it,
      * so if a device changes id it may change which device this object reads from.
      * @param canID the device id to use
-     * @param bus the message bus to use. Defaults to "halcan"
+     * @param bus the message bus to use. Defaults to "socketcan:can_s0"
     */
-    Canandmag(int canID, std::string bus = "halcan");
+    Canandmag(int canID, std::string bus = "socketcan:can_s0");
     inline ~Canandmag() {redux::canand::RemoveCANListener(this);}
     // functions related to core functionality
 
@@ -110,7 +110,7 @@ class Canandmag : public redux::canand::CanandDevice{
      * <p> On encoder power-on, unlike the absolute value, this value will always initialize to zero. </p>
      * @return signed relative position in rotations (range [-131072.0..131071.999938396484])
      */
-    units::turn_t GetPosition();
+    wpi::units::turn_t GetPosition();
 
     /**
      * Gets the current absolute position of the encoder, in a scaled value from 0 inclusive to 1 exclusive.
@@ -118,7 +118,7 @@ class Canandmag : public redux::canand::CanandDevice{
      * <p> This value will persist across encoder power cycles making it appropriate for swerves/arms/etc. </p>
      * @return absolute position in fraction of a rotation [0..1)
      */
-    units::turn_t GetAbsPosition();
+    wpi::units::turn_t GetAbsPosition();
 
     /**
      * Sets the new relative (multi-turn) position of the encoder to the given value.
@@ -131,7 +131,7 @@ class Canandmag : public redux::canand::CanandDevice{
      * @param timeout maximum time to wait for the operation to be confirmed (default 0.020 seconds). Set to 0 to not check (and not block).
      * @return true on success, false on timeout
      */
-    bool SetPosition(units::turn_t newPosition, units::second_t timeout = 20_ms);
+    bool SetPosition(wpi::units::turn_t newPosition, wpi::units::second_t timeout = 20_ms);
 
     /**
      * Sets the new absolute position value for the encoder which will (by default) persist across reboots.
@@ -141,7 +141,7 @@ class Canandmag : public redux::canand::CanandDevice{
      * @param ephemeral if true, set the setting ephemerally -- the new zero offset will not persist on power cycle.
      * @return true on success, false on timeout
      */
-    bool SetAbsPosition(units::turn_t newPosition, units::second_t timeout = 20_ms, bool ephemeral = false);
+    bool SetAbsPosition(wpi::units::turn_t newPosition, wpi::units::second_t timeout = 20_ms, bool ephemeral = false);
 
     /**
      * Sets both the current absolute and relative encoder position to 0 -- generally equivalent to pressing the physical zeroing button on the encoder.
@@ -149,13 +149,13 @@ class Canandmag : public redux::canand::CanandDevice{
      * so the wait is up to 2x timouet). Set to 0 to not check (and not block).
      * @return true on success, false on timeout
      */
-    bool ZeroAll(units::second_t timeout = 20_ms);
+    bool ZeroAll(wpi::units::second_t timeout = 20_ms);
 
     /**
      * Returns the measured velocity in rotations per second.
      * @return velocity, in rotations (turns) per second
      */
-    units::turns_per_second_t GetVelocity();
+    wpi::units::turns_per_second_t GetVelocity();
 
     /**
      * Returns whether the encoder magnet is in range of the sensor or not.
@@ -188,7 +188,7 @@ class Canandmag : public redux::canand::CanandDevice{
      * Get onboard encoder temperature readings in degrees Celsius.
      * @return temperature in degrees Celsius
      */
-    units::celsius_t GetTemperature();
+    wpi::units::celsius_t GetTemperature();
 
     /**
      * Get the contents of the previous status packet, which includes active faults, sticky faults, and temperature.
@@ -259,7 +259,7 @@ class Canandmag : public redux::canand::CanandDevice{
      * @param attempts number of attempts to try and fetch values missing from the first pass
      * @return Received set of CanandmagSettings of device configuration.
      */
-    inline CanandmagSettings GetSettings(units::second_t timeout = 350_ms, units::second_t missingTimeout = 20_ms, uint32_t attempts = 3) { 
+    inline CanandmagSettings GetSettings(wpi::units::second_t timeout = 350_ms, wpi::units::second_t missingTimeout = 20_ms, uint32_t attempts = 3) { 
         return stg.GetSettings(timeout, missingTimeout, attempts); 
     }
 
@@ -345,7 +345,7 @@ class Canandmag : public redux::canand::CanandDevice{
      * @param attempts the maxinum number of attempts to write each individual settings
      * @return CanandmagSettings object of unsuccessfully set settings. 
      */
-    inline CanandmagSettings SetSettings(CanandmagSettings& settings, units::second_t timeout = 20_ms, uint32_t attempts = 3) {
+    inline CanandmagSettings SetSettings(CanandmagSettings& settings, wpi::units::second_t timeout = 20_ms, uint32_t attempts = 3) {
         return stg.SetSettings(settings, timeout, attempts);
     }
 
@@ -358,7 +358,7 @@ class Canandmag : public redux::canand::CanandDevice{
      * @return CanandmagSettings object of received settings. 
      *     Use CanandmagSettings.AllSettingsReceived() to verify success.
      */
-    inline CanandmagSettings ResetFactoryDefaults(bool clearZero = false, units::second_t timeout = 350_ms) {
+    inline CanandmagSettings ResetFactoryDefaults(bool clearZero = false, wpi::units::second_t timeout = 350_ms) {
         uint8_t val = ((clearZero) ? details::SettingCommand::kResetFactoryDefault 
                                    : details::SettingCommand::kResetFactoryDefaultKeepZero);
         return stg.SendReceiveSettingCommand(val, timeout, true);
@@ -381,19 +381,19 @@ class Canandmag : public redux::canand::CanandDevice{
      * redux::canand::FrameData objects are immutable.
      * @return the current position frame, which will hold the current position in the same units as Canandmag::GetPosition()
      */
-    inline redux::frames::Frame<units::turn_t>& GetPositionFrame() { return position; }
+    inline redux::frames::Frame<wpi::units::turn_t>& GetPositionFrame() { return position; }
 
     /**
      * Returns the current absolute position frame, which includes CAN timestamp data.
      * @return the current position frame, which will hold the current position in the same units as Canandmag::getAbsPosition()
      */
-    inline redux::frames::Frame<units::turn_t>& GetAbsPositionFrame() { return absPosition; }
+    inline redux::frames::Frame<wpi::units::turn_t>& GetAbsPositionFrame() { return absPosition; }
 
     /**
      * Returns the current velocity frame, which includes CAN timestamp data.
      * @return the current velocity frame, which will hold the current velocity in the same units as Canandmag::getVelocity()
      */
-    inline redux::frames::Frame<units::turns_per_second_t>& GetVelocityFrame() { return velocity; }
+    inline redux::frames::Frame<wpi::units::turns_per_second_t>& GetVelocityFrame() { return velocity; }
 
     /**
      * Returns a handle to the current status frame, which includes CAN timestamp data.
@@ -419,13 +419,13 @@ class Canandmag : public redux::canand::CanandDevice{
     protected:
 
     /** internal Frame variable holding current relative position state */
-    redux::frames::Frame<units::turn_t> position{0.0_tr, 0_ms};
+    redux::frames::Frame<wpi::units::turn_t> position{0.0_tr, 0_ms};
 
     /** internal Frame variable holding current absolute position state */
-    redux::frames::Frame<units::turn_t> absPosition{0.0_tr, 0_ms};
+    redux::frames::Frame<wpi::units::turn_t> absPosition{0.0_tr, 0_ms};
 
     /** internal Frame variable holding current velocity state */
-    redux::frames::Frame<units::turns_per_second_t> velocity{0_tps, 0_ms};
+    redux::frames::Frame<wpi::units::turns_per_second_t> velocity{0_tps, 0_ms};
 
     /** internal Frame variable holding current status value state */
     redux::frames::Frame<CanandmagStatus> status{CanandmagStatus{0, 0, false, 30_degC, false}, 0_ms};
@@ -435,7 +435,7 @@ class Canandmag : public redux::canand::CanandDevice{
     private:
 
     bool dataRecvOnce{false};
-    units::second_t lastMessageTime{0_s};
+    wpi::units::second_t lastMessageTime{0_s};
     redux::canand::CooldownWarning setAbsPositionWarning{1_s, 5};
     redux::canand::CanandAddress addr;
 

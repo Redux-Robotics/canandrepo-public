@@ -1,6 +1,3 @@
-#[cfg(feature = "wpihal-rio")]
-pub mod halcan;
-
 #[cfg(target_os = "linux")]
 pub mod socketcan;
 

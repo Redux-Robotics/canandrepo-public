@@ -5,7 +5,7 @@ package com.reduxrobotics.sensors.canandgyro;
 
 import com.reduxrobotics.sensors.canandgyro.wpistruct.CanandgyroFaultsStruct;
 
-import edu.wpi.first.util.struct.StructSerializable;
+import org.wpilib.util.struct.StructSerializable;
 
 /**
  * A class to hold device faults for the {@link Canandgyro}, as returned by 

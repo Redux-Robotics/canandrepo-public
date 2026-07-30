@@ -3,8 +3,6 @@
 
 package com.reduxrobotics.sensors.canandcolor;
 
-import edu.wpi.first.math.MathUtil;
-
 /**
  * 
  * Represents a digital output slot -- programmable digital logic updated at 1000 Hz to evaluate sensor conditions fast.
@@ -301,7 +299,7 @@ class DigoutSlot {
      * @return 21-bit value. 
      */
     public static int computeAdditiveImmidiate(double value) {
-        return (int) (MathUtil.clamp(value, -1.0, 1.0) * ((1 << 20)-1));
+        return (int) (Math.clamp(value, -1.0, 1.0) * ((1 << 20)-1));
     }
 
     /**
@@ -310,7 +308,7 @@ class DigoutSlot {
      * @return 8-bit scaling immidiate
      */
     public static int computeMultiplicativeImmidiate(double value) {
-        return MathUtil.clamp((int) (value * 256) , 1, 256) - 1;
+        return Math.clamp((int) (value * 256) , 1, 256) - 1;
     }
 
     /**
@@ -319,7 +317,7 @@ class DigoutSlot {
      * @return 21-bit timing immidiate 
      */
     public static int computeTimingImmidiate(double value) {
-        return MathUtil.clamp((int) (value * 1000), 0, (1<<20)-1);
+        return Math.clamp((int) (value * 1000), 0, (1<<20)-1);
     }
 
     /**

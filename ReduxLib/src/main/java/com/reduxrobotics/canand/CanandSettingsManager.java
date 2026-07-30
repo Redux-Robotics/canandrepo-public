@@ -7,7 +7,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import edu.wpi.first.wpilibj.DriverStation;
+import org.wpilib.driverstation.Alert;
 
 /**
  * Common logic for settings management for {@link CanandDevice}s.
@@ -23,6 +23,7 @@ public class CanandSettingsManager<T extends CanandSettings> {
     private T knownSettings;
     private CanandSettingsCtor<T> ctor;
     private CanandDevice dev;
+    private Alert alert;
 
     /** Object used as a synchronization flag for individual setting receives. */
     private final Object settingRecvFlag = new Object();
@@ -145,6 +146,7 @@ public class CanandSettingsManager<T extends CanandSettings> {
         this.ctor = ctor;
         this.knownSettings = ctor.construct();
         this.settingsSubset = this.knownSettings.fetchSettingsAddresses();
+        this.alert = CanandUtils.canandAlert(Alert.Level.LOW);
     }
 
     /**
@@ -310,8 +312,9 @@ public class CanandSettingsManager<T extends CanandSettings> {
     public boolean setSettings(T settings, double timeout) {
         T missed = setSettings(settings, timeout, 3);
         if (!missed.isEmpty()) {
-            DriverStation.reportError(String.format("%d settings could not be applied to %s", 
-                missed.getMap().size(), dev.toString()), true);
+            alert.setText(String.format("%d settings could not be applied to %s", 
+                missed.getMap().size(), dev.toString()));
+            alert.set(true);
             return false;
         }
         return true;

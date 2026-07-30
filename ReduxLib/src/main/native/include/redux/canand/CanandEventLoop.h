@@ -47,5 +47,5 @@ namespace redux::canand {
      * @param device the CanandDevice to act on
      * @param threshold the new threshold, in seconds. 
      */
-    void SetDevicePresenceThreshold(const CanandDevice& device, units::second_t threshold);
+    void SetDevicePresenceThreshold(const CanandDevice& device, wpi::units::second_t threshold);
 }

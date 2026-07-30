@@ -5,8 +5,8 @@
 #include <cinttypes>
 #include <unordered_map>
 #include <optional>
-#include <units/time.h>
-#include <units/angle.h>
+#include <wpi/units/time.hpp>
+#include <wpi/units/angle.hpp>
 #include "redux/canand/CanandSettings.h"
 #include "CanandcolorDetails.h"
 #include "ColorPeriod.h"
@@ -46,52 +46,52 @@ class CanandcolorSettings : public redux::canand::CanandSettings {
    * @param period frame period; clamped by the device
    * @return reference to this object
    */
-  CanandcolorSettings& SetStatusFramePeriod(units::second_t period);
+  CanandcolorSettings& SetStatusFramePeriod(wpi::units::second_t period);
 
   /**
    * Sets the proximity frame period.
    * @param period frame period; clamped by the device
    * @return reference to this object
    */
-  CanandcolorSettings& SetProximityFramePeriod(units::second_t period);
+  CanandcolorSettings& SetProximityFramePeriod(wpi::units::second_t period);
 
   /**
    * Sets the color frame period.
    * @param period frame period; clamped by the device
    * @return reference to this object
    */
-  CanandcolorSettings& SetColorFramePeriod(units::second_t period);
+  CanandcolorSettings& SetColorFramePeriod(wpi::units::second_t period);
 
   /**
    * Sets the digital output frame period.
    * @param period frame period; clamped by the device
    * @return reference to this object
    */
-  CanandcolorSettings& SetDigoutFramePeriod(units::second_t period);
+  CanandcolorSettings& SetDigoutFramePeriod(wpi::units::second_t period);
 
   /**
    * Gets the configured status frame period, if present.
    * @return optional frame period
    */
-  std::optional<units::second_t> GetStatusFramePeriod();
+  std::optional<wpi::units::second_t> GetStatusFramePeriod();
 
   /**
    * Gets the configured proximity frame period, if present.
    * @return optional frame period
    */
-  std::optional<units::second_t> GetProximityFramePeriod();
+  std::optional<wpi::units::second_t> GetProximityFramePeriod();
 
   /**
    * Gets the configured color frame period, if present.
    * @return optional frame period
    */
-  std::optional<units::second_t> GetColorFramePeriod();
+  std::optional<wpi::units::second_t> GetColorFramePeriod();
 
   /**
    * Gets the configured digital output frame period, if present.
    * @return optional frame period
    */
-  std::optional<units::second_t> GetDigoutFramePeriod();
+  std::optional<wpi::units::second_t> GetDigoutFramePeriod();
 
   /**
    * Sets the lamp LED brightness.

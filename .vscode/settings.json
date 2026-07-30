@@ -1,13 +1,33 @@
 {
     "cmake.ignoreCMakeListsMissing": true,
-    //"rust-analyzer.check.allTargets": tru,
     "evenBetterToml.schema.enabled": false,
     "rust-analyzer.linkedProjects": [
         "canandmessage/Cargo.toml",
         "reduxfifo/Cargo.toml",
+        "reduxfifo/xtask/Cargo.toml",
         "crates/Cargo.toml",
     ],
     "C_Cpp.errorSquiggles": "disabled",
-    "java.configuration.updateBuildConfiguration": "disabled",
+    "java.configuration.updateBuildConfiguration": "automatic",
     "python.analysis.typeCheckingMode": "standard",
+
+    "files.exclude": {
+        "**/.classpath": true,
+        "**/.project": true,
+        "**/.settings": true,
+        "**/.factorypath": true
+    },
+    "C_Cpp.default.configurationProvider": "vscode-wpilib",
+    "files.watcherExclude": {
+        "**/target": true
+    },
+    "terminal.integrated.env.windows": {
+        "JAVA_HOME": "C:\\Users\\Public\\wpilib\\2027_alpha5\\jdk"
+    },
+    "terminal.integrated.env.osx": {
+        "JAVA_HOME": "${env:HOME}/wpilib/2027_alpha5/jdk"
+    },
+    "terminal.integrated.env.linux": {
+        "JAVA_HOME": "${env:HOME}/wpilib/2027_alpha5/jdk"
+    }
 }

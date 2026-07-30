@@ -3,16 +3,11 @@
 
 package com.reduxrobotics.sensors.canandcolor;
 
-import java.util.concurrent.atomic.AtomicInteger;
-
 import com.reduxrobotics.canand.*;
 import com.reduxrobotics.frames.DoubleFrame;
 import com.reduxrobotics.frames.Frame;
 import com.reduxrobotics.frames.FrameData;
 import com.reduxrobotics.frames.LongFrame;
-
-import edu.wpi.first.hal.HAL;
-import edu.wpi.first.hal.FRCNetComm.tResourceType;
 
 /**
  * Class for the CAN interface of the 
@@ -109,7 +104,6 @@ public class Canandcolor extends CanandDevice {
     private final CanandSettingsManager<CanandcolorSettings> stg;
     private final DigoutChannel digout1;
     private final DigoutChannel digout2;
-    private static AtomicInteger reportingIndex = new AtomicInteger(0);
 
     /**
      * Instantiates a new Canandcolor object. 
@@ -119,7 +113,18 @@ public class Canandcolor extends CanandDevice {
      * @param devID the device id to use [0..63]
      */
     public Canandcolor(int devID) {
-        this(devID, "halcan");
+        this(devID, 0);
+    }
+
+    /// Instantiates a new Canandcolor object.
+    /// 
+    /// This object will be constant with respect to whatever CAN id assigned to it, so if a device 
+    /// changes id it may change which device this object reads from.
+    /// 
+    /// @param devID the device id to use [0..=63]
+    /// @param busID the CAN bus ID to use [0..=4]
+    public Canandcolor(int devID, int busID) {
+        this(devID, "socketcan:can_s" + busID);
     }
 
     /**
@@ -137,7 +142,7 @@ public class Canandcolor extends CanandDevice {
         digout1 = new DigoutChannel(this, DigoutChannel.Index.kDigout1);
         digout2 = new DigoutChannel(this, DigoutChannel.Index.kDigout2);
 
-        HAL.report(tResourceType.kResourceType_Redux_future2, reportingIndex.incrementAndGet());
+        CanandUtils.reportUsage("Canandcolor", bus, devID);
     }
 
     /**

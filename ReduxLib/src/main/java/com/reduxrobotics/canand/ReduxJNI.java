@@ -7,8 +7,6 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import edu.wpi.first.util.RuntimeLoader;
-
 
 /**
  * Java side of the Redux device driver JNI wrapper.
@@ -17,15 +15,6 @@ import edu.wpi.first.util.RuntimeLoader;
  */
 public class ReduxJNI {
   private ReduxJNI() {}
-  /** Supported driver year */
-  public static final int DRIVER_YEAR = 2026;
-
-  /** Supported driver major version */
-  public static final int DRIVER_MAJOR_VERSION = 1;
-
-  /** Supported driver minor version */
-  public static final int DRIVER_MINOR_VERSION = 2;
-
   static boolean libraryLoaded = false;
 
   static class WrongDriverVersionException extends RuntimeException {
@@ -70,8 +59,8 @@ public class ReduxJNI {
   static {
     if (Helper.getExtractOnStaticLoad()) {
       try {
-        RuntimeLoader.loadLibrary("reduxfifo");
-      } catch (IOException ex) {
+        System.loadLibrary("reduxfifo");
+      } catch (UnsatisfiedLinkError ex) {
         ex.printStackTrace();
         System.exit(1);
       }
@@ -87,7 +76,7 @@ public class ReduxJNI {
     if (libraryLoaded) {
       return;
     }
-    RuntimeLoader.loadLibrary("reduxfifo");
+    System.loadLibrary("reduxfifo");
     libraryLoaded = true;
   }
 
@@ -99,20 +88,6 @@ public class ReduxJNI {
    */
   public static int init() {
     if(!initialized) {
-      int ver = getDriverVersion();
-      int yearVer = ((ver >> 16) & 0xffff);
-      int majorVer = ((ver >> 8) & 0xff);
-      int minorVer = (ver & 0xff);
-
-      if ( yearVer != DRIVER_YEAR ||
-           majorVer != DRIVER_MAJOR_VERSION ||
-           minorVer != DRIVER_MINOR_VERSION) {
-        throw new WrongDriverVersionException(String.format("ReduxCore version v%d.%d.%d does not match vendordep version v%d.%d.%d", 
-            yearVer, majorVer, minorVer,
-            DRIVER_YEAR, DRIVER_MAJOR_VERSION, DRIVER_MINOR_VERSION
-        ));
-      }
-
       initialize();
       initServer();
       Runtime.getRuntime().addShutdownHook(new Thread(() -> {

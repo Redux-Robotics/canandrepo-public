@@ -8,7 +8,7 @@ import java.nio.ByteBuffer;
 import com.reduxrobotics.sensors.canandcolor.CanandcolorFaults;
 import com.reduxrobotics.sensors.canandcolor.CanandcolorStatus;
 
-import edu.wpi.first.util.struct.Struct;
+import org.wpilib.util.struct.Struct;
 
 /** WPILib struct implementation for {@link CanandcolorStatus} */
 public class CanandcolorStatusStruct implements Struct<CanandcolorStatus> {
@@ -25,7 +25,7 @@ public class CanandcolorStatusStruct implements Struct<CanandcolorStatus> {
 
     @Override
     public int getSize() {
-        return 2 + kSizeDouble;
+        return 2 + DOUBLE_SIZE;
     }
 
     @Override

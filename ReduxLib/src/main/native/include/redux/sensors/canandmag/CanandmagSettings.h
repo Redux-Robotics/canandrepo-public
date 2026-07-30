@@ -5,8 +5,8 @@
 #include <cinttypes>
 #include <unordered_map>
 #include <optional>
-#include <units/time.h>
-#include <units/angle.h>
+#include <wpi/units/time.hpp>
+#include <wpi/units/angle.hpp>
 #include "redux/canand/CanandSettings.h"
 
 namespace redux::sensors::canandmag {
@@ -63,7 +63,7 @@ class CanandmagSettings : public redux::canand::CanandSettings {
      * 
      * @param widthMs the new number of samples to average over. Minimum accepted is 0.25 milliseconds, maximum is 63.75 ms.
      */
-    void SetVelocityFilterWidth(units::millisecond_t widthMs);
+    void SetVelocityFilterWidth(wpi::units::millisecond_t widthMs);
 
     /**
      * Sets the position frame period in seconds. 
@@ -73,7 +73,7 @@ class CanandmagSettings : public redux::canand::CanandSettings {
      * 
      * @param period the new period for position frames in seconds in range [0_s, 65.535_s].
      */
-    void SetPositionFramePeriod(units::second_t period);
+    void SetPositionFramePeriod(wpi::units::second_t period);
 
     /**
      * Sets the velocity frame period in seconds. 
@@ -83,7 +83,7 @@ class CanandmagSettings : public redux::canand::CanandSettings {
      * 
      * @param period the new period for velocity frames in seconds in range [0_s, 65.535_s].
      */
-    void SetVelocityFramePeriod(units::second_t period);
+    void SetVelocityFramePeriod(wpi::units::second_t period);
 
     /**
      * Sets the status frame period in seconds. 
@@ -91,7 +91,7 @@ class CanandmagSettings : public redux::canand::CanandSettings {
      * 
      * @param period the new period for status frames in seconds in range [0.001_s, 16.383_s].
      */
-    void SetStatusFramePeriod(units::second_t period);
+    void SetStatusFramePeriod(wpi::units::second_t period);
 
     /**
      * Inverts the direction read from the sensor. By factory default, the sensor will read counterclockwise from its reading face
@@ -118,34 +118,34 @@ class CanandmagSettings : public redux::canand::CanandSettings {
      * 
      * @param offset the new offset in rotations [0..1)
      */
-    void SetZeroOffset(units::turn_t offset);
+    void SetZeroOffset(wpi::units::turn_t offset);
 
     /**
      * Gets the velocity filter width in milliseconds [0.25..63.75], or std::nullopt if the value has not been set on this object.
      * @return the velocity filter width in milliseconds [0.25..63.75], or std::nullopt if the value has not been set on this object.
      */
-    std::optional<units::millisecond_t> GetVelocityFilterWidth();
+    std::optional<wpi::units::millisecond_t> GetVelocityFilterWidth();
 
     /**
      * Gets the position frame period in seconds [0..65.535], or std::nullopt if the value has not been set on this object.
      * A value of 0 means position messages are disabled.
      * @return the position frame period in seconds [0..65.535], or std::nullopt if the value has not been set on this object.
      */
-    std::optional<units::second_t> GetPositionFramePeriod();
+    std::optional<wpi::units::second_t> GetPositionFramePeriod();
 
     /**
      * Gets the velocity frame period in seconds [0..65.535], or std::nullopt if the value has not been set on this object.
      * A value of 0 means velocity messages are disabled.
      * @return the velocity frame period in seconds [0..65.535], or std::nullopt if the value has not been set on this object.
      */
-    std::optional<units::second_t> GetVelocityFramePeriod();
+    std::optional<wpi::units::second_t> GetVelocityFramePeriod();
 
     /**
      * Gets the status frame period in seconds [0.001..16.383], or std::nullopt if the value has not been set on this object.
      * A value of 0 means status messages are disabled.
      * @return the status frame period in seconds [0.001..16.383], or std::nullopt if the value has not been set on this object.
      */
-    std::optional<units::second_t> GetStatusFramePeriod();
+    std::optional<wpi::units::second_t> GetStatusFramePeriod();
 
     /**
      * Gets whether or not the encoder has an inverted direction (0 for no, 1 for yes, std::nullopt for unset).
@@ -167,6 +167,6 @@ class CanandmagSettings : public redux::canand::CanandSettings {
      * 
      * @return the zero offset [0..1), or std::nullopt if the value has not been set on this object.
      */
-    std::optional<units::turn_t> GetZeroOffset();
+    std::optional<wpi::units::turn_t> GetZeroOffset();
 };
 }

@@ -12,23 +12,12 @@
 #include "redux/canand/CanandMessage.h"
 #include "ReduxCore.h"
 #include "ReduxFIFO.h"
-#include <units/time.h>
-#include "frc/Notifier.h"
-#include "frc/Errors.h"
-#include "frc/Timer.h"
+#include <wpi/units/time.hpp>
+#include <wpi/system/Notifier.hpp>
+#include <wpi/hal/Errors.h>
+#include <wpi/system/Timer.hpp>
 #include "fmt/format.h"
 #include <atomic>
-
-/** Supported driver year */
-constexpr int DRIVER_YEAR = 2026;
-
-/** Supported driver major version */
-constexpr int DRIVER_MAJOR_VERSION = 1;
-
-/** Supported driver minor version */
-constexpr int DRIVER_MINOR_VERSION = 2;
-
-constexpr int DRIVER_NUMER = (DRIVER_YEAR << 16) | (DRIVER_MAJOR_VERSION << 8) | (DRIVER_MINOR_VERSION);
 
 static std::thread run_thread;
 static bool running = false;
@@ -47,7 +36,7 @@ struct DeviceEntry {
     redux::canand::CanandDevice* device;
     CheckState state{kUnchecked};
     bool enabled{true};
-    units::second_t presence_threshold{2_s};
+    wpi::units::second_t presence_threshold{2_s};
     uint8_t repeatTimeout = 20;
     DeviceEntry(redux::canand::CanandDevice* device) : device{device} {};
     virtual ~DeviceEntry() = default;
@@ -78,7 +67,7 @@ public:
                                 device.HandleMessage(msg);
                             }
                         } catch (std::exception& exc) {
-                            FRC_ReportError(frc::err::Error, "Exception in CanandEventLoop message listener:\n{}", exc.what());
+                            fmt::println(stderr,  "Exception in CanandEventLoop message listener:\n{}", exc.what());
                         }
                     }
                 }
@@ -98,13 +87,13 @@ private:
 static CanandEventLoop event_loop{};
 
 static void report_missing_device(redux::canand::CanandDevice& device) {
-    FRC_ReportError(frc::warn::Warning, 
-                        "{} possibly disconnected from bus -- check robot wiring and/or frame periods!",
-                        device.GetDeviceName());
+    fmt::println(stderr,
+            "{} possibly disconnected from bus -- check robot wiring and/or frame periods!",
+            device.GetDeviceName());
 }
 static void device_checker_task() {
     std::lock_guard<std::mutex> guard(thread_lock);
-    if (frc::Timer::GetFPGATimestamp() < 2_s) { return; }
+    if (wpi::Timer::GetMonotonicTimestamp() < 2_s) { return; }
     for (auto& ent : event_loop.listeners) {
         redux::canand::CanandDevice& device = *ent.device;
         switch (ent.state) {
@@ -145,8 +134,8 @@ static void device_checker_task() {
     }
 }
 
-frc::Notifier& device_checker_notifier() {
-    static frc::Notifier device_checker{1, device_checker_task};
+wpi::Notifier& device_checker_notifier() {
+    static wpi::Notifier device_checker{1, device_checker_task};
     return device_checker;
 }
 
@@ -162,18 +151,6 @@ static void CanandEventLoop_shutdownHook() {
 static void CanandEventLoop_ensureRunning() {
     // not thread safe. assumes you're holding thread_lock.
     if (!running) {
-        int ver = ReduxCore_GetVersion();
-        int yearVer = ((ver >> 16) & 0xffff);
-        int majorVer = ((ver >> 8) & 0xff);
-        int minorVer = (ver & 0xff);
-        if (ver != DRIVER_NUMER) {
-            FRC_ReportError(frc::err::Error, "Fatal Error: ReduxCore version v{}.{}.{} does not match vendordep version v{}.{}.{}",
-                yearVer, majorVer, minorVer,
-                DRIVER_YEAR, DRIVER_MAJOR_VERSION, DRIVER_MINOR_VERSION
-            );
-            std::exit(1);
-        }
-
         ReduxCore_InitServer();
         running = true;
         run_thread = std::thread(std::bind(&::CanandEventLoop::run, &event_loop));
@@ -232,7 +209,7 @@ namespace redux::canand {
         ent->enabled = enabled;
     }
 
-    void SetDevicePresenceThreshold(const CanandDevice& device, units::second_t threshold) {
+    void SetDevicePresenceThreshold(const CanandDevice& device, wpi::units::second_t threshold) {
         std::lock_guard<std::mutex> guard(thread_lock);
         DeviceEntry* ent = get_device_entry_if_exists(device);
         if (ent == nullptr) return;

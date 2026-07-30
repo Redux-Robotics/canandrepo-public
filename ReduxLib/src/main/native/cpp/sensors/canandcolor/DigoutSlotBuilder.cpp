@@ -50,19 +50,19 @@ DigoutSlotBuilder& DigoutSlotBuilder::DirectSourceToSource(DataSource lhs, DataS
   return *this;
 }
 
-DigoutSlotBuilder& DigoutSlotBuilder::PrevSlotTrue(units::millisecond_t durationMs) {
+DigoutSlotBuilder& DigoutSlotBuilder::PrevSlotTrue(wpi::units::millisecond_t durationMs) {
   additiveImmediate = DigoutSlot::ComputeTimingImmediate(durationMs.value());
   opcode = DigoutOperation::kPrevSlotTrue;
   return *this;
 }
 
-DigoutSlotBuilder& DigoutSlotBuilder::PrevChainTrueFor(units::millisecond_t durationMs) {
+DigoutSlotBuilder& DigoutSlotBuilder::PrevChainTrueFor(wpi::units::millisecond_t durationMs) {
   additiveImmediate = DigoutSlot::ComputeTimingImmediate(durationMs.value());
   opcode = DigoutOperation::kPrevClauseTrue;
   return *this;
 }
 
-DigoutSlotBuilder& DigoutSlotBuilder::TrueFor(units::millisecond_t durationMs) {
+DigoutSlotBuilder& DigoutSlotBuilder::TrueFor(wpi::units::millisecond_t durationMs) {
   additiveImmediate = DigoutSlot::ComputeTimingImmediate(durationMs.value());
   opcode = DigoutOperation::kEquals;
   return *this;

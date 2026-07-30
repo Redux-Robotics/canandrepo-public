@@ -27,6 +27,7 @@ class CanandSettings {
      * @param stg reference to another CanandSettings.
      */
     CanandSettings(CanandSettings& stg) : values{stg.FilteredMap()} {};
+    CanandSettings(CanandSettings&&) = default;
 
     /** Destructor. */
     ~CanandSettings() = default;

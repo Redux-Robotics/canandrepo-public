@@ -41,7 +41,7 @@ class MessageBus {
      * If the bus is not opened, it will attempt to be opened.
      * 
      * If the bus cannot be opened, an error will be thrown.
-     * @param busString bus string, e.g. "halcan", "socketcan:can_s0", or "slcan:115200:/dev/ttyAMA0"
+     * @param busString bus string, e.g. "socketcan:can_s0", "socketcan:can_s0", or "slcan:115200:/dev/ttyAMA0"
      * @return bus instance
      */
     static MessageBus ByBusString(std::string busString);

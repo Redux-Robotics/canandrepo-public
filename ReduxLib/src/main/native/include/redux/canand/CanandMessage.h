@@ -3,7 +3,7 @@
 
 #pragma once
 #include <stdint.h>
-#include <units/time.h>
+#include <wpi/units/time.hpp>
 #include <array>
 #include "MessageBus.h"
 #include "CanandUtils.h"
@@ -101,7 +101,7 @@ class CanandMessage {
    * The time base is relative to the FPGA timestamp.
    * @return timestamp in seconds.
    */
-  inline units::second_t GetTimestamp() { return units::microsecond_t{static_cast<double>(timestamp)}; }
+  inline wpi::units::second_t GetTimestamp() { return wpi::units::microsecond_t{static_cast<double>(timestamp)}; }
 
   /**
    * Gets an object representing the CAN bus that received the message

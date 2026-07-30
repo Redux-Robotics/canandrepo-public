@@ -3,7 +3,7 @@
 
 package com.reduxrobotics.canand;
 
-import edu.wpi.first.wpilibj.DriverStation;
+import org.wpilib.driverstation.Alert;
 
 /**
  * Class that yells at the user if {@link #feed} is called too often in too short a succession.
@@ -12,8 +12,8 @@ import edu.wpi.first.wpilibj.DriverStation;
  */
 public class CooldownWarning {
     private double count[];
-    private final String warning;
     private final double thresholdSeconds;
+    private final Alert alert;
     private int idx = 0;
     private boolean latch = false;
 
@@ -25,8 +25,8 @@ public class CooldownWarning {
      * @param thresholdCount Number of calls that must pass within thresholdSeconds to trigger the warning
      */
     public CooldownWarning(String warning, double thresholdSeconds, int thresholdCount) {
-        this.warning = warning;
         this.thresholdSeconds = thresholdSeconds;
+        this.alert =  CanandUtils.canandAlert(Alert.Level.HIGH);
         count = new double[thresholdCount];
         for (int i = 0; i < count.length; i++) {
             count[i] = 0; 
@@ -43,7 +43,7 @@ public class CooldownWarning {
         idx = (idx + 1) % count.length;
         double past = count[idx];
         if ((now - past) < thresholdSeconds) {
-            DriverStation.reportError(warning, true);
+            alert.set(true);
             latch = true;
         }
     }

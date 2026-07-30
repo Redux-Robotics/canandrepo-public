@@ -7,7 +7,7 @@ import java.nio.ByteBuffer;
 
 import com.reduxrobotics.sensors.canandgyro.CanandgyroFaults;
 
-import edu.wpi.first.util.struct.Struct;
+import org.wpilib.util.struct.Struct;
 
 /** WPILib struct implementation for {@link CanandgyroFaults} */
 public class CanandgyroFaultsStruct implements Struct<CanandgyroFaults> {

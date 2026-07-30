@@ -12,7 +12,7 @@
 #include <inttypes.h>
 #include "redux/canand/CanandAddress.h"
 #include "redux/canand/CanandFirmwareVersion.h"
-#include "units/time.h"
+#include <wpi/units/time.hpp>
 #include <string>
 #include <vector>
 
@@ -65,7 +65,7 @@ class CanandDevice {
      * @param timeout window to check for message updates in seconds. Default 2
      * @return true if there has been a message within the last timeout seconds, false if not
      */
-    bool IsConnected(units::second_t timeout = 2_s);
+    bool IsConnected(wpi::units::second_t timeout = 2_s);
 
     /**
      * Returns a canonical class-wide device name.
@@ -140,7 +140,7 @@ class CanandDevice {
    * This is timed with respect to the FPGA timer and is updated before HandleMessage gets called
    * (it's updated in preHandleMessage).
   */
-    std::optional<units::second_t> lastMessageTs{std::nullopt};
+    std::optional<wpi::units::second_t> lastMessageTs{std::nullopt};
 };
 
 

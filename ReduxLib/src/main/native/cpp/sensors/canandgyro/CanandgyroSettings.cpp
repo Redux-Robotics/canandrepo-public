@@ -12,54 +12,54 @@ namespace redux::sensors::canandgyro {
         return setting::VDEP_SETTINGS; 
     }
 
-    void CanandgyroSettings::SetYawFramePeriod(units::second_t period) {
+    void CanandgyroSettings::SetYawFramePeriod(wpi::units::second_t period) {
         if (period < 0_ms || period > 65535_ms) { throw std::out_of_range("period must be between 0_s and 65.535_s");}
-        values[setting::kYawFramePeriod] = period.convert<units::milliseconds>().to<uint16_t>();
+        values[setting::kYawFramePeriod] = period.convert<wpi::units::milliseconds>().to<uint16_t>();
     }
 
-    void CanandgyroSettings::SetAngularPositionFramePeriod(units::second_t period) {
+    void CanandgyroSettings::SetAngularPositionFramePeriod(wpi::units::second_t period) {
         if (period < 0_ms || period > 65535_ms) { throw std::out_of_range("period must be between 0_s and 65.535_s");}
-        values[setting::kAngularPositionFramePeriod]  = period.convert<units::milliseconds>().to<uint16_t>();
+        values[setting::kAngularPositionFramePeriod]  = period.convert<wpi::units::milliseconds>().to<uint16_t>();
     }
 
-    void CanandgyroSettings::SetAngularVelocityFramePeriod(units::second_t period) {
+    void CanandgyroSettings::SetAngularVelocityFramePeriod(wpi::units::second_t period) {
         if (period < 0_ms || period > 65535_ms) { throw std::out_of_range("period must be between 0_s and 65.535_s");}
-        values[setting::kAngularVelocityFramePeriod]  = period.convert<units::milliseconds>().to<uint16_t>();
+        values[setting::kAngularVelocityFramePeriod]  = period.convert<wpi::units::milliseconds>().to<uint16_t>();
     }
 
-    void CanandgyroSettings::SetAccelerationFramePeriod(units::second_t period) {
+    void CanandgyroSettings::SetAccelerationFramePeriod(wpi::units::second_t period) {
         if (period < 0_ms || period > 65535_ms) { throw std::out_of_range("period must be between 0_s and 65.535_s");}
-        values[setting::kAccelerationFramePeriod]  = period.convert<units::milliseconds>().to<uint16_t>();
+        values[setting::kAccelerationFramePeriod]  = period.convert<wpi::units::milliseconds>().to<uint16_t>();
     }
 
-    void CanandgyroSettings::SetStatusFramePeriod(units::second_t period) {
+    void CanandgyroSettings::SetStatusFramePeriod(wpi::units::second_t period) {
         if (period < 1_ms || period > 16383_ms) { throw std::out_of_range("period must be between 0.001_s and 16.383_s");}
-        values[setting::kStatusFramePeriod] = period.convert<units::milliseconds>().to<uint16_t>();
+        values[setting::kStatusFramePeriod] = period.convert<wpi::units::milliseconds>().to<uint16_t>();
     }
 
-    std::optional<units::second_t> CanandgyroSettings::GetYawFramePeriod() {
+    std::optional<wpi::units::second_t> CanandgyroSettings::GetYawFramePeriod() {
         if (!values.contains(setting::kYawFramePeriod)) return std::nullopt;
-        return std::optional<units::millisecond_t>{values[setting::kYawFramePeriod]};
+        return std::optional<wpi::units::millisecond_t>{values[setting::kYawFramePeriod]};
     }
 
-    std::optional<units::second_t> CanandgyroSettings::GetAngularPositionFramePeriod() {
+    std::optional<wpi::units::second_t> CanandgyroSettings::GetAngularPositionFramePeriod() {
         if (!values.contains(setting::kAngularPositionFramePeriod)) return std::nullopt;
-        return std::optional<units::millisecond_t>{values[setting::kAngularPositionFramePeriod]};
+        return std::optional<wpi::units::millisecond_t>{values[setting::kAngularPositionFramePeriod]};
     }
 
-    std::optional<units::second_t> CanandgyroSettings::GetAngularVelocityFramePeriod() {
+    std::optional<wpi::units::second_t> CanandgyroSettings::GetAngularVelocityFramePeriod() {
         if (!values.contains(setting::kAngularVelocityFramePeriod)) return std::nullopt;
-        return std::optional<units::millisecond_t>{values[setting::kAngularVelocityFramePeriod]};
+        return std::optional<wpi::units::millisecond_t>{values[setting::kAngularVelocityFramePeriod]};
     }
 
-    std::optional<units::second_t> CanandgyroSettings::GetAccelerationFramePeriod() {
+    std::optional<wpi::units::second_t> CanandgyroSettings::GetAccelerationFramePeriod() {
         if (!values.contains(setting::kAccelerationFramePeriod)) return std::nullopt;
-        return std::optional<units::millisecond_t>{values[setting::kAccelerationFramePeriod]};
+        return std::optional<wpi::units::millisecond_t>{values[setting::kAccelerationFramePeriod]};
     }
 
-    std::optional<units::second_t> CanandgyroSettings::GetStatusFramePeriod() {
+    std::optional<wpi::units::second_t> CanandgyroSettings::GetStatusFramePeriod() {
         if (!values.contains(setting::kStatusFramePeriod)) return std::nullopt;
-        return std::optional<units::millisecond_t>{values[setting::kStatusFramePeriod]};
+        return std::optional<wpi::units::millisecond_t>{values[setting::kStatusFramePeriod]};
     }
 
 }

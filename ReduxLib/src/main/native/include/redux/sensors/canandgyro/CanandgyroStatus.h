@@ -2,7 +2,7 @@
 // This is open source and can be modified and shared under the Mozilla Public License v2.0.
 
 #pragma once
-#include <units/temperature.h>
+#include <wpi/units/temperature.hpp>
 #include "redux/sensors/canandgyro/CanandgyroFaults.h"
 
 namespace redux::sensors::canandgyro {
@@ -18,7 +18,7 @@ struct CanandgyroStatus {
    * @param faultsValid whether the faults fields have valid data
    * @param temp MCU temp
   */
-  constexpr CanandgyroStatus(uint8_t activeFaultsRaw, uint8_t stickyFaultsRaw, bool faultsValid, units::celsius_t temp): \
+  constexpr CanandgyroStatus(uint8_t activeFaultsRaw, uint8_t stickyFaultsRaw, bool faultsValid, wpi::units::celsius_t temp): \
     activeFaults{activeFaultsRaw, faultsValid}, stickyFaults{stickyFaultsRaw, faultsValid}, temperature{temp} {};
   public:
     /** Active faults. */
@@ -26,6 +26,6 @@ struct CanandgyroStatus {
     /** Sticky faults. */
     CanandgyroFaults stickyFaults;
     /** Device MCU temperature (celsius). */
-    units::celsius_t temperature;
+    wpi::units::celsius_t temperature;
 };
 }

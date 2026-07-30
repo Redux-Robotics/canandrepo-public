@@ -16,56 +16,52 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          #- artifact-name: Systemcore
-          #  build-options: "headers linuxsystemcore"
-          #  reduxfifo-features: "systemcore"
-          #  reduxlib-options: "-Ponlylinuxsystemcore"
-          #  toolchain: "/opt/systemcore/bin"
-          - artifact-name: LinuxAthena
-            container: wpilib/roborio-cross-ubuntu:2025-22.04
-            build-options: "headers linuxathena"
-            reduxfifo-features: "athena"
-            reduxlib-options: "-Ponlylinuxathena"
+          - artifact-name: Systemcore
+            container: wpilib/systemcore-cross-ubuntu:2027-24.04
+            build-options: "headers linuxsystemcore"
+            reduxfifo-features: "systemcore"
+            reduxlib-options: "-Ponlylinuxsystemcore"
           - artifact-name: LinuxArm64
-            container: wpilib/aarch64-cross-ubuntu:bookworm-22.04
+            container: wpilib/aarch64-cross-ubuntu:2027-bookworm-24.04
             build-options: "headers linuxarm64"
-            reduxfifo-features: "athena"
+            reduxfifo-features: "simulation"
             reduxlib-options: "-Ponlylinuxarm64"
           - artifact-name: LinuxX86-64
-            container: wpilib/ubuntu-base:22.04
+            container: wpilib/systemcore-cross-ubuntu:2027-24.04
             build-options: "headers linuxx86-64"
-            reduxfifo-features: "athena"
-            reduxlib-options: "-Pskiplinuxathena"
+            reduxfifo-features: "simulation"
+            reduxlib-options: "-Pskiplinuxsystemcore"
 
     name: "Build Vendordep - ${{ matrix.artifact-name }}"
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     container: ${{ matrix.container }}
     steps:
       - name: Install build dependencies
         run: apt-get update && apt-get install -y build-essential libclang-dev
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           submodules: true
           fetch-depth: 0
       - name: Fetch all history and metadata
         run: |
           git config --global --add safe.directory /__w/${{ github.event.repository.name }}/${{ github.event.repository.name }}
-      - uses: actions-rust-lang/setup-rust-toolchain@v1.13
+      - uses: actions-rust-lang/setup-rust-toolchain@v1
         with:
           rustflags: "" # just put the artifacts in the bag
-          cache-workspaces: "crates -> crates/target\nreduxfifo -> reduxfifo/target"
+          cache-key: ${{ matrix.artifact-name }}
+          cache-workspaces: "crates -> crates/target\nreduxfifo -> reduxfifo/target\nreduxfifo/xtask -> reduxfifo/xtask/target"
       - name: Build maven artifact
         run: echo "$PATH" && cd reduxfifo && cargo xtask --all ${{ matrix.build-options }} -- --no-default-features --features ${{ matrix.reduxfifo-features }}
       - name: Build with Gradle
         run: ./gradlew publish -PreleaseMode -Pskiplinuxarm32 ${{ matrix.reduxlib-options }}
         working-directory: ReduxLib
       - name: Upload ReduxLib artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: ReduxLib-${{ matrix.artifact-name }}
           path: ReduxLib/build/repos/releases
       - name: Upload ReduxFIFO artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: ReduxFIFO-${{ matrix.artifact-name }}
           path: reduxfifo/target/maven
@@ -81,19 +77,19 @@ jobs:
             artifact-name: Windows
             architecture: x64
             build-options: "windowsx86-64"
-            reduxfifo-features: "athena"
-          - os: macos-14
+            reduxfifo-features: "simulation"
+          - os: macos-15
             artifact-name: macOS
             architecture: aarch64
             build-options: "osxuniversal"
-            reduxfifo-features: "athena"
+            reduxfifo-features: "simulation"
     name: "Build Vendordep - ${{ matrix.artifact-name }}"
     runs-on: "${{ matrix.os }}"
     steps:
       - if: runner.os == 'Windows'
         name: Workaround Windows being a bad operating system
         run: git config --system core.longpaths true
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           submodules: true
           fetch-depth: 0
@@ -101,26 +97,26 @@ jobs:
         uses: Homebrew/actions/setup-homebrew@main
       - if: runner.os == 'Windows'
         run: echo "C:\Program Files\Git\bin" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
-      - uses: actions-rust-lang/setup-rust-toolchain@v1.13
+      - uses: actions-rust-lang/setup-rust-toolchain@v1
         with:
           rustflags: ""
-          cache-workspaces: "crates -> crates/target\nreduxfifo -> reduxfifo/target"
-      - uses: actions/setup-java@v4
+          cache-workspaces: "crates -> crates/target\nreduxfifo -> reduxfifo/target\nreduxfifo/xtask -> reduxfifo/xtask/target"
+      - uses: actions/setup-java@v5
         with:
           distribution: 'temurin'
-          java-version: 17
+          java-version: 25
           architecture: ${{ matrix.architecture }}
       - name: Build ReduxFIFO
         run: cargo xtask --all headers ${{ matrix.build-options }} -- --no-default-features --features ${{ matrix.reduxfifo-features }}
         working-directory: reduxfifo
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: ReduxFIFO-${{ matrix.artifact-name }}
           path: reduxfifo/target/maven
       - name: Build ReduxLib with Gradle
-        run: ./gradlew publish -PreleaseMode -Pskiplinuxathena
+        run: ./gradlew publish -PreleaseMode -Pbuildalldesktop
         working-directory: ReduxLib
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: ReduxLib-${{matrix.artifact-name}}
           path: ReduxLib/build/repos/releases
@@ -130,13 +126,13 @@ jobs:
     needs: [build-vendordep-linux, build-vendordep-host]
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           submodules: true
           fetch-depth: 0
       - run: echo "REDUXLIB_VERSION=$(cat ReduxLib/version.txt)" >> "${GITHUB_OUTPUT}"
         id: reduxlib-version
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v8
         with:
           path: artifacts
       - name: Flatten Artifacts
@@ -144,7 +140,7 @@ jobs:
       - name: Generate vdep json
         run: (python3 mkvdepjson.py || true) && cp build/allOutputs/* ../final/vendordeps
         working-directory: ReduxLib
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: ReduxLib-offline-v${{ steps.reduxlib-version.outputs.REDUXLIB_VERSION }}-${{github.sha}}
           path: final

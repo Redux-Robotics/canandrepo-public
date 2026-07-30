@@ -6,9 +6,9 @@
 #include "redux/canand/CanandUtils.h"
 #include "ReduxCore.h"
 #include <chrono>
-#include "frc/Timer.h"
-#include "frc/Errors.h"
+#include <wpi/system/Timer.hpp>
 #include <fmt/format.h>
+#include <cstdio>
 
 
 namespace redux::canand {
@@ -18,17 +18,18 @@ void CanandDevice::CheckReceivedFirmwareVersion() {
     std::lock_guard<std::mutex> guard(settingRecvLock);
     if (!receivedFirmwareVersion.has_value()) {
         // yell that the device may not be on bus
-        FRC_ReportError(frc::err::Error, 
-        "{} did not respond to a firmware version check"
-        "-- is the device powered and connected to the robot?", 
-        GetDeviceName());
+        fmt::println(stderr, 
+            "{} did not respond to a firmware version check"
+            "-- is the device powered and connected to the robot?", 
+            GetDeviceName()
+        );
         return;
     }
 
     CanandFirmwareVersion version = *receivedFirmwareVersion;
     CanandFirmwareVersion minVersion = GetMinimumFirmwareVersion();
     if (version.ToSettingData() < minVersion.ToSettingData()) {
-        FRC_ReportError(frc::err::Error, 
+        fmt::println(stderr, 
         "{} is running too old firmware (v{}.{}.{}) < minimum v{}.{}.{})"
         "-- please update the device at to avoid unforeseen errors!",
         GetDeviceName(),
@@ -39,9 +40,9 @@ void CanandDevice::CheckReceivedFirmwareVersion() {
 
 
 
-bool CanandDevice::IsConnected(units::second_t timeout) {
+bool CanandDevice::IsConnected(wpi::units::second_t timeout) {
     if (!lastMessageTs.has_value()) { return false; }
-    return (frc::Timer::GetFPGATimestamp() - lastMessageTs.value_or(0_ms)) <= timeout;
+    return (wpi::Timer::GetMonotonicTimestamp() - lastMessageTs.value_or(0_ms)) <= timeout;
 }
 
 void CanandDevice::PreHandleMessage(CanandMessage& msg) {

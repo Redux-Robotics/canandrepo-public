@@ -5,7 +5,9 @@ package com.reduxrobotics.canand;
 
 import java.util.BitSet;
 
-import edu.wpi.first.hal.HALUtil;
+import org.wpilib.driverstation.Alert;
+import org.wpilib.hardware.hal.HAL;
+import org.wpilib.hardware.hal.HALUtil;
 
 /**
  * Series of utility functions for CAN messaging and bit manipulation.
@@ -257,7 +259,7 @@ public class CanandUtils {
      * Always returns the hardware FPGA timestamp.
      * 
      * <p> <i>Certain</i> popular libraries think it is really funny to replace 
-     * {@link edu.wpi.first.wpilibj.Timer#getFPGATimestamp} with a version that only updates 
+     * {@link org.wpilib.system.Timer#getMonotonicTimestamp} with a version that only updates 
      * every 20 milliseconds.
      * 
      * <p> Unfortunately for us, this makes ReduxLib internals not function correctly, so this calls 
@@ -266,6 +268,24 @@ public class CanandUtils {
      * @return the current time in seconds according to the FPGA
      */
     public static double getFPGATimestamp() {
-        return HALUtil.getFPGATime() / 1000000.0;
+        return HALUtil.getMonotonicTime() / 1000000.0;
+    }
+
+    /// Report usage.
+    public static void reportUsage(String resource, String bus, int id) {
+        HAL.reportUsage(
+            String.format("Redux/%s[%s][%d]", resource, bus, id),
+            "{}"
+        );
+    }
+
+    /// Make a new [Alert] with the vendor-specific group.
+    public static Alert canandAlert(Alert.Level level) {
+        return new Alert("CanandAlerts", "", level);
+    }
+
+    /// Make a new [Alert] with the vendor-specific group and pre-baked message.
+    public static Alert canandAlert(String message, Alert.Level level) {
+        return new Alert("CanandAlerts", message, level);
     }
 }

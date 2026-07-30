@@ -12,62 +12,62 @@ const std::vector<uint8_t>& CanandcolorSettings::SettingAddresses() const {
   return setting::VDEP_SETTINGS;
 }
 
-CanandcolorSettings& CanandcolorSettings::SetStatusFramePeriod(units::second_t period) {
+CanandcolorSettings& CanandcolorSettings::SetStatusFramePeriod(wpi::units::second_t period) {
   int ms = static_cast<int>(period.value() * 1000);
   ms = std::clamp(ms, 1, 16383);
   values[setting::kStatusFramePeriod] = ms;
   return *this;
 }
 
-CanandcolorSettings& CanandcolorSettings::SetProximityFramePeriod(units::second_t period) {
+CanandcolorSettings& CanandcolorSettings::SetProximityFramePeriod(wpi::units::second_t period) {
   int ms = static_cast<int>(period.value() * 1000);
   ms = std::clamp(ms, 0, 65535);
   values[setting::kDistanceFramePeriod] = ms;
   return *this;
 }
 
-CanandcolorSettings& CanandcolorSettings::SetColorFramePeriod(units::second_t period) {
+CanandcolorSettings& CanandcolorSettings::SetColorFramePeriod(wpi::units::second_t period) {
   int ms = static_cast<int>(period.value() * 1000);
   ms = std::clamp(ms, 0, 65535);
   values[setting::kColorFramePeriod] = ms;
   return *this;
 }
 
-CanandcolorSettings& CanandcolorSettings::SetDigoutFramePeriod(units::second_t period) {
+CanandcolorSettings& CanandcolorSettings::SetDigoutFramePeriod(wpi::units::second_t period) {
   int ms = static_cast<int>(period.value() * 1000);
   ms = std::clamp(ms, 0, 65535);
   values[setting::kDigoutFramePeriod] = ms;
   return *this;
 }
 
-std::optional<units::second_t> CanandcolorSettings::GetStatusFramePeriod() {
+std::optional<wpi::units::second_t> CanandcolorSettings::GetStatusFramePeriod() {
   auto it = values.find(setting::kStatusFramePeriod);
   if (it != values.end()) {
-    return units::second_t(it->second / 1000.0);
+    return wpi::units::second_t(it->second / 1000.0);
   }
   return std::nullopt;
 }
 
-std::optional<units::second_t> CanandcolorSettings::GetProximityFramePeriod() {
+std::optional<wpi::units::second_t> CanandcolorSettings::GetProximityFramePeriod() {
   auto it = values.find(setting::kDistanceFramePeriod);
   if (it != values.end()) {
-    return units::second_t(it->second / 1000.0);
+    return wpi::units::second_t(it->second / 1000.0);
   }
   return std::nullopt;
 }
 
-std::optional<units::second_t> CanandcolorSettings::GetColorFramePeriod() {
+std::optional<wpi::units::second_t> CanandcolorSettings::GetColorFramePeriod() {
   auto it = values.find(setting::kColorFramePeriod);
   if (it != values.end()) {
-    return units::second_t(it->second / 1000.0);
+    return wpi::units::second_t(it->second / 1000.0);
   }
   return std::nullopt;
 }
 
-std::optional<units::second_t> CanandcolorSettings::GetDigoutFramePeriod() {
+std::optional<wpi::units::second_t> CanandcolorSettings::GetDigoutFramePeriod() {
   auto it = values.find(setting::kDigoutFramePeriod);
   if (it != values.end()) {
-    return units::second_t(it->second / 1000.0);
+    return wpi::units::second_t(it->second / 1000.0);
   }
   return std::nullopt;
 }

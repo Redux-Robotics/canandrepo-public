@@ -7,13 +7,13 @@
 #include <mutex>
 #include <condition_variable>
 #include <optional>
-#include <units/angle.h>
-#include <units/angular_velocity.h>
-#include <units/force.h>
-#include <units/time.h>
-#include <units/temperature.h>
-#include <frc/geometry/Quaternion.h>
-#include <frc/geometry/Rotation3d.h>
+#include <wpi/units/angle.hpp>
+#include <wpi/units/angular_velocity.hpp>
+#include <wpi/units/force.hpp>
+#include <wpi/units/time.hpp>
+#include <wpi/units/temperature.hpp>
+#include <wpi/math/geometry/Quaternion.hpp>
+#include <wpi/math/geometry/Rotation3d.hpp>
 
 #include "redux/canand/CanandDevice.h"
 #include "redux/canand/CanandEventLoop.h"
@@ -54,7 +54,7 @@ namespace redux::sensors::canandgyro {
  * Canandgyro canandgyro{0}; // instantiates with device id 0 
  * 
  * // Reading angular position
- * canandgyro.GetYaw(); // gets the yaw (Z-axis) value in units::turn_t [-180 deg inclusive..180 deg exclusive)
+ * canandgyro.GetYaw(); // gets the yaw (Z-axis) value in wpi::units::turn_t [-180 deg inclusive..180 deg exclusive)
  *                      // This is probably what you want to use for robot heading.
  * canandgyro.GetMultiturnYaw(); // also gets yaw, except without a wraparound
  * canandgyro.GetPitch(); // pitch (Y-axis) value
@@ -113,13 +113,13 @@ class Canandgyro : public redux::canand::CanandDevice{
     redux::frames::Frame<bool> calibrating{false, 0_ms};
 
     /** internal Frame variable holding current yaw position state */
-    redux::frames::Frame<units::turn_t> singleYaw{0.0_tr, 0_ms};
+    redux::frames::Frame<wpi::units::turn_t> singleYaw{0.0_tr, 0_ms};
 
     /** internal Frame variable holding current yaw position state */
-    redux::frames::Frame<units::turn_t> multiYaw{0.0_tr, 0_ms};
+    redux::frames::Frame<wpi::units::turn_t> multiYaw{0.0_tr, 0_ms};
 
     /** internal Frame variable holding current angular position state */
-    redux::frames::Frame<frc::Quaternion> quat{frc::Quaternion(), 0_ms};
+    redux::frames::Frame<wpi::math::Quaternion> quat{wpi::math::Quaternion(), 0_ms};
 
     /** internal Frame variable holding current angular velocity state */
     redux::frames::Frame<AngularVelocity> vel{AngularVelocity{0_tps, 0_tps, 0_tps}, 0_ms};
@@ -136,7 +136,7 @@ class Canandgyro : public redux::canand::CanandDevice{
 
     bool dataRecvOnce{false};
     bool useYawAngleFrame{true};
-    units::second_t lastMessageTime{0_s};
+    wpi::units::second_t lastMessageTime{0_s};
     //redux::canand::CooldownWarning setAbsPositionWarning{1_s, 5};
     redux::canand::CanandAddress addr;
 
@@ -145,31 +145,31 @@ class Canandgyro : public redux::canand::CanandDevice{
      * Constructor with the device's id. This object will be constant with respect to whatever CAN id assigned to it,
      * so if a device changes id it may change which device this object reads from.
      * @param canID the device id to use
-     * @param bus the message bus to use. Defaults to "halcan".
+     * @param bus the message bus to use. Defaults to "socketcan:can_s0".
     */
-    Canandgyro(int canID, std::string bus = "halcan");
+    Canandgyro(int canID, std::string bus = "socketcan:can_s0");
     inline ~Canandgyro() { redux::canand::RemoveCANListener(this); }
 
     /**
      * Gets a quaternion object of the gyro's 3d rotation from the zero point
      * @return a Quaternion of the current Canandgyro pose
      */
-    inline frc::Quaternion GetQuaternion() { return quat.GetValue(); }
+    inline wpi::math::Quaternion GetQuaternion() { return quat.GetValue(); }
 
     /**
-     * Gets an frc::Rotation3d object of the gyro's 3d rotation from the zero point
+     * Gets an wpi::math::Rotation3d object of the gyro's 3d rotation from the zero point
      * If you just want Z-axis rotation use GetYaw().
      * 
      * @return a Rotation3d of the current Canandgyro pose
      */
-    inline frc::Rotation3d GetRotation3d() { return frc::Rotation3d{quat.GetValue()}; }
+    inline wpi::math::Rotation3d GetRotation3d() { return wpi::math::Rotation3d{quat.GetValue()}; }
 
     /**
-     * Gets an frc::Rotation2d object representing the rotation around the yaw axis from the zero point
+     * Gets an wpi::math::Rotation2d object representing the rotation around the yaw axis from the zero point
      * If you just want Z-axis rotation use GetYaw().
      * @return a Rotation2d of the current Canandgyro yaw
      */
-    inline frc::Rotation2d GetRotation2d() { return frc::Rotation2d(this->GetYaw()); }
+    inline wpi::math::Rotation2d GetRotation2d() { return wpi::math::Rotation2d(this->GetYaw()); }
 
     /**
      * Sets whether this object should use the dedicated yaw message for yaw angle instead of 
@@ -188,7 +188,7 @@ class Canandgyro : public redux::canand::CanandDevice{
      * 
      * @return yaw in rotational units.
      */
-    inline units::turn_t GetYaw() {
+    inline wpi::units::turn_t GetYaw() {
         if (this->useYawAngleFrame) {
             return this->singleYaw.GetValue();
         } else { 
@@ -204,7 +204,7 @@ class Canandgyro : public redux::canand::CanandDevice{
      * 
      * @return multi-turn yaw in rotational units.
      */
-    inline units::turn_t GetMultiturnYaw() {
+    inline wpi::units::turn_t GetMultiturnYaw() {
         return this->multiYaw.GetValue();
     }
 
@@ -213,51 +213,51 @@ class Canandgyro : public redux::canand::CanandDevice{
      * 
      * @return pitch in rotational units.
      */
-    inline units::turn_t GetPitch() { return this->GetRotation3d().Y(); }
+    inline wpi::units::turn_t GetPitch() { return this->GetRotation3d().Y(); }
 
     /**
      * Gets the roll (X-axis) rotation from [-0.5 rotations inclusive..0.5 exclusive).
      * 
      * @return roll in rotational units.
     */
-    inline units::turn_t GetRoll() { return this->GetRotation3d().X(); }
+    inline wpi::units::turn_t GetRoll() { return this->GetRotation3d().X(); }
 
 
     /**
      * Gets the angular velocity along the roll (X) axis.
      * @return angular velocity
      */
-    inline units::turns_per_second_t GetAngularVelocityRoll() { return vel.GetValue().Roll(); }
+    inline wpi::units::turns_per_second_t GetAngularVelocityRoll() { return vel.GetValue().Roll(); }
 
     /**
      * Gets the angular velocity along the pitch (Y) axis.
      * @return angular velocity
      */
-    inline units::turns_per_second_t GetAngularVelocityPitch() { return vel.GetValue().Pitch(); }
+    inline wpi::units::turns_per_second_t GetAngularVelocityPitch() { return vel.GetValue().Pitch(); }
 
     /**
      * Gets the angular velocity along the yaw (Z) axis.
      * @return angular velocity
      */
-    inline units::turns_per_second_t GetAngularVelocityYaw() { return vel.GetValue().Yaw(); }
+    inline wpi::units::turns_per_second_t GetAngularVelocityYaw() { return vel.GetValue().Yaw(); }
 
     /**
      * Gets the linear acceleration along the X axis.
      * @return linear acceleration
      */
-    inline units::standard_gravity_t GetAccelerationX() { return accel.GetValue().X(); }
+    inline wpi::units::standard_gravity_t GetAccelerationX() { return accel.GetValue().X(); }
 
     /**
      * Gets the linear acceleration along the Y axis.
      * @return linear acceleration in Gs
      */
-    inline units::standard_gravity_t GetAccelerationY() { return accel.GetValue().Y(); }
+    inline wpi::units::standard_gravity_t GetAccelerationY() { return accel.GetValue().Y(); }
 
     /**
      * Gets the linear acceleration along the Z axis.
      * @return linear acceleration
      */
-    inline units::standard_gravity_t GetAccelerationZ() { return accel.GetValue().Z(); }
+    inline wpi::units::standard_gravity_t GetAccelerationZ() { return accel.GetValue().Z(); }
 
     /**
      * Begins calibration on the Canandgyro.
@@ -281,7 +281,7 @@ class Canandgyro : public redux::canand::CanandDevice{
      * @param timeout the timeout in seconds to wait for a calibration confirmation.
      * @return true if the calibration has finished within the timeout, false if not.
      */
-    bool WaitForCalibrationToFinish(units::second_t timeout);
+    bool WaitForCalibrationToFinish(wpi::units::second_t timeout);
 
     /**
      * Sets a new angular position pose without recalibrating with a given roll/pitch/yaw.
@@ -295,12 +295,12 @@ class Canandgyro : public redux::canand::CanandDevice{
      * @param retries the number of retries for the set pose operation.
      * @return true if a pose set confirmation was received (or if timeout is zero)
      */
-    inline bool SetPoseRPY(units::turn_t newRoll, units::turn_t newPitch, units::turn_t newYaw, units::second_t timeout = 20_ms, uint32_t retries = 5) {
-        return SetPose(frc::Rotation3d(newRoll, newPitch, newYaw).GetQuaternion(), timeout, retries);
+    inline bool SetPoseRPY(wpi::units::turn_t newRoll, wpi::units::turn_t newPitch, wpi::units::turn_t newYaw, wpi::units::second_t timeout = 20_ms, uint32_t retries = 5) {
+        return SetPose(wpi::math::Rotation3d(newRoll, newPitch, newYaw).GetQuaternion(), timeout, retries);
     }
 
     /**
-     * Sets a new angular position without recalibrating with an frc::Rotation3d.
+     * Sets a new angular position without recalibrating with an wpi::math::Rotation3d.
      * 
      * @param newPose new rotation3d pose
      * @param timeout the timeout in seconds to wait for a pose set confirmation.
@@ -308,12 +308,12 @@ class Canandgyro : public redux::canand::CanandDevice{
      * @param retries the number of retries for the set pose operation.
      * @return true if a pose set confirmation was received (or if timeout is zero)
      */
-    inline bool SetPoseR3D(frc::Rotation3d newPose, units::second_t timeout = 20_ms, uint32_t retries = 5) {
+    inline bool SetPoseR3D(wpi::math::Rotation3d newPose, wpi::units::second_t timeout = 20_ms, uint32_t retries = 5) {
         return SetPose(newPose.GetQuaternion(), timeout);
     }
 
     /**
-     * Sets a new pose without recalibrating with an frc::Quaternion.
+     * Sets a new pose without recalibrating with an wpi::math::Quaternion.
      * 
      * @param newPose new quaternion pose
      * @param timeout the timeout in seconds to wait for a pose set confirmation.
@@ -321,7 +321,7 @@ class Canandgyro : public redux::canand::CanandDevice{
      * @param retries the number of retries for the set pose operation.
      * @return true if a pose set confirmation was received (or if timeout is zero)
      */
-    bool SetPose(frc::Quaternion newPose, units::second_t timeout = 20_ms, uint32_t retries = 5);
+    bool SetPose(wpi::math::Quaternion newPose, wpi::units::second_t timeout = 20_ms, uint32_t retries = 5);
 
     /**
      * Sets a new yaw without recalibrating the Canandgyro.
@@ -331,7 +331,7 @@ class Canandgyro : public redux::canand::CanandDevice{
      * @param retries the number of retries for the set pose operation.
      * @return true if a confirmation was received or the timeout is zero
      */
-    bool SetYaw(units::turn_t yaw, units::second_t timeout = 20_ms, uint32_t retries = 5);
+    bool SetYaw(wpi::units::turn_t yaw, wpi::units::second_t timeout = 20_ms, uint32_t retries = 5);
 
 
     // functions related to diagonstic data
@@ -356,7 +356,7 @@ class Canandgyro : public redux::canand::CanandDevice{
      * Get onboard encoder temperature readings in degrees Celsius.
      * @return temperature in degrees Celsius
      */
-    units::celsius_t GetTemperature() { return status.GetValue().temperature; }
+    wpi::units::celsius_t GetTemperature() { return status.GetValue().temperature; }
 
     /**
      * Get the contents of the previous status packet, which includes active faults, sticky faults, and temperature.
@@ -432,7 +432,7 @@ class Canandgyro : public redux::canand::CanandDevice{
      * @param attempts number of attempts to try and fetch values missing from the first pass
      * @return Received set of CanandgyroSettings of device configuration.
      */
-    inline CanandgyroSettings GetSettings(units::second_t timeout = 350_ms, units::second_t missingTimeout = 20_ms, uint32_t attempts = 3) { 
+    inline CanandgyroSettings GetSettings(wpi::units::second_t timeout = 350_ms, wpi::units::second_t missingTimeout = 20_ms, uint32_t attempts = 3) { 
         return stg.GetSettings(timeout, missingTimeout, attempts); 
     }
 
@@ -518,7 +518,7 @@ class Canandgyro : public redux::canand::CanandDevice{
      * @param attempts the maxinum number of attempts to write each individual settings
      * @return CanandgyroSettings object of unsuccessfully set settings. 
      */
-    inline CanandgyroSettings SetSettings(CanandgyroSettings& settings, units::second_t timeout = 20_ms, uint32_t attempts = 3) {
+    inline CanandgyroSettings SetSettings(CanandgyroSettings& settings, wpi::units::second_t timeout = 20_ms, uint32_t attempts = 3) {
         return stg.SetSettings(settings, timeout, attempts);
     }
 
@@ -530,7 +530,7 @@ class Canandgyro : public redux::canand::CanandDevice{
      * @return CanandgyroSettings object of received settings. 
      *     Use CanandgyroSettings.AllSettingsReceived() to verify success.
      */
-    inline CanandgyroSettings ResetFactoryDefaults(units::second_t timeout = 350_ms) {
+    inline CanandgyroSettings ResetFactoryDefaults(wpi::units::second_t timeout = 350_ms) {
         return stg.SendReceiveSettingCommand(details::types::SettingCommand::kResetFactoryDefault, timeout, true);
     }
 
@@ -551,20 +551,20 @@ class Canandgyro : public redux::canand::CanandDevice{
      * redux::canand::FrameData objects are immutable.
      * @return the current yaw frame
      */
-    inline redux::frames::Frame<units::turn_t>& GetYawFrame() { return singleYaw; }
+    inline redux::frames::Frame<wpi::units::turn_t>& GetYawFrame() { return singleYaw; }
 
     /**
      * Returns the current multi-turn yaw frame, which includes CAN timestamp data.
      * redux::canand::FrameData objects are immutable.
      * @return the current yaw frame
      */
-    inline redux::frames::Frame<units::turn_t>& GetMultiturnYawFrame() { return multiYaw; }
+    inline redux::frames::Frame<wpi::units::turn_t>& GetMultiturnYawFrame() { return multiYaw; }
 
     /**
      * Returns the current angular position frame, which includes CAN timestamp data.
      * @return the current angular position frame
      */
-    inline redux::frames::Frame<frc::Quaternion>& GetAngularPositionFrame() { return quat; }
+    inline redux::frames::Frame<wpi::math::Quaternion>& GetAngularPositionFrame() { return quat; }
 
     /**
      * Returns the current angular velocity frame, which includes CAN timestamp data.

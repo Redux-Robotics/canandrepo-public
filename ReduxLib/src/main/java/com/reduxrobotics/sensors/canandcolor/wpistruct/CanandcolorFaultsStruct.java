@@ -7,7 +7,7 @@ import java.nio.ByteBuffer;
 
 import com.reduxrobotics.sensors.canandcolor.CanandcolorFaults;
 
-import edu.wpi.first.util.struct.Struct;
+import org.wpilib.util.struct.Struct;
 
 /** WPILib struct implementation for {@link CanandcolorFaults} */
 public class CanandcolorFaultsStruct implements Struct<CanandcolorFaults> {

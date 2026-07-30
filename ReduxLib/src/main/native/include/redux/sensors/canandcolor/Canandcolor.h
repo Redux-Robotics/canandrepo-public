@@ -2,7 +2,7 @@
 // This is open source and can be modified and shared under the Mozilla Public License v2.0.
 
 #pragma once
-#include <units/time.h>
+#include <wpi/units/time.hpp>
 #include "redux/canand/CanandDevice.h"
 #include "redux/frames/Frame.h"
 #include "redux/canand/CanandSettingsManager.h"
@@ -83,9 +83,9 @@ class Canandcolor : public redux::canand::CanandDevice {
    * change which device this object reads from.
    *
    * @param canID device CAN id [0..63]
-   * @param bus the message bus to use. Defaults to "halcan".
+   * @param bus the message bus to use. Defaults to "socketcan:can_s0".
    */
-  Canandcolor(int canID, std::string bus = "halcan");
+  Canandcolor(int canID, std::string bus = "socketcan:can_s0");
 
   /**
    * Destructor.
@@ -180,7 +180,7 @@ class Canandcolor : public redux::canand::CanandDevice {
    *
    * @return temperature in degrees Celsius
    */
-  units::celsius_t GetTemperature();
+  wpi::units::celsius_t GetTemperature();
 
   /**
    * Gets the most recently received device status.
@@ -220,8 +220,8 @@ class Canandcolor : public redux::canand::CanandDevice {
    * @param attempts number of retries for missing settings
    * @return received settings snapshot
    */
-  CanandcolorSettings GetSettings(units::second_t timeout = 350_ms,
-                                   units::second_t missingTimeout = 20_ms,
+  CanandcolorSettings GetSettings(wpi::units::second_t timeout = 350_ms,
+                                   wpi::units::second_t missingTimeout = 20_ms,
                                    uint32_t attempts = 3);
 
   /**
@@ -247,7 +247,7 @@ class Canandcolor : public redux::canand::CanandDevice {
    * @return settings object containing any settings that failed to apply
    */
   CanandcolorSettings SetSettings(CanandcolorSettings& settings,
-                                    units::second_t timeout = 20_ms,
+                                    wpi::units::second_t timeout = 20_ms,
                                     uint32_t attempts = 3);
 
   /**
@@ -256,7 +256,7 @@ class Canandcolor : public redux::canand::CanandDevice {
    * @param timeout total timeout to wait for the reset command to be confirmed
    * @return received settings snapshot after reset (best-effort)
    */
-  CanandcolorSettings ResetFactoryDefaults(units::second_t timeout = 350_ms);
+  CanandcolorSettings ResetFactoryDefaults(wpi::units::second_t timeout = 350_ms);
 
   /**
    * Sets the lamp LED brightness.
@@ -351,7 +351,7 @@ class Canandcolor : public redux::canand::CanandDevice {
  private:
   redux::canand::CanandAddress addr_;
   bool dataRecvOnce_;
-  units::second_t lastMessageTime_;
+  wpi::units::second_t lastMessageTime_;
 };
 
 }  // namespace redux::sensors::canandcolor

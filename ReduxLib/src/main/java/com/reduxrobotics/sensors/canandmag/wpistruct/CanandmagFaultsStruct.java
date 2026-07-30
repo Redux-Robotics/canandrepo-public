@@ -7,7 +7,7 @@ import java.nio.ByteBuffer;
 
 import com.reduxrobotics.sensors.canandmag.CanandmagFaults;
 
-import edu.wpi.first.util.struct.Struct;
+import org.wpilib.util.struct.Struct;
 
 /** WPILib struct implementation for {@link CanandmagFaults} */
 public class CanandmagFaultsStruct implements Struct<CanandmagFaults> {

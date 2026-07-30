@@ -18,6 +18,9 @@ with open(VDEP_ROOT/"../reduxfifo/Cargo.toml", "rb") as f:
 versionYear = version.split(".")[0]
 fileName = "ReduxLib_" + versionYear + ".json"
 
+if version.startswith("2027.0.0-alpha-"):
+    versionYear = "2027_alpha5"
+
 
 if __name__ == "__main__":
 
@@ -59,7 +62,7 @@ if __name__ == "__main__":
                 "isJar": False,
                 "skipInvalidPlatforms": True,
                 "validPlatforms": [
-                    "linuxathena",
+                    "linuxsystemcore",
                     "linuxx86-64",
                     "linuxarm64",
                     "osxuniversal",
@@ -78,7 +81,7 @@ if __name__ == "__main__":
                 "sharedLibrary": not static_flag,
                 "skipInvalidPlatforms": True,
                 "binaryPlatforms": [
-                    "linuxathena",
+                    "linuxsystemcore",
                     "linuxx86-64",
                     "linuxarm64",
                     "osxuniversal",
@@ -94,7 +97,7 @@ if __name__ == "__main__":
                 "sharedLibrary": not static_flag,
                 "skipInvalidPlatforms": True,
                 "binaryPlatforms": [
-                    "linuxathena",
+                    "linuxsystemcore",
                     "linuxx86-64",
                     "linuxarm64",
                     "osxuniversal",

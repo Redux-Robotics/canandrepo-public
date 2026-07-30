@@ -1,4 +1,6 @@
-import org.gradle.internal.os.OperatingSystem;
+import org.apache.tools.ant.filters.FixCrLfFilter
+import org.apache.tools.ant.filters.ReplaceTokens
+
 apply plugin: 'maven-publish'
 
 ext.licenseVdep = files("$rootDir/LICENSE.txt")
@@ -79,56 +81,6 @@ doxygen {
 
     source 'src/main/native/include'
     outputDir = "$buildDir/doxygen/"
-}
-
-// javadoc config
-// this is a javascript file whose entire job is to locate the root javadoc directory and then load highlight.js
-// it _would_ be more performant to scan over every html in doLast and inject the scripts that way but like...ugh.
-// the reason why we don't load hljs from a CDN is because these javadocs are expected to also function offline.
-
-javadoc {
-    def hljsBootstrapFile = file("docs/hljs_bootstrap.js")
-    inputs.file(hljsBootstrapFile)
-
-    def hljsStylesheet = file("docs/hljs.gh.css")
-    inputs.file(hljsStylesheet)
-
-    // Anything in this dir will get plopped into the output root
-    def resources = fileTree("docs/javadoc-resources")
-    inputs.files(resources)
-
-    options {
-        // Enable preview features
-        options.addBooleanOption("-enable-preview", true)
-        options.addStringOption("-release", '17')
-        // Enable UTF-8 support
-        options.addStringOption("charset", "utf-8")
-        options.addStringOption("docencoding", "utf-8")
-        options.addStringOption("encoding", "utf-8")
-        // Syntax highlighting
-        addStringOption("-add-stylesheet", hljsStylesheet.toString())
-        addBooleanOption("-allow-script-in-comments", true)
-        links "https://github.wpilib.org/allwpilib/docs/release/java/"
-    }
-
-    doFirst {
-        // Configure this during task execution since it relies on an input file
-        options {
-            // Windows does not like newlines in the javadoc command
-            def strippedBootstrap = hljsBootstrapFile.text.replaceAll("\n", "").replaceAll("\r", "")
-            if (!OperatingSystem.current().isWindows()) {
-                // Windows command line parsing in general could be broken; just don't do syntax highlighted javadocs
-                // In practice, web-hosted javadocs should be made on Linux anyway
-                addStringOption("header", "<script type=\"text/javascript\">${strippedBootstrap}</script>")
-            }
-        }
-    }
-    doLast {
-        copy {
-            from resources
-            into destinationDir
-        }
-    }
 }
 
 task cppHeadersZip(type: Zip) {

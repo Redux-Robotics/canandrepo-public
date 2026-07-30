@@ -61,7 +61,9 @@ impl BusState {
             }
 
             let device_key: DeviceKey = can_id.into();
-            if let Some(stale) = self.stale_device && stale == device_key {
+            if let Some(stale) = self.stale_device
+                && stale == device_key
+            {
                 // REST has signaled that this device could be a ghost device (e.g. from can id change), so we'll ignore it this loop
                 continue;
             }
@@ -233,9 +235,18 @@ impl BusState {
         let name_len = name.as_bytes().len().min(name_buf.len());
         name_buf[..name_len].copy_from_slice(&name.as_bytes()[..name_len]);
         let name_indexes = [
-            (canandmessage::cananddevice::types::Setting::Name0 as u8, 0_usize),
-            (canandmessage::cananddevice::types::Setting::Name1 as u8, 6_usize),
-            (canandmessage::cananddevice::types::Setting::Name2 as u8, 12_usize),
+            (
+                canandmessage::cananddevice::types::Setting::Name0 as u8,
+                0_usize,
+            ),
+            (
+                canandmessage::cananddevice::types::Setting::Name1 as u8,
+                6_usize,
+            ),
+            (
+                canandmessage::cananddevice::types::Setting::Name2 as u8,
+                12_usize,
+            ),
         ];
 
         let key = DeviceKey::from(id);
@@ -255,12 +266,26 @@ impl BusState {
 
     pub fn send_reboot(&mut self, id: u32, bootloader: bool) -> Result<(), fifocore::error::Error> {
         let id = FRCCanId(sanitize_id(id));
-        const BOOT_NORMALLY: rdxota_protocol::otav2::Command = rdxota_protocol::otav2::Command::SysCtl([
-            rdxota_protocol::otav2::index::sysctl::BOOT_NORMALLY, 0, 0, 0, 0, 0, 0
-        ]);
-        const BOOT_TO_DFU: rdxota_protocol::otav2::Command = rdxota_protocol::otav2::Command::SysCtl([
-            rdxota_protocol::otav2::index::sysctl::BOOT_TO_DFU, 0, 0, 0, 0, 0, 0
-        ]);
+        const BOOT_NORMALLY: rdxota_protocol::otav2::Command =
+            rdxota_protocol::otav2::Command::SysCtl([
+                rdxota_protocol::otav2::index::sysctl::BOOT_NORMALLY,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+            ]);
+        const BOOT_TO_DFU: rdxota_protocol::otav2::Command =
+            rdxota_protocol::otav2::Command::SysCtl([
+                rdxota_protocol::otav2::index::sysctl::BOOT_TO_DFU,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+            ]);
 
         let message_id = build_frc_can_id(
             id.device_type_code(),
@@ -268,11 +293,20 @@ impl BusState {
             canandmessage::cananddevice::MessageIndex::OtaToDevice as u16,
             id.device_number(),
         );
-        let msg = ReduxFIFOMessage::id_data(self.bus_id, message_id, expand::<_, 8, _>(if bootloader {
-            BOOT_TO_DFU.into()
-        } else {
-            BOOT_NORMALLY.into()
-        }, 0), 8, 0);
+        let msg = ReduxFIFOMessage::id_data(
+            self.bus_id,
+            message_id,
+            expand::<_, 8, _>(
+                if bootloader {
+                    BOOT_TO_DFU.into()
+                } else {
+                    BOOT_NORMALLY.into()
+                },
+                0,
+            ),
+            8,
+            0,
+        );
         self.fifocore.write_single(&msg)?;
         self.devices.remove(&id.into());
 

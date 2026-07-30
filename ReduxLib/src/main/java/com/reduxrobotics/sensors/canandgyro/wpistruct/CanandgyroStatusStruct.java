@@ -8,7 +8,7 @@ import java.nio.ByteBuffer;
 import com.reduxrobotics.sensors.canandgyro.CanandgyroFaults;
 import com.reduxrobotics.sensors.canandgyro.CanandgyroStatus;
 
-import edu.wpi.first.util.struct.Struct;
+import org.wpilib.util.struct.Struct;
 
 /**
  * WPILib struct implementation for {@link CanandgyroStatus}
@@ -27,7 +27,7 @@ public class CanandgyroStatusStruct implements Struct<CanandgyroStatus> {
 
     @Override
     public int getSize() {
-        return 2 + kSizeDouble;
+        return 2 + DOUBLE_SIZE;
     }
 
     @Override

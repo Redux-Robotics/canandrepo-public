@@ -4,22 +4,20 @@
 package com.reduxrobotics.sensors.canandgyro;
 
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicInteger;
 
 import com.reduxrobotics.canand.CanandAddress;
 import com.reduxrobotics.canand.CanandDevice;
 import com.reduxrobotics.canand.CanandMessage;
 import com.reduxrobotics.canand.CanandSettingsManager;
+import com.reduxrobotics.canand.CanandUtils;
 import com.reduxrobotics.frames.ByteArrayFrame;
 import com.reduxrobotics.frames.DoubleFrame;
 import com.reduxrobotics.frames.Frame;
 
-import edu.wpi.first.hal.HAL;
-import edu.wpi.first.hal.FRCNetComm.tResourceType;
-import edu.wpi.first.math.VecBuilder;
-import edu.wpi.first.math.geometry.Quaternion;
-import edu.wpi.first.math.geometry.Rotation2d;
-import edu.wpi.first.math.geometry.Rotation3d;
+import org.wpilib.math.linalg.VecBuilder;
+import org.wpilib.math.geometry.Quaternion;
+import org.wpilib.math.geometry.Rotation2d;
+import org.wpilib.math.geometry.Rotation3d;
 
 /**
  * Class for the CAN interface of the 
@@ -129,14 +127,23 @@ public class Canandgyro extends CanandDevice {
     private final CanandAddress addr;
     private final CanandSettingsManager<CanandgyroSettings> stg;
     private boolean useYawAngleFrame = true;
-    private static AtomicInteger reportingIndex = new AtomicInteger(0);
 
     /**
      * Instantiates a new Canandgyro.
      * @param devID the device id assigned to it.
      */
     public Canandgyro(int devID) {
-        this(devID, "halcan");
+        this(devID, "socketcan:can_s0");
+    }
+    /// Instantiates a new Canandgyro object.
+    /// 
+    /// This object will be constant with respect to whatever CAN id assigned to it, so if a device 
+    /// changes id it may change which device this object reads from.
+    /// 
+    /// @param devID the device id to use [0..=63]
+    /// @param busID the CAN bus ID to use [0..=4]
+    public Canandgyro(int devID, int busID) {
+        this(devID, "socketcan:can_s" + busID);
     }
 
     /**
@@ -148,7 +155,7 @@ public class Canandgyro extends CanandDevice {
         super();
         addr = new CanandAddress(bus, 4, devID);
         stg = new CanandSettingsManager<>(this, CanandgyroSettings::new);
-        HAL.report(tResourceType.kResourceType_Redux_future3, reportingIndex.incrementAndGet());
+        CanandUtils.reportUsage("Canandgyro", bus, devID);
     }
 
     // wpilib helper objects

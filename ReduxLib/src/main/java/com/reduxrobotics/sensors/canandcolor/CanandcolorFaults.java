@@ -5,7 +5,7 @@ package com.reduxrobotics.sensors.canandcolor;
 
 import com.reduxrobotics.sensors.canandcolor.wpistruct.CanandcolorFaultsStruct;
 
-import edu.wpi.first.util.struct.StructSerializable;
+import org.wpilib.util.struct.StructSerializable;
 
 /**
  * A class to hold device faults for the {@link Canandcolor}, as returned by 

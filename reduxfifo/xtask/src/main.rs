@@ -1,9 +1,9 @@
-use std::path::Path;
+use std::path::{Path, PathBuf};
 
 use clap::Parser as _;
-use maven_utils::{Target, build_maven_zip, locate_roborio_toolchain};
+use maven_utils::{BuildConfig, Target, build_maven_zip, locate_systemcore_toolchain};
 
-use crate::maven_utils::{BuildConfig, locate_systemcore_toolchain};
+use crate::maven_utils::ReduxFIFOCrate;
 
 pub mod maven_utils;
 
@@ -24,6 +24,12 @@ struct Cli {
         help = "Compile all permutations of shared/static and release/debug binaries"
     )]
     all_build: bool,
+    #[arg(
+        long = "workspace-root",
+        help = "ReduxFIFO workspace root",
+        default_value = "."
+    )]
+    workspace_root: PathBuf,
     #[arg(
         last = true,
         num_args = 1..,
@@ -53,8 +59,6 @@ impl Cli {
 
 #[derive(clap::ValueEnum, Clone, Copy, PartialEq, Eq, Debug, Default)]
 enum Compileable {
-    #[value(name = "linuxathena")]
-    LinuxAthena,
     #[value(name = "linuxsystemcore")]
     LinuxSystemCore,
     #[value(name = "linuxx86-64")]
@@ -69,6 +73,8 @@ enum Compileable {
     OsxUniversal,
     #[value(name = "headers")]
     Headers,
+    #[value(name = "desktop")]
+    Desktop,
     #[default]
     #[value(name = "auto")]
     Auto,
@@ -76,76 +82,95 @@ enum Compileable {
 
 fn main() -> anyhow::Result<()> {
     let cli = Cli::try_parse()?;
+    let ci = ReduxFIFOCrate::new(&cli.workspace_root)?;
     let build_configs = cli.build_configs();
     let cargo_flags = cli.cargo_flags;
     for target in cli.targets {
         match target {
-            Compileable::LinuxAthena => {
-                build_maven(Target::LinuxAthena, &build_configs, &cargo_flags)?
-            }
             Compileable::LinuxX86_64 => {
-                build_maven(Target::LinuxX86_64, &build_configs, &cargo_flags)?
+                build_maven(&ci, Target::LinuxX86_64, &build_configs, &cargo_flags)?
             }
             Compileable::LinuxArm64 => {
-                build_maven(Target::LinuxArm64, &build_configs, &cargo_flags)?
+                build_maven(&ci, Target::LinuxArm64, &build_configs, &cargo_flags)?
             }
             Compileable::LinuxSystemCore => {
-                build_maven(Target::LinuxSystemCore, &build_configs, &cargo_flags)?
+                build_maven(&ci, Target::LinuxSystemCore, &build_configs, &cargo_flags)?
             }
             Compileable::WindowsX86_64 => {
-                build_maven(Target::WindowsX86_64, &build_configs, &cargo_flags)?
+                build_maven(&ci, Target::WindowsX86_64, &build_configs, &cargo_flags)?
             }
             Compileable::WindowsArm64 => {
-                build_maven(Target::WindowsArm64, &build_configs, &cargo_flags)?
+                build_maven(&ci, Target::WindowsArm64, &build_configs, &cargo_flags)?
             }
             Compileable::OsxUniversal => {
-                build_maven(Target::OsxUniversal, &build_configs, &cargo_flags)?
+                build_maven(&ci, Target::OsxUniversal, &build_configs, &cargo_flags)?
             }
             Compileable::Headers => {
-                build_maven_zip(Path::new("include"), GROUP_ID, ARTIFACT_ID, "headers")?;
+                build_maven_zip(&ci, Path::new("include"), GROUP_ID, ARTIFACT_ID, "headers")?;
+            }
+            Compileable::Desktop => {
+                build_maven_desktop(&ci, &build_configs, &cargo_flags)?;
             }
             Compileable::Auto => {
                 // always build headers
-                build_maven_zip(Path::new("include"), GROUP_ID, ARTIFACT_ID, "headers")?;
-                // always build linuxathena if possible
-                if locate_roborio_toolchain().is_some() {
-                    build_maven(Target::LinuxAthena, &build_configs, &cargo_flags)?;
-                }
-
+                build_maven_zip(&ci, Path::new("include"), GROUP_ID, ARTIFACT_ID, "headers")?;
+                // always build systemcore if possible
                 if locate_systemcore_toolchain().is_some() {
-                    build_maven(Target::LinuxSystemCore, &build_configs, &cargo_flags)?;
+                    build_maven(&ci, Target::LinuxSystemCore, &build_configs, &cargo_flags)?;
                 }
 
                 // build platform-dependent targets
-                #[cfg(target_os = "linux")]
+                build_maven_desktop(&ci, &build_configs, &cargo_flags)?;
+
+                // build extra targets if applicable
+                #[cfg(all(target_os = "linux", not(target_arch = "aarch64")))]
                 {
-                    build_maven(Target::LinuxX86_64, &build_configs, &cargo_flags)?;
-                    if Path::new("/usr/local/aarch64-linux-gnu").exists() {
-                        build_maven(Target::LinuxArm64, &build_configs, &cargo_flags)?;
-                    }
+                    //if Path::new("/usr/local/aarch64-linux-gnu").exists() {
+                    build_maven(&ci, Target::LinuxArm64, &build_configs, &cargo_flags)?;
                 }
 
-                #[cfg(target_os = "macos")]
-                build_maven(Target::OsxUniversal, &build_configs, &cargo_flags)?;
-
-                #[cfg(all(target_os = "windows", target_arch = "x86_64"))]
-                build_maven(Target::WindowsX86_64, &build_configs, &cargo_flags)?;
-
-                #[cfg(all(target_os = "windows", target_arch = "aarch64"))]
-                build_maven(Target::WindowsArm64, &build_configs, &cargo_flags)?;
+                #[cfg(all(target_os = "windows", not(target_arch = "aarch64")))]
+                build_maven(&ci, Target::WindowsArm64, &build_configs, &cargo_flags)?
             }
         }
     }
     Ok(())
 }
 
+fn build_maven_desktop(
+    crate_info: &ReduxFIFOCrate,
+    build_configs: &[BuildConfig],
+    cargo_flags: &Vec<String>,
+) -> anyhow::Result<()> {
+    #[cfg(all(target_os = "linux", target_arch = "x86_64"))]
+    let target = Target::LinuxX86_64;
+    #[cfg(all(target_os = "linux", target_arch = "aarch64"))]
+    let target = Target::LinuxArm64;
+    #[cfg(target_os = "macos")]
+    let target = Target::OsxUniversal;
+    #[cfg(all(target_os = "windows", target_arch = "x86_64"))]
+    let target = Target::WindowsX86_64;
+    #[cfg(all(target_os = "windows", target_arch = "aarch64"))]
+    let target = Target::WindowsArm64;
+
+    build_maven(&crate_info, target, &build_configs, &cargo_flags)
+}
+
 fn build_maven(
+    crate_info: &ReduxFIFOCrate,
     target: Target,
     build_configs: &[BuildConfig],
     cargo_flags: &Vec<String>,
 ) -> anyhow::Result<()> {
-    maven_utils::build_maven(target, GROUP_ID, ARTIFACT_ID, build_configs, cargo_flags)?;
-    maven_utils::build_maven_pom(GROUP_ID, ARTIFACT_ID)?;
-    maven_utils::build_maven_metadata(GROUP_ID, ARTIFACT_ID)?;
+    maven_utils::build_maven(
+        crate_info,
+        target,
+        GROUP_ID,
+        ARTIFACT_ID,
+        build_configs,
+        cargo_flags,
+    )?;
+    maven_utils::build_maven_pom(crate_info, GROUP_ID, ARTIFACT_ID)?;
+    maven_utils::build_maven_metadata(crate_info, GROUP_ID, ARTIFACT_ID)?;
     Ok(())
 }

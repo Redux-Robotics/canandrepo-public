@@ -103,12 +103,12 @@ public class CanandAddress {
     }
 
     /**
-     * Constructor with implicit Rio CAN bus.
+     * Constructor with implicit usage of can_s0.
      * @param devType the device type
      * @param devId the device CAN id
      */
     public CanandAddress(int devType, int devId)  {
-        this(MessageBus.getRioBus(), devType, devId);
+        this(MessageBus.getSystemCoreBus(0), devType, devId);
     }
 
     /**

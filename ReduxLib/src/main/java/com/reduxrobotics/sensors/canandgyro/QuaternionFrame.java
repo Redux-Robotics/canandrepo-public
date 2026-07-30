@@ -5,7 +5,7 @@ package com.reduxrobotics.sensors.canandgyro;
 
 import com.reduxrobotics.frames.Frame;
 
-import edu.wpi.first.math.geometry.Quaternion;
+import org.wpilib.math.geometry.Quaternion;
 
 /**
  * Implements an object-holding Frame with considerations for quaternions.

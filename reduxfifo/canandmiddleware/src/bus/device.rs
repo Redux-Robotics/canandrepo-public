@@ -180,11 +180,7 @@ impl Device {
                     self.serial_numer = Some(SerialNumer::new(serial));
                     self.bootloader = is_bootloader;
                 }
-                cananddevice::Message::ReportSetting {
-                    address,
-                    value,
-                    ..
-                } => {
+                cananddevice::Message::ReportSetting { address, value, .. } => {
                     self.setting_cache.insert(address as u8, value);
                     match address {
                         cananddevice::types::Setting::SerialNumber => {

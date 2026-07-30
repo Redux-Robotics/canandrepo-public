@@ -5,8 +5,8 @@
 #include <cinttypes>
 #include <unordered_map>
 #include <optional>
-#include <units/time.h>
-#include <units/angle.h>
+#include <wpi/units/time.hpp>
+#include <wpi/units/angle.hpp>
 #include "redux/canand/CanandSettings.h"
 
 namespace redux::sensors::canandgyro {
@@ -66,7 +66,7 @@ class CanandgyroSettings : public redux::canand::CanandSettings {
     * 
     * @param period the new frame period in seconds [0_s, 65.535_s] inclusive
     */
-    void SetYawFramePeriod(units::second_t period);
+    void SetYawFramePeriod(wpi::units::second_t period);
 
     /**
      * Sets the angular position frame period in seconds.
@@ -79,7 +79,7 @@ class CanandgyroSettings : public redux::canand::CanandSettings {
      * 
      * @param period the new frame period in seconds [0_s, 65.535_s] inclusive
      */
-    void SetAngularPositionFramePeriod(units::second_t period);
+    void SetAngularPositionFramePeriod(wpi::units::second_t period);
 
     /**
      * Sets the angular velocity frame period in seconds.
@@ -90,7 +90,7 @@ class CanandgyroSettings : public redux::canand::CanandSettings {
      * 
      * @param period the new frame period in seconds [0_s, 65.535_s] inclusive
      */
-    void SetAngularVelocityFramePeriod(units::second_t period);
+    void SetAngularVelocityFramePeriod(wpi::units::second_t period);
 
     /**
      * Sets the angular velocity frame period in seconds.
@@ -101,7 +101,7 @@ class CanandgyroSettings : public redux::canand::CanandSettings {
      * 
      * @param period the new frame period in seconds [0_s, 65.535_s] inclusive
      */
-    void SetAccelerationFramePeriod(units::second_t period);
+    void SetAccelerationFramePeriod(wpi::units::second_t period);
 
     /**
      * Sets the status frame period in seconds. 
@@ -110,7 +110,7 @@ class CanandgyroSettings : public redux::canand::CanandSettings {
      * 
      * @param period the new period for status frames in seconds in range [0.001_s, 16.383_s].
      */
-    void SetStatusFramePeriod(units::second_t period);
+    void SetStatusFramePeriod(wpi::units::second_t period);
 
     /**
      * Gets the dedicated yaw frame period in seconds [0..65.535], or std::nullopt if the value has not 
@@ -120,7 +120,7 @@ class CanandgyroSettings : public redux::canand::CanandSettings {
      * @return the frame period in seconds [0..65.535], or std::nullopt if the value has not been set on
      *     this object.
      */
-    std::optional<units::second_t> GetYawFramePeriod();
+    std::optional<wpi::units::second_t> GetYawFramePeriod();
 
     /**
      * Gets the angular position frame period in seconds [0..65.535], or std::nullopt if the value has 
@@ -130,7 +130,7 @@ class CanandgyroSettings : public redux::canand::CanandSettings {
      * @return the frame period in seconds [0..65.535], or std::nullopt if the value has not been set on
      *     this object.
      */
-    std::optional<units::second_t> GetAngularPositionFramePeriod();
+    std::optional<wpi::units::second_t> GetAngularPositionFramePeriod();
 
     /**
      * Gets the angular velocity frame period in seconds [0..65.535], or std::nullopt if the value has 
@@ -140,7 +140,7 @@ class CanandgyroSettings : public redux::canand::CanandSettings {
      * @return the frame period in seconds [0..65.535], or std::nullopt if the value has not been set on
      *     this object.
      */
-    std::optional<units::second_t> GetAngularVelocityFramePeriod();
+    std::optional<wpi::units::second_t> GetAngularVelocityFramePeriod();
 
     /**
      * Gets the acceleration frame period in seconds [0..65.535], or std::nullopt if the value has not 
@@ -150,7 +150,7 @@ class CanandgyroSettings : public redux::canand::CanandSettings {
      * @return the frame period in seconds [0..65.535], or std::nullopt if the value has not been set on
      *     this object.
      */
-    std::optional<units::second_t> GetAccelerationFramePeriod();
+    std::optional<wpi::units::second_t> GetAccelerationFramePeriod();
 
     /**
      * Gets the status frame period in seconds [0.001..16.383], or std::nullopt if the value has not beeno
@@ -158,7 +158,7 @@ class CanandgyroSettings : public redux::canand::CanandSettings {
      * @return the status frame period in seconds [0.001..16.383], or std::nullopt if the value has not been
      *     set on this object.
      */
-    std::optional<units::second_t> GetStatusFramePeriod();
+    std::optional<wpi::units::second_t> GetStatusFramePeriod();
 
 };
 }

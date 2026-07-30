@@ -5,9 +5,9 @@ package com.reduxrobotics.sensors.canandgyro;
 
 import com.reduxrobotics.frames.Frame;
 
-import edu.wpi.first.math.VecBuilder;
-import edu.wpi.first.math.Vector;
-import edu.wpi.first.math.numbers.N3;
+import org.wpilib.math.linalg.VecBuilder;
+import org.wpilib.math.linalg.Vector;
+import org.wpilib.math.numbers.N3;
 
 /**
  * Implements an object-holding Frame with considerations for 3-vectors.

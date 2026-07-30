@@ -2,7 +2,7 @@
 // This is open source and can be modified and shared under the Mozilla Public License v2.0.
 
 #pragma once
-#include <units/time.h>
+#include <wpi/units/time.hpp>
 #include <optional>
 #include <mutex>
 #include <condition_variable>
@@ -27,7 +27,7 @@ class FrameData {
      * @param value The value to hold.
      * @param timestamp The timestamp at which the value was received in seconds.
      */
-    FrameData(T value, units::second_t timestamp): value{value}, ts{timestamp} {};
+    FrameData(T value, wpi::units::second_t timestamp): value{value}, ts{timestamp} {};
     /**
      * Returns the value of the data frame.
      * @return the value the data frame holds.
@@ -39,10 +39,10 @@ class FrameData {
      * The time base is relative to the FPGA timestamp.
      * @return the timestamp in seconds.
      */
-    inline units::second_t GetTimestamp() { return ts; }
+    inline wpi::units::second_t GetTimestamp() { return ts; }
   private:
     std::optional<T> value; // value
-    units::second_t ts; // timestamp
+    wpi::units::second_t ts; // timestamp
 };
 
 /**
@@ -62,7 +62,7 @@ class FrameListener {
      * @param value value to update with
      * @param timestamp timestamp to update with
     */
-    void UpdateValue(T value, units::second_t timestamp) {
+    void UpdateValue(T value, wpi::units::second_t timestamp) {
         std::unique_lock<std::mutex> lock(dataLock);
         this->data = std::optional<FrameData<T>>{FrameData{value, timestamp}};
         this->cv.notify_all(); 
@@ -94,14 +94,14 @@ class Frame {
      * @param value The initial value to hold.
      * @param timestamp The initial timestamp at which the value was received in seconds.
      */
-    Frame(T value, units::second_t timestamp): value{value}, ts{timestamp} {};
+    Frame(T value, wpi::units::second_t timestamp): value{value}, ts{timestamp} {};
     /**
      * Updates the Frame's value, notifying any listeners of new data.
      * 
      * @param value the new value 
      * @param timestamp the new timestamp of the received data
      */
-    void Update(T value, units::second_t timestamp) {
+    void Update(T value, wpi::units::second_t timestamp) {
         std::unique_lock<std::mutex> lock(frameLock);
         this->value = value;
         this->ts = timestamp;
@@ -133,7 +133,7 @@ class Frame {
      * Gets the timestamp in seconds of when this frame was last updated.
      * @return the timestamp in seconds.
      */
-    inline units::second_t GetTimestamp() { 
+    inline wpi::units::second_t GetTimestamp() { 
       std::unique_lock<std::mutex> lock(frameLock);
       return ts; 
     }
@@ -143,10 +143,10 @@ class Frame {
      * Example application (may not be applicable)
      * ```cpp
      * // Log Canandmag position FrameData.
-     * std::vector<FrameData<units::turn_t>> position_packets;
+     * std::vector<FrameData<wpi::units::turn_t>> position_packets;
      * redux::sensors::canandmag::Canandmag enc0{0};
      * 
-     * enc0.GetPositionFrame().AddCallback([&](FrameData<units::turn_t> frameData) {
+     * enc0.GetPositionFrame().AddCallback([&](FrameData<wpi::units::turn_t> frameData) {
      *     position_packets.push_back(frameData);
      * });
      * // Timestamped data is now appended to the Vector.
@@ -191,7 +191,7 @@ class Frame {
 
   private:
     T value; // value
-    units::second_t ts; // timestamp
+    wpi::units::second_t ts; // timestamp
     std::mutex frameLock;
     std::set<FrameListener<T>*> listeners;
     std::unordered_map<uint32_t, std::function<void(FrameData<T>)>> callbacks;
@@ -214,23 +214,23 @@ class Frame {
  *  if (!data.has_value()) {
  *    fmt::print("WaitForFrames timed out before receiving all data\n");
  *  } else {
- *    redux::frames::FrameData<units::turn_t> posFrame;
- *    redux::frames::FrameData<units::turn_t> posFram1;
- *    redux::frames::FrameData<units::turns_per_second_t> velFrame;
+ *    redux::frames::FrameData<wpi::units::turn_t> posFrame;
+ *    redux::frames::FrameData<wpi::units::turn_t> posFram1;
+ *    redux::frames::FrameData<wpi::units::turns_per_second_t> velFrame;
  *
  *    // populates the above FrameData variables with the received data (unpacks the tuple)
  *    std::tie(posFrame, velFrame, posFram1) = *data;
  *
  *    // fetches the maximum timestamp across all received timestamps (the "latest" value)
- *    units::second_t maxTs = redux::frames::MaxTimestamp(*data);
+ *    wpi::units::second_t maxTs = redux::frames::MaxTimestamp(*data);
  *
  *    // prints the received frame value and how far behind the latest received CAN timestamp it was
  *    fmt::print("posFrame: {}, {}\n", posFrame.GetValue(), 
- *               (units::millisecond_t) (maxTs - posFrame.GetTimestamp()));
+ *               (wpi::units::millisecond_t) (maxTs - posFrame.GetTimestamp()));
  *    fmt::print("velFrame: {}, {}\n", velFrame.GetValue(), 
- *               (units::millisecond_t) (maxTs - velFrame.GetTimestamp()));
+ *               (wpi::units::millisecond_t) (maxTs - velFrame.GetTimestamp()));
  *    fmt::print("posFram1: {}, {}\n", posFram1.GetValue(), 
- *               (units::millisecond_t) (maxTs - posFram1.GetTimestamp()));
+ *               (wpi::units::millisecond_t) (maxTs - posFram1.GetTimestamp()));
  *
  *  } 
  * ```
@@ -240,7 +240,7 @@ class Frame {
  * @return a tuple of FrameData\<T\> representing the data from corresponding frames passed in or null if timeout or interrupt is hit.
  */
 template<typename...T>
-std::optional<std::tuple<FrameData<T>...>> WaitForFrames(units::second_t timeout, Frame<T>&... frames) {
+std::optional<std::tuple<FrameData<T>...>> WaitForFrames(wpi::units::second_t timeout, Frame<T>&... frames) {
     constexpr auto sec = std::chrono::seconds(1);
     std::condition_variable cv; 
     std::mutex dataLock;
@@ -271,7 +271,7 @@ std::optional<std::tuple<FrameData<T>...>> WaitForFrames(units::second_t timeout
  * @return the maximum timestamp
 */
 template<typename...T>
-units::second_t MaxTimestamp(std::tuple<FrameData<T>...> frameData) {
+wpi::units::second_t MaxTimestamp(std::tuple<FrameData<T>...> frameData) {
   return std::apply([](FrameData<T>&... i) { 
     // we don't have std::max( std::initalizer_list<T> ilist) for some reason so we have to do this
     auto ilist = {(i.GetTimestamp())...}; 

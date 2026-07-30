@@ -5,12 +5,12 @@
 #include "CanandSettings.h"
 #include "CanandDevice.h"
 #include "CanandUtils.h"
-#include <units/time.h>
+#include <wpi/units/time.hpp>
 #include <mutex>
 #include <condition_variable>
 #include <vector>
 #include <concepts>
-#include <frc/Errors.h>
+#include <wpi/hal/Errors.h>
 
 namespace redux::canand {
 
@@ -98,7 +98,7 @@ class CanandSettingsManager {
      * @param missingAttempts if >0, lists how many times to attempt fetching missing settings.
      * @return CanandSettings representing what has been received of the device's configuration.
      */
-    inline T GetSettings(units::second_t timeout, units::second_t missingTimeout, uint32_t missingAttempts) {
+    inline T GetSettings(wpi::units::second_t timeout, wpi::units::second_t missingTimeout, uint32_t missingAttempts) {
 
         {
             std::unique_lock<std::mutex> lock(knownSettingsLock);
@@ -123,7 +123,7 @@ class CanandSettingsManager {
      * @param attempts number of attempts to fetch a setting index (should be at least 1)
      * @return a std::vector of setting indexes that were not able to be received despite attempts/timeout
      */
-    inline std::vector<uint8_t> FetchMissingSettings(units::second_t timeout, uint32_t attempts) {
+    inline std::vector<uint8_t> FetchMissingSettings(wpi::units::second_t timeout, uint32_t attempts) {
         std::vector<uint8_t> missingNow;
         std::vector<uint8_t> missingFinal;
         {
@@ -174,7 +174,7 @@ class CanandSettingsManager {
      * @param attempts the maximum number of attempts to write each individual setting
      * @return a CanandSettings object of unsuccessfully set settings.
      */
-    inline T SetSettings(T& settings, units::second_t timeout, uint32_t attempts) {
+    inline T SetSettings(T& settings, wpi::units::second_t timeout, uint32_t attempts) {
         T missed_settings;
         std::unordered_map<uint8_t, uint64_t> values = settings.FilteredMap();
         int flags = 0;
@@ -208,10 +208,10 @@ class CanandSettingsManager {
      *     not check (and not block).
      * @return true if successful, false if a setting operation failed
      */
-    inline bool SetSettings(T& settings, units::second_t timeout) {
+    inline bool SetSettings(T& settings, wpi::units::second_t timeout) {
         T missed = SetSettings(settings, timeout, 3);
         if (!missed.IsEmpty()) {
-            FRC_ReportError(frc::err::Error, "{} settings could not be applied to {}", 
+            fmt::println(stderr,  "{} settings could not be applied to {}", 
                 missed.GetMap().size(), dev.GetDeviceName());
             return false;
         }
@@ -227,7 +227,7 @@ class CanandSettingsManager {
      * @param clearKnown whether to clear the set of known settings
      * @return the set of known settings.
      */
-    inline T SendReceiveSettingCommand(uint8_t cmd, units::second_t timeout, bool clearKnown) {
+    inline T SendReceiveSettingCommand(uint8_t cmd, wpi::units::second_t timeout, bool clearKnown) {
         std::unique_lock<std::mutex> guard(knownSettingsLock);
         if (clearKnown) knownSettings.GetMap().clear();
         SendSettingCommand(cmd);
@@ -341,7 +341,7 @@ class CanandSettingsManager {
      *     If timeout = 0, return "payload" (assume success)
      */
     inline SettingResult ConfirmSetSetting(uint8_t settingIdx, uint8_t* payload, uint8_t length, 
-        units::second_t timeout, uint8_t flags) {
+        wpi::units::second_t timeout, uint8_t flags) {
 
         std::unique_lock<std::mutex> lock(settingRecvLock);
         SetSettingById(settingIdx, payload, length, flags);
@@ -375,7 +375,7 @@ class CanandSettingsManager {
      *     If timeout = 0, return "payload" (assume success)
      */
     inline SettingResult ConfirmSetSetting(uint8_t settingIdx, uint64_t payload,
-        units::second_t timeout, uint8_t flags) {
+        wpi::units::second_t timeout, uint8_t flags) {
 
         std::unique_lock<std::mutex> lock(settingRecvLock);
         SetSettingById(settingIdx, payload, flags);
@@ -400,7 +400,7 @@ class CanandSettingsManager {
      * @param timeout timeout to wait before giving up in seconds. Passing in 0 will return a timeout.
      * @return SettingResult representing the setting result.
      */
-    inline SettingResult FetchSetting(uint8_t settingIdx, units::second_t timeout) {
+    inline SettingResult FetchSetting(uint8_t settingIdx, wpi::units::second_t timeout) {
         std::unique_lock<std::mutex> lock(settingRecvLock);
         uint8_t buf[] = {details::SettingCommand::kFetchSettingValue, settingIdx};
         dev.SendCANMessage(details::Message::kSettingCommand, buf, 2);

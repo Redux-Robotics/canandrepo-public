@@ -46,6 +46,7 @@ static FIFOCORE_ID: AtomicU32 = AtomicU32::new(0);
 
 impl FIFOCore {
     pub fn new(runtime: tokio::runtime::Handle) -> Self {
+        crate::timebase::init_program_epoch();
         let (usb_evloop, usb_hotplug) = {
             let usb_evloop = Arc::new(parking_lot::Mutex::new(backends::usb::UsbEventLoop::new()));
             let usb_hotplug = DropAbortHandle(Arc::new(
@@ -62,9 +63,6 @@ impl FIFOCore {
             usb_hotplug,
             loggers: Default::default(),
         };
-        #[cfg(feature = "wpihal-rio")]
-        inst.open_or_get_bus("halcan")
-            .expect("Could not open wpihalcan");
 
         #[cfg(feature = "systemcore")]
         for bus in ["can_s0", "can_s1", "can_s2", "can_s3", "can_s4"] {
@@ -107,23 +105,7 @@ impl FIFOCore {
         }
         let next_id = buses.keys().max().map_or(0, |v| *v + 1); //buses.len() as u16;
 
-        let backend: Result<Box<dyn MessageBackend>, Error> = if params.starts_with("halcan") {
-            #[cfg(feature = "wpihal-rio")]
-            {
-                Ok(Box::new(backends::BusController::<
-                    backends::halcan::HalCanBackend,
-                >::new(
-                    next_id, params, self.runtime.clone()
-                )?))
-            }
-            #[cfg(not(feature = "wpihal-rio"))]
-            {
-                crate::log_error!(
-                    "halcan backend not supported without WPILib support compiled in"
-                );
-                Err(Error::BusNotSupported)
-            }
-        } else if params.starts_with("socketcan") {
+        let backend: Result<Box<dyn MessageBackend>, Error> = if params.starts_with("socketcan") {
             #[cfg(target_os = "linux")]
             {
                 Ok(Box::new(backends::BusController::<
