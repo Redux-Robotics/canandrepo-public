@@ -388,16 +388,18 @@ impl Target {
                     .stdout,
             )?;
 
-            let llvm_tools = Path::new(&sysroot)
-                .join(format!("lib/rustlib/{}/bin", Target::host().info().triple));
+            let llvm_strip = Path::new(sysroot.trim())
+                .join(format!("lib/rustlib/{}/bin/llvm-strip", Target::host().info().triple));
 
-            let mut llvm_strip = Command::new(llvm_tools.join("llvm-strip"));
+            eprintln!("Stripping built lib{lib_name}.so with {}", llvm_strip.display());
+
+            let mut strip = Command::new(&llvm_strip);
             let release_dir = dir.join(format!("target/{}/release", info.triple));
-            llvm_strip.arg("-g");
-            llvm_strip.arg("-o");
-            llvm_strip.arg(release_dir.join(format!("lib{lib_name}.so.stripped")));
-            llvm_strip.arg(release_dir.join(format!("lib{lib_name}.so")));
-            llvm_strip.status()?;
+            strip.arg("-g");
+            strip.arg("-o");
+            strip.arg(release_dir.join(format!("lib{lib_name}.so.stripped")));
+            strip.arg(release_dir.join(format!("lib{lib_name}.so")));
+            strip.status()?;
         }
 
         Ok(())
