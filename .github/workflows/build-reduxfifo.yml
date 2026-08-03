@@ -17,23 +17,23 @@ jobs:
       matrix:
         include:
           - artifact-name: Systemcore
-            container: wpilib/systemcore-cross-ubuntu:2027-24.04
+            container: wpilib/systemcore-cross-debian:trixie
             build-options: "headers linuxsystemcore"
             reduxfifo-features: "systemcore"
             reduxlib-options: "-Ponlylinuxsystemcore"
           - artifact-name: LinuxArm64
-            container: wpilib/aarch64-cross-ubuntu:2027-bookworm-24.04
+            container: wpilib/aarch64-cross-ubuntu:trixie
             build-options: "headers linuxarm64"
             reduxfifo-features: "simulation"
             reduxlib-options: "-Ponlylinuxarm64"
           - artifact-name: LinuxX86-64
-            container: wpilib/systemcore-cross-ubuntu:2027-24.04
+            container: wpilib/systemcore-cross-ubuntu:trixie
             build-options: "headers linuxx86-64"
             reduxfifo-features: "simulation"
             reduxlib-options: "-Pskiplinuxsystemcore"
 
     name: "Build Vendordep - ${{ matrix.artifact-name }}"
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     container: ${{ matrix.container }}
     steps:
       - name: Install build dependencies
@@ -67,18 +67,16 @@ jobs:
           path: reduxfifo/target/maven
 
   build-vendordep-host:
-    env: 
-      MACOSX_DEPLOYMENT_TARGET: 13.3
     strategy:
       fail-fast: false
       matrix:
         include:
-          - os: windows-2022
+          - os: windows-latest
             artifact-name: Windows
             architecture: x64
             build-options: "windowsx86-64"
             reduxfifo-features: "simulation"
-          - os: macos-15
+          - os: macos-26
             artifact-name: macOS
             architecture: aarch64
             build-options: "osxuniversal"
