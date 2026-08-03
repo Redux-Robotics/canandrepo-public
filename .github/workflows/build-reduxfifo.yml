@@ -51,7 +51,7 @@ jobs:
           cache-key: ${{ matrix.artifact-name }}
           cache-workspaces: "crates -> crates/target\nreduxfifo -> reduxfifo/target\nreduxfifo/xtask -> reduxfifo/xtask/target"
       - name: Build maven artifact
-        run: echo "$PATH" && cd reduxfifo && cargo xtask --all ${{ matrix.build-options }} -- --no-default-features --features ${{ matrix.reduxfifo-features }}
+        run: echo "$PATH" && cd reduxfifo && cargo xtask ${{ matrix.build-options }} -- --no-default-features --features ${{ matrix.reduxfifo-features }}
       - name: Build with Gradle
         run: ./gradlew publish -PreleaseMode -Pskiplinuxarm32 ${{ matrix.reduxlib-options }}
         working-directory: ReduxLib
@@ -105,7 +105,7 @@ jobs:
           java-version: 25
           architecture: ${{ matrix.architecture }}
       - name: Build ReduxFIFO
-        run: cargo xtask --all headers ${{ matrix.build-options }} -- --no-default-features --features ${{ matrix.reduxfifo-features }}
+        run: cargo xtask headers ${{ matrix.build-options }} -- --no-default-features --features ${{ matrix.reduxfifo-features }}
         working-directory: reduxfifo
       - uses: actions/upload-artifact@v7
         with:
