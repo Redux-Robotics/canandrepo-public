@@ -60,24 +60,80 @@ impl ReduxFIFOCrate {
 pub struct Toolchain {
     /// Base directory containing the tools
     pub base: PathBuf,
-    /// String prefix, e.g. `aarch64-systemcoreYEAR-linux-gnu-`
+    /// String prefix, e.g. `aarch64-systemcoreYEAR-linux-gnu`
     pub prefix: String,
 }
 
 impl Toolchain {
     pub fn tool(&self, name: &str) -> PathBuf {
-        self.base.join(format!("{}{}", self.prefix, name))
+        self.base.join(format!("{}-{}", self.prefix, name))
+    }
+
+    pub fn locate(prefix: String, arch: &str, year: u64) -> Result<Self, ToolchainNotFound> {
+        let gcc_name = format!("{prefix}-gcc");
+        if let Ok(w) = which::which(&gcc_name) {
+            // sometimes the systemcore toolchain is already in PATH (e.g. in buildserver containers)
+            return Ok(Self {
+                base: w.parent().unwrap().to_path_buf(),
+                prefix,
+            });
+        }
+
+        let mut search_path = Vec::new();
+        let maybe_home = std::env::home_dir();
+        if let Some(home) = &maybe_home {
+            // We'll prefer the gradle cache, if it exists.
+            search_path.push(home.join(format!(".gradle/toolchains/first/{year}/{arch}/bin")));
+        }
+
+        #[cfg(unix)]
+        {
+            if let Some(home) = &maybe_home {
+                // All unicies have their wpilib install in the home directory.
+                // For now.
+                search_path.push(home.join(format!("wpilib/{year}/{arch}/bin")));
+            };
+            // the cross-compiler container
+            search_path.push(PathBuf::from("/usr/local/bin"));
+        }
+
+        #[cfg(windows)]
+        {
+            // windows typically puts the toolchain in C:\Users\Public for whatever reason
+            search_path.push(
+                PathBuf::from(std::env::var("PUBLIC").unwrap_or("C:\\Users\\Public".into()))
+                    .join(format!("wpilib\\{year}\\{arch}\\bin")),
+            );
+            if let Some(home) = &maybe_home {
+                search_path.push(home.join(format!("wpilib\\{year}\\{arch}\\bin")));
+            }
+        }
+
+        // find gcc base path
+        for path in &search_path {
+            let gcc = path.join(&gcc_name);
+            if gcc.exists() && gcc.is_file() {
+                return Ok(Self {
+                    base: path.clone(),
+                    prefix,
+                });
+            }
+        }
+        Err(ToolchainNotFound {
+            prefix,
+            searched: search_path,
+        })
     }
 }
 
 #[derive(Debug)]
 pub struct ToolchainNotFound {
-    pub year: u64,
+    pub prefix: String,
     pub searched: Vec<PathBuf>,
 }
 impl core::fmt::Display for ToolchainNotFound {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        writeln!(f, "Toolchain not found, is wpilib {} installed?", self.year)?;
+        writeln!(f, "Toolchain {} not found, is it installed?", self.prefix)?;
         writeln!(f, "Searched in:")?;
         for path in &self.searched {
             writeln!(f, "\t{}", path.display())?;
@@ -88,60 +144,15 @@ impl core::fmt::Display for ToolchainNotFound {
 impl core::error::Error for ToolchainNotFound {}
 
 pub fn locate_systemcore_toolchain(year: u64) -> Result<Toolchain, ToolchainNotFound> {
-    let prefix = format!("aarch64-systemcore{year}-linux-gnu-");
-    let gcc_name = format!("{prefix}gcc");
-    if let Ok(w) = which::which(&gcc_name) {
-        // sometimes the systemcore toolchain is already in PATH (e.g. in buildserver containers)
-        return Ok(Toolchain {
-            base: w.parent().unwrap().to_path_buf(),
-            prefix,
-        });
-    }
-
-    let mut search_path = Vec::new();
-    let maybe_home = std::env::home_dir();
-    if let Some(home) = &maybe_home {
-        // We'll prefer the gradle cache, if it exists.
-        search_path.push(home.join(format!(".gradle/toolchains/first/{year}/systemcore/bin")));
-    }
-
-    #[cfg(unix)]
-    {
-        if let Some(home) = &maybe_home {
-            // All unicies have their wpilib install in the home directory.
-            // For now.
-            search_path.push(home.join(format!("wpilib/{year}/systemcore/bin")));
-        };
-        // the cross-compiler container
-        search_path.push(PathBuf::from("/usr/local/bin"));
-    }
-
-    #[cfg(windows)]
-    {
-        // windows typically puts the toolchain in C:\Users\Public for whatever reason
-        search_path.push(
-            PathBuf::from(std::env::var("PUBLIC").unwrap_or("C:\\Users\\Public".into()))
-                .join(format!("wpilib\\{year}\\systemcore\\bin")),
-        );
-        if let Some(home) = &maybe_home {
-            search_path.push(home.join(format!("wpilib\\{year}\\systemcore\\bin")));
-        }
-    }
-
-    // find gcc base path
-    for path in &search_path {
-        let gcc = path.join(&gcc_name);
-        if gcc.exists() && gcc.is_file() {
-            return Ok(Toolchain {
-                base: path.clone(),
-                prefix,
-            });
-        }
-    }
-    Err(ToolchainNotFound {
+    Toolchain::locate(
+        format!("aarch64-systemcore{year}-linux-gnu"),
+        "systemcore",
         year,
-        searched: search_path,
-    })
+    )
+}
+
+pub fn locate_aarch64_toolchain(year: u64) -> Result<Toolchain, ToolchainNotFound> {
+    Toolchain::locate(format!("aarch64-trixie-linux-gnu"), "arm64", year)
 }
 
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
@@ -306,12 +317,20 @@ impl Target {
 
         match self {
             Target::LinuxSystemCore => {
-                let systemcore_toolchain = locate_systemcore_toolchain(crate_info.year)?;
                 cargo_build(
                     dir,
                     &self.info().triple,
                     release,
-                    Some(&systemcore_toolchain),
+                    Some(&locate_systemcore_toolchain(crate_info.year)?),
+                    cargo_flags,
+                )?;
+            }
+            Target::LinuxArm64 => {
+                cargo_build(
+                    dir,
+                    &self.info().triple,
+                    release,
+                    Some(&locate_aarch64_toolchain(crate_info.year)?),
                     cargo_flags,
                 )?;
             }

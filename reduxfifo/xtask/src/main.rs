@@ -4,6 +4,8 @@ use clap::Parser as _;
 use maven_utils::{BuildConfig, Target, build_maven_zip, locate_systemcore_toolchain};
 
 use crate::maven_utils::ReduxFIFOCrate;
+#[cfg(all(target_os = "linux", not(target_arch = "aarch64")))]
+use crate::maven_utils::locate_aarch64_toolchain;
 
 pub mod maven_utils;
 
@@ -124,8 +126,7 @@ fn main() -> anyhow::Result<()> {
 
                 // build extra targets if applicable
                 #[cfg(all(target_os = "linux", not(target_arch = "aarch64")))]
-                {
-                    //if Path::new("/usr/local/aarch64-linux-gnu").exists() {
+                if locate_aarch64_toolchain(ci.year).is_ok() {
                     build_maven(&ci, Target::LinuxArm64, &build_configs, &cargo_flags)?;
                 }
 
