@@ -103,18 +103,7 @@ fn build_maven_desktop(
     crate_info: &ReduxFIFOCrate,
     cargo_flags: &Vec<String>,
 ) -> anyhow::Result<()> {
-    #[cfg(all(target_os = "linux", target_arch = "x86_64"))]
-    let target = Target::LinuxX86_64;
-    #[cfg(all(target_os = "linux", target_arch = "aarch64"))]
-    let target = Target::LinuxArm64;
-    #[cfg(target_os = "macos")]
-    let target = Target::OsxUniversal;
-    #[cfg(all(target_os = "windows", target_arch = "x86_64"))]
-    let target = Target::WindowsX86_64;
-    #[cfg(all(target_os = "windows", target_arch = "aarch64"))]
-    let target = Target::WindowsArm64;
-
-    build_maven(&crate_info, target, &cargo_flags)
+    build_maven(&crate_info, Target::host(), &cargo_flags)
 }
 
 fn build_maven(

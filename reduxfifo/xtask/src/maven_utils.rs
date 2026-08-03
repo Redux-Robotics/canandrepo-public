@@ -319,6 +319,22 @@ impl Target {
         }
     }
 
+    /// Gets the running host target.
+    pub const fn host() -> Self {
+        #[cfg(all(target_os = "linux", target_arch = "x86_64"))]
+        let target = Self::LinuxX86_64;
+        #[cfg(all(target_os = "linux", target_arch = "aarch64"))]
+        let target = Self::LinuxArm64;
+        #[cfg(target_os = "macos")]
+        let target = Self::OsxUniversal;
+        #[cfg(all(target_os = "windows", target_arch = "x86_64"))]
+        let target = Self::WindowsX86_64;
+        #[cfg(all(target_os = "windows", target_arch = "aarch64"))]
+        let target = Self::WindowsArm64;
+
+        target
+    }
+
     pub fn build(
         &self,
         crate_info: &ReduxFIFOCrate,
@@ -365,7 +381,17 @@ impl Target {
 
         if info.os == OperatingSystem::Linux {
             // we need to generate a stripped binary
-            let mut llvm_strip = Command::new("rust-strip");
+            let sysroot = String::from_utf8(
+                Command::new("rustc")
+                    .args(["--print", "sysroot"])
+                    .output()?
+                    .stdout,
+            )?;
+
+            let llvm_tools = Path::new(&sysroot)
+                .join(format!("lib/rustlib/{}/bin", Target::host().info().triple));
+
+            let mut llvm_strip = Command::new(llvm_tools.join("llvm-strip"));
             let release_dir = dir.join(format!("target/{}/release", info.triple));
             llvm_strip.arg("-g");
             llvm_strip.arg("-o");
