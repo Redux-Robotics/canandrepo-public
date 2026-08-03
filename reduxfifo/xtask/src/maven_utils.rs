@@ -171,30 +171,44 @@ pub enum Target {
 pub enum OperatingSystem {
     Linux,
     Windows,
-    Osx,
+    Mac,
 }
 
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
 pub enum Binary {
-    Lib(&'static str),
-    Win(&'static str),
-    WinLib(&'static str),
+    /// .so that goes from `libname.so -> libname.so`
+    SoLib,
+    /// .so that goes from `libname.so.stripped -> libname.so`
+    StrippedSoLib,
+    /// macos .dylib (no debug binaries)
+    DyLib,
+    /// windows dll
+    WinDll,
+    /// windows debug artifact
+    WinDbg(&'static str),
+    /// debug symbol that goes from `name.dll.lib` -> `name.lib`
+    WinLib,
 }
 
 impl Binary {
     pub fn source_name(&self, name: &str) -> String {
         match self {
-            Binary::Lib(s) => format!("lib{name}{s}"),
-            Binary::Win(s) => format!("{name}{s}"),
-            Binary::WinLib(s) => format!("{name}{s}"),
+            Self::SoLib => format!("lib{name}.so"),
+            Self::StrippedSoLib => format!("lib{name}.so.stripped"),
+            Self::DyLib => format!("lib{name}.dylib"),
+            Self::WinDll => format!("{name}.dll"),
+            Self::WinDbg(s) => format!("{name}{s}"),
+            Self::WinLib => format!("{name}.dll.lib"),
         }
     }
 
     pub fn dest_name(&self, name: &str) -> String {
         match self {
-            Binary::Lib(s) => format!("lib{name}{s}"),
-            Binary::Win(s) => format!("{name}{s}"),
-            Binary::WinLib(_) => format!("{name}.lib"),
+            Self::SoLib | Self::StrippedSoLib => format!("lib{name}.so"),
+            Self::DyLib => format!("lib{name}.dylib"),
+            Self::WinDll => format!("{name}.dll"),
+            Self::WinDbg(s) => format!("{name}{s}"),
+            Self::WinLib => format!("{name}.lib"),
         }
     }
 }
@@ -204,26 +218,26 @@ impl OperatingSystem {
         match self {
             OperatingSystem::Linux => "linux",
             OperatingSystem::Windows => "windows",
-            OperatingSystem::Osx => "osx",
+            OperatingSystem::Mac => "osx",
         }
     }
-    pub const fn shared_artifacts(&self) -> &'static [Binary] {
+    pub const fn release_artifacts(&self) -> &'static [Binary] {
         match self {
-            OperatingSystem::Linux => &[Binary::Lib(".so")],
+            OperatingSystem::Linux => &[Binary::StrippedSoLib],
+            OperatingSystem::Windows => &[Binary::WinDll],
+            OperatingSystem::Mac => &[Binary::DyLib],
+        }
+    }
+    pub const fn debug_artifacts(&self) -> &'static [Binary] {
+        match self {
+            OperatingSystem::Linux => &[Binary::SoLib],
             OperatingSystem::Windows => &[
-                Binary::Win(".pdb"),
-                Binary::WinLib(".dll.lib"),
-                Binary::Win(".dll"),
-                Binary::Win(".dll.exp"),
+                Binary::WinDll,
+                Binary::WinLib,
+                Binary::WinDbg(".pdb"),
+                Binary::WinDbg(".dll.exp"),
             ],
-            OperatingSystem::Osx => &[Binary::Lib(".dylib")],
-        }
-    }
-    pub const fn static_artifacts(&self) -> &'static [Binary] {
-        match self {
-            OperatingSystem::Linux => &[Binary::Lib(".a")],
-            OperatingSystem::Windows => &[Binary::Win(".lib")],
-            OperatingSystem::Osx => &[Binary::Lib(".a")],
+            OperatingSystem::Mac => &[Binary::DyLib],
         }
     }
 }
@@ -279,17 +293,17 @@ impl Target {
             },
             Target::OsxUniversal => TargetInfo {
                 triple: "universal-apple-darwin",
-                os: OperatingSystem::Osx,
+                os: OperatingSystem::Mac,
                 arch: Architecture::OsxUniversal,
             },
             Target::OsxArm64 => TargetInfo {
                 triple: "aarch64-apple-darwin",
-                os: OperatingSystem::Osx,
+                os: OperatingSystem::Mac,
                 arch: Architecture::Arm64,
             },
             Target::OsxX86_64 => TargetInfo {
                 triple: "x86_64-apple-darwin",
-                os: OperatingSystem::Osx,
+                os: OperatingSystem::Mac,
                 arch: Architecture::X86_64,
             },
             Target::LinuxX86_64 => TargetInfo {
@@ -305,22 +319,36 @@ impl Target {
         }
     }
 
+    /// Gets the running host target.
+    pub const fn host() -> Self {
+        #[cfg(all(target_os = "linux", target_arch = "x86_64"))]
+        let target = Self::LinuxX86_64;
+        #[cfg(all(target_os = "linux", target_arch = "aarch64"))]
+        let target = Self::LinuxArm64;
+        #[cfg(target_os = "macos")]
+        let target = Self::OsxUniversal;
+        #[cfg(all(target_os = "windows", target_arch = "x86_64"))]
+        let target = Self::WindowsX86_64;
+        #[cfg(all(target_os = "windows", target_arch = "aarch64"))]
+        let target = Self::WindowsArm64;
+
+        target
+    }
+
     pub fn build(
         &self,
         crate_info: &ReduxFIFOCrate,
-        build_config: &BuildConfig,
         cargo_flags: &Vec<String>,
     ) -> anyhow::Result<()> {
         let lib_name = crate_info.manifest.clone().lib.unwrap().name.unwrap();
         let dir = crate_info.workspace_root.as_path();
-        let release = !build_config.is_debug();
+        let info = self.info();
 
         match self {
             Target::LinuxSystemCore => {
                 cargo_build(
                     dir,
-                    &self.info().triple,
-                    release,
+                    &info.triple,
                     Some(&locate_systemcore_toolchain(crate_info.year)?),
                     cargo_flags,
                 )?;
@@ -328,75 +356,53 @@ impl Target {
             Target::LinuxArm64 => {
                 cargo_build(
                     dir,
-                    &self.info().triple,
-                    release,
+                    &info.triple,
                     Some(&locate_aarch64_toolchain(crate_info.year)?),
                     cargo_flags,
                 )?;
             }
             Target::OsxUniversal => {
                 // osxuniversal needs to build twice and then lipo all the artifacts together
-                cargo_build(dir, "aarch64-apple-darwin", release, None, cargo_flags)?;
-                cargo_build(dir, "x86_64-apple-darwin", release, None, cargo_flags)?;
-
-                let (debug_release, static_shared) = match build_config {
-                    BuildConfig::Shared => ("release", "dylib"),
-                    BuildConfig::Static => ("release", "a"),
-                    BuildConfig::SharedDebug => ("debug", "dylib"),
-                    BuildConfig::StaticDebug => ("debug", "a"),
-                };
+                cargo_build(dir, "aarch64-apple-darwin", None, cargo_flags)?;
+                cargo_build(dir, "x86_64-apple-darwin", None, cargo_flags)?;
 
                 std::fs::create_dir_all(
                     crate_info
                         .target_dir
-                        .join(format!("universal-apple-darwin/{debug_release}")),
+                        .join(format!("universal-apple-darwin/release")),
                 )
                 .ok();
-                lipo(
-                    dir,
-                    format!("{debug_release}/lib{lib_name}.{static_shared}").as_str(),
-                )?;
+                lipo(dir, &format!("release/lib{lib_name}.dylib"))?;
             }
             _other => {
-                cargo_build(dir, &self.info().triple, release, None, cargo_flags)?;
+                cargo_build(dir, &info.triple, None, cargo_flags)?;
             }
+        }
+
+        if info.os == OperatingSystem::Linux {
+            // we need to generate a stripped binary
+            let sysroot = String::from_utf8(
+                Command::new("rustc")
+                    .args(["--print", "sysroot"])
+                    .output()?
+                    .stdout,
+            )?;
+
+            let llvm_strip = Path::new(sysroot.trim())
+                .join(format!("lib/rustlib/{}/bin/llvm-strip", Target::host().info().triple));
+
+            eprintln!("Stripping built lib{lib_name}.so with {}", llvm_strip.display());
+
+            let mut strip = Command::new(&llvm_strip);
+            let release_dir = dir.join(format!("target/{}/release", info.triple));
+            strip.arg("-g");
+            strip.arg("-o");
+            strip.arg(release_dir.join(format!("lib{lib_name}.so.stripped")));
+            strip.arg(release_dir.join(format!("lib{lib_name}.so")));
+            strip.status()?;
         }
 
         Ok(())
-    }
-}
-
-#[derive(Clone, Copy, PartialEq, Eq, Debug)]
-pub enum BuildConfig {
-    Shared,
-    Static,
-    SharedDebug,
-    StaticDebug,
-}
-impl BuildConfig {
-    pub const fn is_static(&self) -> bool {
-        match self {
-            BuildConfig::Shared => false,
-            BuildConfig::Static => true,
-            BuildConfig::SharedDebug => false,
-            BuildConfig::StaticDebug => true,
-        }
-    }
-    pub const fn is_debug(&self) -> bool {
-        match self {
-            BuildConfig::Shared => false,
-            BuildConfig::Static => false,
-            BuildConfig::SharedDebug => true,
-            BuildConfig::StaticDebug => true,
-        }
-    }
-    pub const fn suffix(&self) -> &'static str {
-        match self {
-            BuildConfig::Shared => "",
-            BuildConfig::Static => "static",
-            BuildConfig::SharedDebug => "debug",
-            BuildConfig::StaticDebug => "staticdebug",
-        }
     }
 }
 
@@ -415,7 +421,6 @@ fn lipo(dir: &Path, artifact_path: &str) -> anyhow::Result<()> {
 fn cargo_build(
     dir: &Path,
     triple: &str,
-    release: bool,
     link_toolchain: Option<&Toolchain>,
     flags: &Vec<String>,
 ) -> anyhow::Result<()> {
@@ -423,9 +428,7 @@ fn cargo_build(
     let mut cargo = Command::new(cargo);
     cargo.current_dir(dir);
     cargo.arg("build");
-    if release {
-        cargo.arg("--release");
-    }
+    cargo.arg("--release");
     cargo.arg(format!("--target={triple}"));
     cargo.args(flags);
 
@@ -509,14 +512,20 @@ pub fn build_maven(
     target: Target,
     group_id: &str,
     artifact_id: &str,
-    build_configs: &[BuildConfig],
     cargo_flags: &Vec<String>,
 ) -> anyhow::Result<()> {
-    eprintln!("Building target {target:?} with {build_configs:?}");
+    eprintln!("Building target {target:?}");
     let version = crate_info.version.to_string();
     let group_id_as_path = PathBuf::from(OsString::from(group_id.replace(".", PATH_SEP)));
     let lib_name = crate_info.manifest.clone().lib.unwrap().name.unwrap();
     let target_info = target.info();
+
+    let build_dir = crate_info
+        .target_dir
+        .join(target_info.triple)
+        .join("release");
+
+    let license = std::fs::read(crate_info.workspace_root.join("LICENSE.txt"))?;
 
     let maven = crate_info
         .target_dir
@@ -527,66 +536,62 @@ pub fn build_maven(
     eprintln!("Creating maven target {maven:?}");
 
     std::fs::create_dir_all(&maven).ok();
-    for build_config in build_configs {
-        target.build(crate_info, build_config, cargo_flags)?;
+    target.build(crate_info, cargo_flags)?;
+
+    for is_debug in [false, true] {
         let zipfname = maven.join(format!(
             "{artifact_id}-{version}-{}{}{}.zip",
             target_info.os.name(),
             target_info.arch.name(),
-            build_config.suffix(),
+            if is_debug { "debug" } else { "" },
         ));
         eprintln!("Building zip {zipfname:?}");
-
-        let zipf = std::fs::File::create(&zipfname)?;
-        let mut zip = zip::ZipWriter::new(zipf);
-
-        zip.start_file("LICENSE.txt", zip_options())?;
-        zip.write_all(std::fs::read(crate_info.workspace_root.join("LICENSE.txt"))?.as_slice())?;
-
-        // create the os/arch/linkage/ directory
-        zip.add_directory(target_info.os.name(), zip_options())?;
-        zip.add_directory(
-            format!("{}/{}", target_info.os.name(), target_info.arch.name()),
-            zip_options(),
-        )?;
-        let shared_or_static = if build_config.is_static() {
-            "static"
-        } else {
-            "shared"
-        };
-        let base_path = format!(
-            "{}/{}/{}",
-            target_info.os.name(),
-            target_info.arch.name(),
-            shared_or_static
-        );
-        zip.add_directory(&base_path, zip_options())?;
-
-        let artifacts = if build_config.is_static() {
-            target_info.os.static_artifacts()
-        } else {
-            target_info.os.shared_artifacts()
-        };
-        let build_dir =
-            crate_info
-                .target_dir
-                .join(target_info.triple)
-                .join(if build_config.is_debug() {
-                    "debug"
-                } else {
-                    "release"
-                });
-        // write the artifact to the zip
-        for artifact_bin in artifacts {
-            let artifact_name = artifact_bin.source_name(lib_name.as_str());
-            let artifact_dest = artifact_bin.dest_name(lib_name.as_str());
-
-            zip.start_file_from_path(format!("{}/{}", &base_path, &artifact_dest), zip_options())?;
-            zip.write_all(std::fs::read(build_dir.join(artifact_name))?.as_slice())?;
-        }
-        zip.finish()?;
-        calc_hashes(&zipfname)?;
+        build_maven_binary_zip(&zipfname, &build_dir, &lib_name, target, &license, is_debug)?;
     }
+
+    Ok(())
+}
+
+fn build_maven_binary_zip(
+    fname: &Path,
+    build_dir: &Path,
+    lib_name: &str,
+    target: Target,
+    license_txt: &[u8],
+    debug: bool,
+) -> anyhow::Result<()> {
+    let target_info = target.info();
+    let zipf = std::fs::File::create(fname)?;
+    let mut zip = zip::ZipWriter::new(zipf);
+
+    zip.start_file("LICENSE.txt", zip_options())?;
+    zip.write_all(license_txt)?;
+
+    // create the os/arch/linkage/ directory
+    zip.add_directory(target_info.os.name(), zip_options())?;
+    let base_path = format!(
+        "{}/{}/shared",
+        target_info.os.name(),
+        target_info.arch.name(),
+    );
+    zip.add_directory(&base_path, zip_options())?;
+
+    let artifacts = if debug {
+        target_info.os.debug_artifacts()
+    } else {
+        target_info.os.release_artifacts()
+    };
+    // write the artifact to the zip
+    for artifact_bin in artifacts {
+        let artifact_name = artifact_bin.source_name(lib_name);
+        let artifact_dest = artifact_bin.dest_name(lib_name);
+
+        zip.start_file_from_path(format!("{}/{}", &base_path, &artifact_dest), zip_options())?;
+        zip.write_all(&std::fs::read(build_dir.join(artifact_name))?)?;
+    }
+    zip.finish()?;
+    calc_hashes(&fname)?;
+
     Ok(())
 }
 
