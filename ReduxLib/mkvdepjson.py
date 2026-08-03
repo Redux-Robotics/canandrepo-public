@@ -40,7 +40,7 @@ if __name__ == "__main__":
         "fileName": f"ReduxLib-{version}.json",
         "name": "ReduxLib",
         "version": version,
-        "frcYear": versionYear,
+        "wpilibYear": versionYear,
         "uuid": "151ecca8-670b-4026-8160-cdd2679ef2bd",
         "mavenUrls": [ MAVEN_URL ] if not local_flag else [
             "file:" + str(VDEP_ROOT/"build/repos/releases"),
