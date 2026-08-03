@@ -22,12 +22,12 @@ jobs:
             reduxfifo-features: "systemcore"
             reduxlib-options: "-Ponlylinuxsystemcore"
           - artifact-name: LinuxArm64
-            container: wpilib/aarch64-cross-ubuntu:trixie
+            container: wpilib/aarch64-cross-debian:trixie
             build-options: "headers linuxarm64"
             reduxfifo-features: "simulation"
             reduxlib-options: "-Ponlylinuxarm64"
           - artifact-name: LinuxX86-64
-            container: wpilib/systemcore-cross-ubuntu:trixie
+            container: wpilib/systemcore-cross-debian:trixie
             build-options: "headers linuxx86-64"
             reduxfifo-features: "simulation"
             reduxlib-options: "-Pskiplinuxsystemcore"
