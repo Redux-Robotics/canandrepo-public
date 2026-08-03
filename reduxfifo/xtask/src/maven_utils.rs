@@ -365,7 +365,7 @@ impl Target {
 
         if info.os == OperatingSystem::Linux {
             // we need to generate a stripped binary
-            let mut llvm_strip = Command::new("llvm-strip");
+            let mut llvm_strip = Command::new("rust-strip");
             let release_dir = dir.join(format!("target/{}/release", info.triple));
             llvm_strip.arg("-g");
             llvm_strip.arg("-o");
