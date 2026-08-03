@@ -115,7 +115,7 @@ fn main() -> anyhow::Result<()> {
                 // always build headers
                 build_maven_zip(&ci, Path::new("include"), GROUP_ID, ARTIFACT_ID, "headers")?;
                 // always build systemcore if possible
-                if locate_systemcore_toolchain().is_some() {
+                if locate_systemcore_toolchain(ci.year).is_ok() {
                     build_maven(&ci, Target::LinuxSystemCore, &build_configs, &cargo_flags)?;
                 }
 

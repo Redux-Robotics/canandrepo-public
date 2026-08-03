@@ -56,43 +56,92 @@ impl ReduxFIFOCrate {
     }
 }
 
-/// systemcore has a hardcoded year.
-pub const SYSTEMCORE_YEAR: &str = "2027_alpha5";
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct Toolchain {
+    /// Base directory containing the tools
+    pub base: PathBuf,
+    /// String prefix, e.g. `aarch64-systemcoreYEAR-linux-gnu-`
+    pub prefix: String,
+}
 
-pub fn locate_systemcore_toolchain() -> Option<PathBuf> {
-    if let Ok(w) = which::which("aarch64-bookworm-linux-gnu-gcc") {
+impl Toolchain {
+    pub fn tool(&self, name: &str) -> PathBuf {
+        self.base.join(format!("{}{}", self.prefix, name))
+    }
+}
+
+#[derive(Debug)]
+pub struct ToolchainNotFound {
+    pub year: u64,
+    pub searched: Vec<PathBuf>,
+}
+impl core::fmt::Display for ToolchainNotFound {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        writeln!(f, "Toolchain not found, is wpilib {} installed?", self.year)?;
+        writeln!(f, "Searched in:")?;
+        for path in &self.searched {
+            writeln!(f, "\t{}", path.display())?;
+        }
+        Ok(())
+    }
+}
+impl core::error::Error for ToolchainNotFound {}
+
+pub fn locate_systemcore_toolchain(year: u64) -> Result<Toolchain, ToolchainNotFound> {
+    let prefix = format!("aarch64-systemcore{year}-linux-gnu-");
+    let gcc_name = format!("{prefix}gcc");
+    if let Ok(w) = which::which(&gcc_name) {
         // sometimes the systemcore toolchain is already in PATH (e.g. in buildserver containers)
-        return Some(w.parent().unwrap().into());
+        return Ok(Toolchain {
+            base: w.parent().unwrap().to_path_buf(),
+            prefix,
+        });
+    }
+
+    let mut search_path = Vec::new();
+    let maybe_home = std::env::home_dir();
+    if let Some(home) = &maybe_home {
+        // We'll prefer the gradle cache, if it exists.
+        search_path.push(home.join(format!(".gradle/toolchains/first/{year}/systemcore/bin")));
     }
 
     #[cfg(unix)]
-    let search_path = &[
-        // All unicies have their wpilib install in the home directory.
-        // For now.
-        homedir::my_home()
-            .ok()??
-            .join(format!("wpilib/{}/systemcore/bin", SYSTEMCORE_YEAR)),
+    {
+        if let Some(home) = &maybe_home {
+            // All unicies have their wpilib install in the home directory.
+            // For now.
+            search_path.push(home.join(format!("wpilib/{year}/systemcore/bin")));
+        };
         // the cross-compiler container
-        PathBuf::from("/usr/local/bin"),
-    ];
+        search_path.push(PathBuf::from("/usr/local/bin"));
+    }
 
     #[cfg(windows)]
-    let search_path = &[
+    {
         // windows typically puts the toolchain in C:\Users\Public for whatever reason
-        PathBuf::from(std::env::var("PUBLIC").unwrap_or("C:\\Users\\Public".into()))
-            .join(format!("wpilib\\{}\\systemcore\\bin", SYSTEMCORE_YEAR)),
-        homedir::my_home()
-            .ok()??
-            .join(format!("wpilib\\{}\\systemcore\\bin", SYSTEMCORE_YEAR)),
-    ];
-
-    for candidate in search_path {
-        let gcc = candidate.join("aarch64-bookworm-linux-gnu-gcc");
-        if gcc.exists() && gcc.is_file() {
-            return Some(candidate.clone());
+        search_path.push(
+            PathBuf::from(std::env::var("PUBLIC").unwrap_or("C:\\Users\\Public".into()))
+                .join(format!("wpilib\\{year}\\systemcore\\bin")),
+        );
+        if let Some(home) = &maybe_home {
+            search_path.push(home.join(format!("wpilib\\{year}\\systemcore\\bin")));
         }
     }
-    None
+
+    // find gcc base path
+    for path in &search_path {
+        let gcc = path.join(&gcc_name);
+        if gcc.exists() && gcc.is_file() {
+            return Ok(Toolchain {
+                base: path.clone(),
+                prefix,
+            });
+        }
+    }
+    Err(ToolchainNotFound {
+        year,
+        searched: search_path,
+    })
 }
 
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
@@ -257,22 +306,19 @@ impl Target {
 
         match self {
             Target::LinuxSystemCore => {
-                let systemcore_toolchain = locate_systemcore_toolchain().expect(&format!(
-                    "Could not find SystemCore toolchain, is wpilib {} installed?",
-                    SYSTEMCORE_YEAR
-                ));
+                let systemcore_toolchain = locate_systemcore_toolchain(crate_info.year)?;
                 cargo_build(
                     dir,
                     &self.info().triple,
                     release,
-                    &[systemcore_toolchain.to_str().unwrap()],
+                    Some(&systemcore_toolchain),
                     cargo_flags,
                 )?;
             }
             Target::OsxUniversal => {
                 // osxuniversal needs to build twice and then lipo all the artifacts together
-                cargo_build(dir, "aarch64-apple-darwin", release, &[], cargo_flags)?;
-                cargo_build(dir, "x86_64-apple-darwin", release, &[], cargo_flags)?;
+                cargo_build(dir, "aarch64-apple-darwin", release, None, cargo_flags)?;
+                cargo_build(dir, "x86_64-apple-darwin", release, None, cargo_flags)?;
 
                 let (debug_release, static_shared) = match build_config {
                     BuildConfig::Shared => ("release", "dylib"),
@@ -293,7 +339,7 @@ impl Target {
                 )?;
             }
             _other => {
-                cargo_build(dir, &self.info().triple, release, &[], cargo_flags)?;
+                cargo_build(dir, &self.info().triple, release, None, cargo_flags)?;
             }
         }
 
@@ -345,25 +391,13 @@ fn lipo(dir: &Path, artifact_path: &str) -> anyhow::Result<()> {
         .arg(format!("target/aarch64-apple-darwin/{artifact_path}"))
         .status()?;
     Ok(())
-    // lipo -create -output target/universal-apple-darwin/debug/librdxusb.a
-}
-
-fn append_to_path_variable(path: &str, entry: &str) -> String {
-    #[cfg(unix)]
-    {
-        format!("{entry}:{path}")
-    }
-    #[cfg(windows)]
-    {
-        format!("{entry};{path}")
-    }
 }
 
 fn cargo_build(
     dir: &Path,
     triple: &str,
     release: bool,
-    path_env: &[&str],
+    link_toolchain: Option<&Toolchain>,
     flags: &Vec<String>,
 ) -> anyhow::Result<()> {
     let cargo = std::env::var_os("CARGO").unwrap_or_else(|| "cargo".into());
@@ -376,11 +410,28 @@ fn cargo_build(
     cargo.arg(format!("--target={triple}"));
     cargo.args(flags);
 
-    let mut path = std::env::var("PATH")?;
-    for path_addition in path_env {
-        path = append_to_path_variable(path.as_str(), path_addition);
+    // prepend the toolchain to PATH and setup environment variables
+    if let Some(toolchain) = link_toolchain {
+        #[cfg(unix)]
+        const SEP: &str = ":";
+        #[cfg(windows)]
+        const SEP: &str = ";";
+
+        let mut path = std::env::var("PATH")?;
+        path = format!("{}{SEP}{path}", toolchain.base.display());
+
+        // convert from kebab to UPPER_SNAKE
+        let var_target = triple.replace("-", "_").to_uppercase();
+        cargo.env(
+            format!("CARGO_TARGET_{var_target}_LINKER"),
+            toolchain.tool("gcc"),
+        );
+        cargo.env(
+            format!("CARGO_TARGET_{var_target}_AR"),
+            toolchain.tool("ar"),
+        );
+        cargo.env("PATH", path);
     }
-    cargo.env("PATH", path);
     cargo.status()?;
 
     Ok(())
