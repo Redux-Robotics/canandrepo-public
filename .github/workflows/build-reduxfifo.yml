@@ -51,7 +51,7 @@ jobs:
           cache-key: ${{ matrix.artifact-name }}
           cache-workspaces: "crates -> crates/target\nreduxfifo -> reduxfifo/target\nreduxfifo/xtask -> reduxfifo/xtask/target"
       - name: Ensure locations of tools
-        run: which rust-strip && which cargo
+        run: which llvm-strip
       - name: Build maven artifact
         run: echo "$PATH" && cd reduxfifo && cargo xtask ${{ matrix.build-options }} -- --no-default-features --features ${{ matrix.reduxfifo-features }}
       - name: Build with Gradle

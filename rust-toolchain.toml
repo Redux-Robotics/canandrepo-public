@@ -1,7 +1,7 @@
 cargo-features = ["per-package-target"]
 [toolchain]
 channel = "nightly-2026-07-02"
-components = [ "rustfmt", "rustc", "cargo", "llvm-tools-preview" ]
+components = [ "rustfmt", "rustc", "cargo", "llvm-tools" ]
 targets = [ 
     "x86_64-pc-windows-msvc", # x64 windows
     "aarch64-pc-windows-msvc", # arm64 windows
